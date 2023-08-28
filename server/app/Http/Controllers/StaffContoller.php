@@ -1,0 +1,170 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Staff;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
+
+class StaffContoller extends Controller
+{
+    public $possible_relations = ["fleets", "transaction","position"];
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        $paginate = $request->input("paginate");
+        $search = $request->input("search");
+        $relations = $request->input("relations");
+        // $fields = $request->input("fields");
+
+        $staff = new Staff();
+
+        if ($relations) {
+            $staff = handle_relations($relations, $this->possible_relations, $staff);
+        }
+
+        if ($search) {
+            $staff = $staff->where("id", $search)->orWhere("name", "like", "%$search%");
+        }
+
+        if ($paginate) return $staff->paginate($paginate);
+
+        return response()->json([
+            "data"=>$staff->get()
+        ],Response::HTTP_OK);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            "name"=>"required|string",
+            "registerDate"=>"required|date_format:Y-m-d",
+            "name"=>"required|string",
+            "address"=>"required|string",
+            "phone"=>"required|integer",
+            "information"=>"required|string",
+            "position_id"=>"required|integer"
+        ]);
+        if($validator->fails()){
+            return response()->json([
+                "message"=>$validator->errors()
+            ],Response::HTTP_BAD_REQUEST);
+        }
+        $validated = $validator->validated();
+        try{
+            $newValue= Staff::create($validated);
+        }
+        catch(\Exception $e){
+            return $e;
+        }
+        return response()->json([
+            "message"=>"Data Berhasil dibuat",
+            "data"=>$newValue
+        ],Response::HTTP_OK);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Request $request,$id)
+    {
+        $relations = $request->input("relations");
+
+        $staff = new Staff();
+
+        if ($relations) {
+            $staff = handle_relations($relations, $this->possible_relations,  $staff);
+        }
+
+
+        return $staff->findOrFail($id);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            "name"=>"string",
+            "registerDate"=>"date_format:Y-m-d",
+            "position_id"=>"integer",
+            "address"=>"string",
+            "phone"=>"string",
+            "information"=>"string",
+            
+        ]);
+        if($validator->fails()){
+            return response()->json([
+                "message"=>"error nih"
+            ],Response::HTTP_BAD_REQUEST);
+        }
+        $validated = $validator->validated();
+
+        try{
+            $staff = Staff::findOrfail($request->id);
+            $staff->update($validated);
+        }
+        catch(\Exception $e){
+            return $e;
+        }
+
+        return response()->json([
+            "message"=>"Data Berhasil dibuat",
+            "data"=>$staff
+        ],Response::HTTP_OK);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Staff $staff)
+    {
+        $staff->delete();
+        return response()->json([
+            "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+}
