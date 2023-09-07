@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 // components
 import Label from '../../../components/label';
-import { PosReducer,INITIAL_STATE } from './posReducer';
+import { PosReducer,INITIAL_STATE, usePos } from './posReducer';
 
 
 // ----------------------------------------------------------------------
@@ -27,7 +27,7 @@ ShopProductCard.propTypes = {
 };
 
 export default function ShopProductCard({ product }) {
-  const [state,dispatch] = useReducer(PosReducer,INITIAL_STATE)
+  const { state,dispatch} = usePos()
 
   const {id,idProduk,name,stock,urlImage, sellingPrice, discount } = product;
   const formattedNumber = sellingPrice.toLocaleString(undefined,{
@@ -41,10 +41,10 @@ export default function ShopProductCard({ product }) {
 })
 
   const handleAdd=(data)=>{
-    const addedData = [...state.product,{...data,quantity:0}]
+    const addedData = [{...data,quantity:0}]
     dispatch({type:"ADDED" , payload:addedData})
   }
-  // console.log(state.product);
+  console.log(state.product);
   return (
     <>
     <Card >
@@ -109,6 +109,7 @@ export default function ShopProductCard({ product }) {
           </Typography>
             )}
             {stock >0 ? (
+
             <IconButton size="large" color="inherit" onClick={()=>handleAdd(product)}>
                 <AddIcon/>
             </IconButton>

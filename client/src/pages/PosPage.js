@@ -43,6 +43,7 @@ export default function PosPage() {
           unitName: row.unit.shortname,
           supplierName: row.supplier.name,
           categoryType: row.category.itemType,
+
         })))
       })
     }

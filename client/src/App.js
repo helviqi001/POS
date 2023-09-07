@@ -8,6 +8,7 @@ import ThemeProvider from './theme';
 import { StyledChart } from './components/chart';
 import ScrollToTop from './components/scroll-to-top';
 import { AuthContextProvider } from './Auth';
+import { PosProvider } from './sections/@dashboard/pos/posReducer';
 
 // ----------------------------------------------------------------------
 
@@ -19,8 +20,10 @@ export default function App() {
           <ScrollToTop />
           <StyledChart />
       <AuthContextProvider>
+        <PosProvider>
           <Router />
           <Outlet/>
+        </PosProvider>
     </AuthContextProvider>
         </ThemeProvider>
       </BrowserRouter>

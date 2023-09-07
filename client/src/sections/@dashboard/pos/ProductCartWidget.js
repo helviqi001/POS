@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles';
 import { Badge } from '@mui/material';
 // component
 import { useReducer } from 'react';
-import { PosReducer,INITIAL_STATE } from './posReducer';
+import {usePos } from './posReducer';
 import Iconify from '../../../components/iconify';
 
 
@@ -33,8 +33,7 @@ const StyledRoot = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function CartWidget() {
-  const [state,dispatch] = useReducer(PosReducer,INITIAL_STATE)
-  // console.log(state.product.length);
+  const {state} = usePos()
   return (
     <StyledRoot>
       <Badge showZero badgeContent={state.product.length} color="error" max={99}>
