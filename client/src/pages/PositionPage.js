@@ -54,8 +54,9 @@ import { OutletContext } from '../layouts/dashboard/OutletProvider';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Position', alignRight: false },
-  { id: '' },
+  { id: 'name', label: 'Position Name', alignRight: false },
+  { id: 'shortname', label: 'Short Name', alignRight: false },
+  { id: '', label: 'Action', },
 ];
 
 // ----------------------------------------------------------------------
@@ -282,7 +283,7 @@ export default function PositionPage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name} = row;
+                    const { id, name,shortname} = row;
                     const selectedUser = selected.indexOf(name) !== -1;
 
                     return (
@@ -294,6 +295,11 @@ export default function PositionPage() {
                         <TableCell component="th" scope="row" padding="none" align='center'>
                             <Typography variant="subtitle2" noWrap>
                               {name}
+                            </Typography>
+                        </TableCell>
+                        <TableCell component="th" scope="row" padding="none" align='center'>
+                            <Typography  noWrap>
+                              {shortname}
                             </Typography>
                         </TableCell>
                         <TableCell align="center">

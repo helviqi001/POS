@@ -69,3 +69,21 @@ if (!function_exists("handle_fields")) {
         }
     }
 }
+if (!function_exists('generateAbbreviation')) {
+    function generateAbbreviation($categoryName) {
+        // Split the category name into words
+        $words = explode(' ', $categoryName);
+
+        // Initialize an empty abbreviation
+        $abbreviation = '';
+
+        foreach ($words as $word) {
+            // Take the first character of each word and append it to the abbreviation
+            $abbreviation .= strtoupper(substr($word, 0, 1));
+        }
+
+        // You can further customize the abbreviation generation logic as needed
+
+        return $abbreviation;
+    }
+}

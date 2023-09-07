@@ -67,13 +67,11 @@ const navConfig = [
     title: 'sales',
     path: '/dashboard/sales',
     icon: icon('ic_cart'),
-    // menuItems:
-    // [
-    //   {
-    //     title:'create',
-    //     path: '/dashboard/products/create',
-    //   },
-    // ]
+  },
+  {
+    title: 'sales',
+    path: '/dashboard/pos',
+    icon: icon('ic_cart'),
   },
   {
     title: 'blog',

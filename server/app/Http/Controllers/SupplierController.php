@@ -7,15 +7,18 @@ use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
 use App\Models\Product;
 use App\Models\Purchase;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\File;
+use Illuminate\Support\Str;
+
 
 class SupplierController extends Controller
 {
-    public $possible_relations = ["restock","product","retur"];
+    public $possible_relations = ["restock","product","retur","product.category","product.unit"];
 
     /**
      * Display a listing of the resource.
@@ -52,6 +55,7 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
+            "id_supplier" => "string",
             "name" => "required|string",
             "RegisterDate" => "required|date_format:Y-m-d",
             "phone" => "required|string",
@@ -65,17 +69,27 @@ class SupplierController extends Controller
                 "message"=>$validator->errors()
             ],Response::HTTP_BAD_REQUEST);
         }
+        do {
+            $randomNumber = rand(1, 9999);
+            $idSupplier = 'S-' . $randomNumber;
+            $existingProduct = Supplier::where('id_supplier', $idSupplier)->first();
+        } while ($existingProduct);
         $validated = $validator->validated();
+        $validated["id_supplier"] = $idSupplier;
         $validated["urlImage"] = $request->file('urlImage')->store('supplier-image');
         try{
             $newValue = Supplier::create($validated);
         }
-        catch(\Exception $e){
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Supplier Name already exists'], 500);
+            }
             return response()->json([
                 "error"=>$e
             ],Response::HTTP_BAD_REQUEST);
         }
         return response()->json([
+            "message"=>"Data Berhasil dibuat",
             "data"=>$newValue
         ],Response::HTTP_OK);
     }
@@ -94,7 +108,7 @@ class SupplierController extends Controller
         $supplier = new Supplier();
 
         if ($relations) {
-            $relations = handle_relations($relations, $this->possible_relations, $relations);
+            $supplier = handle_relations($relations, $this->possible_relations, $supplier);
         }
 
         return $supplier->findOrFail($id);
@@ -119,7 +133,7 @@ class SupplierController extends Controller
         ]);
         if($validator->fails()){
             return response()->json([
-                "message"=>"error nih"
+                "message"=>$validator->errors()
             ],Response::HTTP_BAD_REQUEST);
         }
         $validated = $validator->validated();
@@ -133,12 +147,17 @@ class SupplierController extends Controller
         try{
             $supplier->update($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Supplier Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
-            "message"=>"Berhasil Update",
+            "message"=>"Data Berhasil diUpdate",
             "data"=>$supplier
         ],Response::HTTP_OK);
     }

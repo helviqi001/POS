@@ -37,6 +37,7 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  FormHelperText,
 } from '@mui/material';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
@@ -64,7 +65,6 @@ const TABLE_HEAD = [
   { id: 'image', label: 'Image', alignRight: false },
   { id: 'stock', label: 'Stock', alignRight: false },
   { id: 'coli', label: 'coli', alignRight: false },
-  { id: 'cost_of_goods_sold', label: 'Cost of goods sold (IDR)', alignRight: false },
   { id: 'tax', label: 'Tax ', alignRight: false },
   { id: 'selling_price', label: 'Selling price (IDR)', alignRight: false },
   { id: 'discount', label: 'Discount (IDR)', alignRight: false },
@@ -76,7 +76,7 @@ const TABLE_HEAD2 = [
   { id: 'name', label: 'Name', alignRight: false },
   { id: 'quantity', label: 'quantity', alignRight: false },
   { id: 'coli', label: 'coli', alignRight: false },
-  { id: 'cost_of_goods_sold', label: 'Cost of goods sold (IDR)', alignRight: false },
+  { id: 'netPrice', label: 'netPrice (IDR)', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -138,6 +138,22 @@ export default function CreateReturn() {
   const {load} = useContext(OutletContext) 
 
   const navigate = useNavigate()
+  const [validationErrors, setValidationErrors] = useState({});
+
+
+  const validateQuantity = (quantity) => {
+    if (!/^[0-9]+$/.test(quantity)) {
+      return "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
+    }
+    return ''; // No error
+  };
+  
+  const validateColi = (coli) => {
+    if (!/^[0-9]+$/.test(coli)) {
+      return "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
+    }
+    return ''; // No error
+  };
 
   const cookie = cookies.get("Authorization")
   useEffect(()=>{
@@ -170,7 +186,7 @@ export default function CreateReturn() {
       productCopy[productIndex] = { ...data, added: true };
       setProduct(productCopy);
     }
-    const Productadded =  [...id , {...data,quantity:0}]
+    const Productadded =  [...id , {...data,quantity:0,colii:0}]
     setId(Productadded)
   };
 
@@ -195,10 +211,24 @@ export default function CreateReturn() {
     const updatedId = id.map(item => {
       if (item.id === Number(productId)) {
         if (e.target.name.split('-')[0] === 'quantity') {
-          return { ...item, quantity: Number(e.target.value) }; // Update quantity
+          const quantity = Number(e.target.value);
+          // Perform quantity validation here
+          const quantityError = validateQuantity(quantity);
+          setValidationErrors((prevState) => ({
+            ...prevState,
+            [`quantity-${productId}`]: quantityError,
+          }));
+          return { ...item, quantity };
         } 
-        if (e.target.name.split('-')[0] === 'coli') {
-          return { ...item, coli: Number(e.target.value) }; // Update coli
+        if (e.target.name.split('-')[0] === 'colii') {
+          const colii = Number(e.target.value);
+          // Perform coli validation here
+          const coliError = validateColi(colii);
+          setValidationErrors((prevState) => ({
+            ...prevState,
+            [`colii-${productId}`]: coliError,
+          }));
+          return { ...item, colii };
         }
       }
       return item;
@@ -210,7 +240,7 @@ export default function CreateReturn() {
   // Calculate total cost based on id, quantity, and costOfGoodsSold
   const calculateTotalCost = () => {
     return id.reduce((total, item) => {
-      return total + item.quantity * item.costOfGoodsSold;
+      return total + item.quantity * item.netPrice;
     }, 0);
   };
   
@@ -280,22 +310,37 @@ export default function CreateReturn() {
   };
   
   const handleSupplier = async (e)=>{
+    const supplierId = e.target.value
     dispatch(
       {type:"CHANGE_INPUT" , payload:{name:e.target.name ,value:e.target.value}}
       )
-      axios.get(`http://localhost:8000/api/products/${state.id}?relations=category,unit`,{
+      await axios.get(`http://localhost:8000/api/suppliers/${supplierId}?relations=product,product.category,product.unit`,{
         headers:{
           "Content-Type":"aplication/json",
           Authorization: `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data)
+        setProduct(response.data.product)
       })
   }
 
   const handleCreate=async()=>{
-    load(true)
-    await axios.post("http://localhost:8000/api/returs",{supplier_id:state.id , returnDate:state.returnDate , totalSpend , product_id:id.map(p=>({id:p.id,quantity:p.quantity,coli:p.coli}))},{
+    const validationErrors = {};
+    id.forEach((item) => {
+      const { id, quantity, colii } = item;
+      if (quantity === 0) {
+        validationErrors[`quantity-${id}`] = 'Quantity cannot be 0 ';
+      }
+      if (colii === 0  ) {
+        validationErrors[`colii-${id}`] = 'Coli cannot be 0';
+      }
+    });
+    if(state.returnDate === ""){
+      validationErrors.returnDate = 'returnDate Should be filled';
+    }
+    setValidationErrors(validationErrors);
+    if (Object.keys(validationErrors).length === 0) {
+    await axios.post("http://localhost:8000/api/returs",{supplier_id:state.id , returnDate:state.returnDate , totalSpend , product_id:id.map(p=>({id:p.id,quantity:p.quantity,coli:p.colii}))},{
       headers : {
         "Content-Type" : 'application/json',
         Authorization: `Bearer ${cookie}`
@@ -303,8 +348,8 @@ export default function CreateReturn() {
     }).then(response=>{
       console.log(response);
     })
-    await load(false)
     navigate("/dashboard/return")
+  }
   }
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
   
@@ -317,7 +362,7 @@ export default function CreateReturn() {
     maximumFractionDigits: 0
   });
   
-  console.log(state);
+  console.log(id);
   return (
     <>
       <Container>
@@ -354,7 +399,7 @@ export default function CreateReturn() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name,unit,supplier,category,urlImage,stock,coli,costOfGoodsSold,tax,sellingPrice,discount,netPrice,information,added} = row;
+                    const { id, name,unit,supplier,category,urlImage,stock,coli,tax,sellingPrice,discount,netPrice,information,added} = row;
                     const selectedUser = selected.indexOf(name) !== -1;
 
                     return (
@@ -381,8 +426,6 @@ export default function CreateReturn() {
                         <TableCell align="center">{stock}</TableCell>
 
                         <TableCell align="center">{coli}</TableCell>
-
-                        <TableCell align="center">{costOfGoodsSold}</TableCell>
 
                         <TableCell align="center">{tax}</TableCell>
 
@@ -470,7 +513,7 @@ export default function CreateReturn() {
                 />
                 <TableBody>
                   {id.map((row) => {
-                    const { id, name,costOfGoodsSold} = row;
+                    const { id, name,netPrice} = row;
 
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox">
@@ -487,7 +530,9 @@ export default function CreateReturn() {
                             startAdornment={<InputAdornment position="start">Pcs</InputAdornment>}
                             name={`quantity-${id}`}
                             onChange={handleChange}
+                            error={!!validationErrors[`quantity-${id}`]}
                           />
+                          <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`quantity-${id}`]}</FormHelperText>
                         </FormControl>
                        </TableCell>
 
@@ -496,13 +541,15 @@ export default function CreateReturn() {
                           <OutlinedInput
                             id="outlined-adornment-amount"
                             startAdornment={<InputAdornment position="start">Coli</InputAdornment>}
-                            name={`coli-${id}`}
+                            name={`colii-${id}`}
                             onChange={handleChange}
+                            error={!!validationErrors[`colii-${id}`]}
                           />
+                          <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`colii-${id}`]}</FormHelperText>
                         </FormControl>
                        </TableCell>
 
-                        <TableCell align="center">{costOfGoodsSold}</TableCell>
+                        <TableCell align="center">{netPrice}</TableCell>
 
                       </TableRow>
                     );
@@ -531,7 +578,7 @@ export default function CreateReturn() {
                     'StaticDatePicker',
                   ]}
                 >
-                    <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:5}}/>
+                    <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:5}} slotProps={{ textField: { helperText:validationErrors.returnDate, error:!!validationErrors.returnDate}}}/>
                 </DemoContainer>
               </LocalizationProvider>
               <h4>TOTAL SPEND IDR {formattedTotalSpend}</h4>

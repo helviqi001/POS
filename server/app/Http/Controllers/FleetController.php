@@ -153,7 +153,7 @@ class FleetController extends Controller
         }
 
         return response()->json([
-            "message"=>"Data Berhasil dibuat",
+            "message"=>"Data Berhasil diUpdate",
             "data"=>$fleet
         ],Response::HTTP_OK);
     }

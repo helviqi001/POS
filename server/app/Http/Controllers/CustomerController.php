@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -75,10 +76,14 @@ class CustomerController extends Controller
         try{
             $newValue= Customer::create($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Customer Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
-
         return response()->json([
             "message"=>"Data Berhasil dibuat",
             "data"=>$newValue
@@ -144,8 +149,13 @@ class CustomerController extends Controller
             $customer = Customer::findOrfail($request->id);
             $customer->update($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Customer Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([

@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('staffs', function (Blueprint $table) {
             $table->id();
-            $table->string("name");
+            $table->string("id_staff");
+            $table->string("name")->unique();
             $table->date("registerDate");
             $table->string("address");
             $table->string("phone");

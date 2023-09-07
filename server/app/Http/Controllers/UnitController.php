@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Unit;
 use App\Http\Requests\StoreUnitRequest;
 use App\Http\Requests\UpdateUnitRequest;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -69,8 +70,13 @@ class UnitController extends Controller
         try{
             $newValue= Unit::create($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Unit name or Shortname already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
@@ -127,12 +133,17 @@ class UnitController extends Controller
             $unit = Unit::findOrfail($request->id);
             $unit->update($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Unit name or Shortname already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
-            "message"=>"Berhasil Update",
+            "message"=>"Data Berhasil diUpdate",
             "data"=>$unit
         ],Response::HTTP_OK);
     }

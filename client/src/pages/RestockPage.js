@@ -6,6 +6,8 @@ import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+
 // @mui
 import {
   Card,
@@ -40,6 +42,7 @@ import {
 } from '@mui/material';
 // components
 import DetailsIcon from '@mui/icons-material/Details';
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
@@ -50,8 +53,8 @@ import DetailRestock from '../sections/@dashboard/restock/detail';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'number of products', label: 'number of products', alignRight: false },
-  { id: 'supplier_name', label: 'Supplier name', alignRight: false },
+  { id: 'productName', label: 'products', alignRight: false },
+  { id: 'supplierName', label: 'Supplier name', alignRight: false },
   { id: 'restockDate', label: 'Restock Date', alignRight: false },
   { id: 'quantity', label: 'Quantity', alignRight: false },
   { id: 'coli', label: 'Coli', alignRight: false },
@@ -73,8 +76,8 @@ function descendingComparator(a, b, orderBy) {
 
 function getComparator(order, orderBy) {
   return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
+  ? (a, b) => descendingComparator(a, b, orderBy)
+  : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
 function applySortFilter(array, comparator, query) {
@@ -92,33 +95,98 @@ function applySortFilter(array, comparator, query) {
 
 export default function RestockPage() {
   const navigate = useNavigate()
-
+  
   const [open, setOpen] = useState(null);
-
+  
   const [openModal, setOpenModal] = useState(false);
-
+  
   const [Detail, setDetail] = useState(false);
-
-
+  
+  
   const [page, setPage] = useState(0);
-
+  
   const [order, setOrder] = useState('asc');
-
+  
   const [selected, setSelected] = useState([]);
-
+  
   const [orderBy, setOrderBy] = useState('name');
-
+  
   const [filterName, setFilterName] = useState('');
-
+  
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
+  
   const cookies = new Cookies()
-
+  
   const [productList,setProduct] = useState([])
-
+  
   const [id,setId] = useState()
   
   const {load} = useContext(OutletContext)
+
+  const handleOpenMenu = (event,id) => {
+    setOpen(event.currentTarget);
+    setId(id)
+  };
+  const DATAGRID_COLUMNS = [
+    { field: 'productName', headerName: 'Product', width: 150,
+      renderCell:(params)=> {
+        return (
+          <div>
+            {params.value.map((productName, index) => (
+              <div key={index} style={{ textAlign:'center' }}>{productName}</div>
+            ))}
+          </div>
+        );
+      },
+       headerAlign: 'center', align:'center'},
+    { field: 'supplierName', headerName: 'Supplier name', width: 150 , headerAlign: 'center',align:'center'},
+    { field: 'quantity', headerName: 'Quantity', width: 150,
+    renderCell:(params)=> {
+      return (
+        <div>
+          {params.value.map((quantity, index) => (
+            <div key={index} style={{ textAlign:'center' }}>{quantity}</div>
+          ))}
+        </div>
+      );
+    },headerAlign: 'center',align:'center' },
+    { field: 'coli', headerName: 'Coli', width: 150,
+    renderCell:(params)=> {
+      return (
+        <div>
+          {params.value.map((coli, index) => (
+            <div key={index} style={{ textAlign:'center' }}>{coli}</div>
+          ))}
+        </div>
+      );
+    }, headerAlign: 'center',align:'center'},
+    { field: 'restockDate', headerName: 'Restock Date',width:150,headerAlign: 'center',align:'center'},
+    { field: 'totalSpend', headerName: 'Total Spend',width:150,headerAlign: 'center',align:'center',
+    valueGetter: (params) => {
+        const totalSpend = params.row.totalSpend;
+        return totalSpend.toLocaleString(undefined, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        })}},
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+        return [
+          <GridActionsCellItem
+            icon={<MoreVertIcon />}
+            label="3Dots"
+            className="textPrimary"
+            onClick={(e)=>handleOpenMenu(e,id)}
+            color="inherit"
+          />,
+        ];
+      },
+    },
+  ];
 
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
@@ -129,16 +197,18 @@ export default function RestockPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data)
+        setProduct( response.data.data.map((row) => ({
+          ...row,
+          supplierName: row.supplier.name,
+          productName: row.products.map(p=>(p.name)),
+          quantity: row.products.map(p=>(p.pivot.quantity)),
+          coli: row.products.map(p=>(p.pivot.coli))
+        })))
       })
     }
     getdata()
   },[])
   
-  const handleOpenMenu = (event,id) => {
-    setOpen(event.currentTarget);
-    setId(id)
-  };
 
   const handleCloseMenu = () => {
     setOpen(null);
@@ -161,21 +231,6 @@ export default function RestockPage() {
     setOpen(null);
     navigate('/dashboard/restock/edit',{state:{id}})
   }
-
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = productList.map((n) => n.id);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
 
   const handleDelete=async()=>{
     load(true)
@@ -212,30 +267,6 @@ export default function RestockPage() {
     overflowX:"scroll",
     marginTop:2,
   }
-
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setPage(0);
-    setRowsPerPage(parseInt(event.target.value, 10));
-  };
   
   const handleFilterByName = (event) => {
     setPage(0);
@@ -248,8 +279,6 @@ export default function RestockPage() {
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
   
   const isNotFound = !filteredUsers.length && !!filterName;
-  
-  console.log(productList);
   return (
     <>
       <Helmet>
@@ -270,102 +299,46 @@ export default function RestockPage() {
           <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 
           <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <ProductListHead
-                  order={order}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={productList.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, restockDate ,products,supplier,totalSpend} = row;
-                    const selectedUser = selected.indexOf(id) !== -1;
-                    const totalQuantity = products.reduce((acc, product) => acc + product.pivot.quantity, 0);
-                    const totalColi = products.reduce((acc, product) => acc + product.pivot.coli, 0);
-
-                    const formattedTotalSpend = totalSpend.toLocaleString(undefined, {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0
-                    });
-                    return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
-                        </TableCell>
-
-                        <TableCell component="th" scope="row" padding="none" align='center'>
-                            <Typography variant="subtitle2" noWrap>
-                              {products.length}
-                            </Typography>
-                        </TableCell>
-
-                        <TableCell align="center">{supplier.name}</TableCell>
-
-                        <TableCell align="center">{restockDate}</TableCell>
-
-
-                        <TableCell align="center">{totalQuantity}</TableCell>
-
-                        <TableCell align="center">{totalColi}</TableCell>
-
-                        <TableCell align="center">{formattedTotalSpend}</TableCell>
-
-                        <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={(e)=>handleOpenMenu(e,id)}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6}/>
-                    </TableRow>
-                  )}
-                </TableBody>
-
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Not found
-                          </Typography>
-
-                          <Typography variant="body2">
-                            No results found for &nbsp;
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
+          {filteredUsers.length === 0 ? (
+              <Box sx={{ height:150 }}>
+              <DataGrid
+                rows={filteredUsers}
+                columns={DATAGRID_COLUMNS}
+                initialState={{
+                  pagination: {
+                    paginationModel: { page: 0, pageSize: 5 },
+                  },
+                }}
+                pageSizeOptions={[5, 10]}
+                onRowSelectionModelChange={(s)=>{
+                  setSelected(s)
+                }}
+                checkboxSelection 
+                disableRowSelectionOnClick
+                getRowHeight={() => 'auto'}
+              />
+            </Box>
+            ) :(
+              <Box sx={{ height:"auto" }}>
+              <DataGrid
+                rows={filteredUsers}
+                columns={DATAGRID_COLUMNS}
+                initialState={{
+                  pagination: {
+                    paginationModel: { page: 0, pageSize: 5 },
+                  },
+                }}
+                pageSizeOptions={[5, 10]}
+                onRowSelectionModelChange={(s)=>{
+                  setSelected(s)
+                }}
+                checkboxSelection 
+                disableRowSelectionOnClick
+                getRowHeight={() => 'auto'}
+              />
+              </Box>
+            )}
           </Scrollbar>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={productList.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
         </Card>
       </Container>
 

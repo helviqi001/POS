@@ -1,10 +1,13 @@
 export const  INITIAL_STATE = {
-    name:"",
-    registerDate:"",
-    address:"",
-    phone:"",
-    birthDate:"",
-    information:""
+    formData:{
+        name:"",
+        registerDate:"",
+        address:"",
+        phone:"",
+        birthDate:"",
+        information:""
+    },
+    validationErrors:{}
 }
 
 export const CustomerReducer = (state,action)=>{
@@ -12,23 +15,43 @@ export const CustomerReducer = (state,action)=>{
         case "CHANGE_INPUT":
             return {
                 ...state,
-                [action.payload.name]:action.payload.value
-            }
-        case "IMAGE_INPUT":
-            return{
-                ...state,
-                urlImage:action.payload
+                formData: {
+                    ...state.formData,
+                    [action.payload.name]: action.payload.value,
+                  },
+                  validationErrors: {
+                    ...state.validationErrors,
+                    [action.payload.name]: '',
+                  },
             }
         case "DATE_INPUT":
             return{
                 ...state,
-                [action.payload.fieldname]:action.payload.formattedDate
+                formData: {
+                    ...state.formData,
+                    [action.payload.name]: action.payload.value,
+                  },
+                  validationErrors: {
+                    ...state.validationErrors,
+                    [action.payload.name]: '',
+                  },
             }
         case "UPDATE":
             return{
                 ...state,
-                ...action.payload,
+                formData: {
+                    ...state.formData,
+                    ...action.payload,
+                  },
             }
+            case 'SET_VALIDATION_ERROR':
+                return {
+                    ...state,
+                    validationErrors: {
+                    ...state.validationErrors,
+                    [action.payload.field]: action.payload.error,
+                    },
+                };
         default:
             return state
     }

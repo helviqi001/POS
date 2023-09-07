@@ -1,0 +1,29 @@
+.image-button {
+    position: relative;
+  }
+  
+  .image-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white; /* Adjust text color */
+    background-color: rgba(0, 0, 0, 0.7); /* Adjust background color */
+    padding: 5px 10px;
+    border-radius: 5px;
+    opacity: 0; /* Initially hidden */
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  .image-button:hover .image-text {
+    opacity: 1;
+  }
+
+  .myDatePicker fieldset.MuiOutlinedInput-notchedOutline {
+    border-color: green;
+  }
+  
+  .myDatePicker .Mui-focused fieldset.MuiOutlinedInput-notchedOutline {
+    border-color: red;
+  }
+  

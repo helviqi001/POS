@@ -6,6 +6,8 @@ import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+
 // @mui
 import {
   Card,
@@ -39,6 +41,7 @@ import {
   DialogTitle,
 } from '@mui/material';
 // components
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
 import CreateStaff from '../sections/@dashboard/staff/createform';
 import EditForm from '../sections/@dashboard/staff/editForm';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
@@ -53,15 +56,6 @@ import { OutletContext } from '../layouts/dashboard/OutletProvider';
 
 // ----------------------------------------------------------------------
 
-const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'RegisterDate', label: 'Register Date', alignRight: false },
-  { id: 'address', label: 'Address', alignRight: false },
-  { id: 'phone', label: 'Phone', alignRight: false },
-  { id: 'image', label: 'Position', alignRight: false },
-  { id: 'information', label: 'Information', alignRight: false },
-  { id: '' },
-];
 
 // ----------------------------------------------------------------------
 
@@ -123,6 +117,45 @@ export default function StaffPage() {
   
   const {load} = useContext(OutletContext)
 
+  const handleEditClick = (event , id)=> {
+    setOpen(event.currentTarget)
+    setId(id)
+  };
+
+  const DATAGRID_COLUMNS = [
+    { field: 'id_staff', headerName: 'ID Staff', width:150 , headerAlign: 'center', align:'center'},
+    { field: 'name', headerName: 'Name', width:150 , headerAlign: 'center', align:'center'},
+    { field: 'phone', headerName: 'Phone', width: 150 , headerAlign: 'center',align:'center'},
+    { field: 'address', headerName: 'Address', width: 150 , headerAlign: 'center',align:'center'},
+    {
+      field: 'registerDate',
+      headerName: 'Register Date',
+      width: 150,
+      headerAlign: 'center',
+      align:'center'
+    },
+    { field: 'information', headerName: 'Information',width:150,headerAlign: 'center',align:'center'},
+    { field: 'positionName', headerName: 'Position',width:150,headerAlign: 'center',align:'center'},
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+        return [
+          <GridActionsCellItem
+            icon={<MoreVertIcon />}
+            label="3Dots"
+            className="textPrimary"
+            onClick={(e)=>handleEditClick(e,id)}
+            color="inherit"
+          />,
+        ];
+      },
+    },
+  ];
+
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
     const getdata=async()=>{
@@ -132,17 +165,17 @@ export default function StaffPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data)
+        setProduct(response.data.data.map(p=>({
+          ...p,
+          positionName : p.position.name
+        })))
       })
 
     }
     getdata()
   },[])
   
-  const handleOpenMenu = (event,id) => {
-    setOpen(event.currentTarget);
-    setId(id)
-  };
+  console.log(productList);
 
   const handleCloseMenu = () => {
     setOpen(null);
@@ -166,20 +199,6 @@ export default function StaffPage() {
     setEdit(null)
   }
 
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = productList.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
 
   const handleDelete=async()=>{
     load(true)
@@ -196,19 +215,7 @@ export default function StaffPage() {
       load(false)
     },1000)
   }
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflowY:"scroll"
-  };
-  
+
   const style2 = {
     marginTop: 2
   }
@@ -217,30 +224,6 @@ export default function StaffPage() {
     marginTop:2,
   }
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setPage(0);
-    setRowsPerPage(parseInt(event.target.value, 10));
-  };
-  
   const handleFilterByName = (event) => {
     setPage(0);
     setFilterName(event.target.value);
@@ -273,99 +256,46 @@ export default function StaffPage() {
           <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 
           <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <ProductListHead
-                  order={order}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={productList.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                  
-                />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name,registerDate,address,phone , position , information} = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
-
-                    return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
-                        </TableCell>
-
-                        <TableCell component="th" scope="row" padding="none" align='center'>
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                        </TableCell>
-
-                        <TableCell align="center">{registerDate}</TableCell>
-
-                        <TableCell align="center">{address}</TableCell>
-
-                        <TableCell align="center">{phone}</TableCell>
-
-
-                        <TableCell align="center">
-                          {position.name}
-                        </TableCell>
-
-                        <TableCell align="center">{information}</TableCell>
-
-                        <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={(e)=>handleOpenMenu(e,id)}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6}/>
-                    </TableRow>
-                  )}
-                </TableBody>
-
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Not found
-                          </Typography>
-
-                          <Typography variant="body2">
-                            No results found for &nbsp;
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
+          {filteredUsers.length === 0 ? (
+              <Box sx={{ height:150 }}>
+              <DataGrid
+                rows={filteredUsers}
+                columns={DATAGRID_COLUMNS}
+                initialState={{
+                  pagination: {
+                    paginationModel: { page: 0, pageSize: 5 },
+                  },
+                }}
+                pageSizeOptions={[5, 10]}
+                onRowSelectionModelChange={(s)=>{
+                  setSelected(s)
+                }}
+                checkboxSelection 
+                disableRowSelectionOnClick
+                getRowHeight={() => 'auto'}
+              />
+            </Box>
+            ) :(
+              <Box sx={{ height:"auto" }}>
+              <DataGrid
+                rows={filteredUsers}
+                columns={DATAGRID_COLUMNS}
+                initialState={{
+                  pagination: {
+                    paginationModel: { page: 0, pageSize: 5 },
+                  },
+                }}
+                pageSizeOptions={[5, 10]}
+                onRowSelectionModelChange={(s)=>{
+                  setSelected(s)
+                }}
+                checkboxSelection 
+                disableRowSelectionOnClick
+                getRowHeight={() => 'auto'}
+              />
+              </Box>
+            )}
           </Scrollbar>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={productList.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
         </Card>
       </Container>
 

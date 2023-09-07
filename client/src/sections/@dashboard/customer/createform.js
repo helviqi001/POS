@@ -14,8 +14,11 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  FormHelperText,
+  Snackbar,
 } from '@mui/material';
-import { useContext, useEffect, useReducer, useState } from 'react';
+import MuiAlert from '@mui/material/Alert';
+import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
 import dayjs from 'dayjs';
 import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
@@ -28,51 +31,128 @@ import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import { INITIAL_STATE, CustomerReducer } from './CustomerReducer';
 
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
+  
+  const {load} = useContext(OutletContext)
+  const [state,dispatch] = useReducer(CustomerReducer,INITIAL_STATE)
+  const cookies = new Cookies
+  const [state2, setState] = useState({
+    open: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"",
+    variant:""
+  });
+  const { vertical, horizontal, open } = state2;
+
+  const handleClick = (message,variant) => {
+    setState({ ...state2, open: true , message,variant });
+  };
+
+  const handleClose = () => {
+    setState({ ...state2, open: false });
+  };
+  const cookie = cookies.get("Authorization")
+
+    const handleChangeValidation=(formData)=>{
+      const errors = {};
+      
+      if(formData.name === 'phone') {
+          if (!/^(0|8)\d{9,12}$/.test(formData.value)) {
+            errors[formData.name] = 'Invalid phone number format.it cant be more than 13 digits and should start with 0 or 8';
+          }
+      }
+          // Update validationErrors state
+      Object.keys(errors).forEach((field) => {
+       dispatch({
+          type: 'SET_VALIDATION_ERROR',
+          payload: { field, error: errors[field] },
+        });
+      });
+      
+      return errors;
+    }
     
-    const {load} = useContext(OutletContext)
-    const [state,dispatch] = useReducer(CustomerReducer,INITIAL_STATE)
-    const cookies = new Cookies
+    const handleValidation=(formData)=>{
+      console.log(formData);
+      const errors = {};
+      
+      // Perform validation here
+      Object.keys(formData).forEach((field) => {
+        if (formData[field] === '') {
+          errors[field] = `${field} is required`;
+        }
+      });
+
+          // Update validationErrors state
+      Object.keys(errors).forEach((field) => {
+       dispatch({
+          type: 'SET_VALIDATION_ERROR',
+          payload: { field, error: errors[field] },
+        });
+      });
+      
+      return errors;
+    }
+
     const handleChange = e =>{
         dispatch(
           {type:"CHANGE_INPUT" , payload:{name:e.target.name , value:e.target.value}},
         )
+        const formdata = { name:e.target.name , value:e.target.value }; // Clone the formData to avoid modifying the original state
+        handleChangeValidation(formdata);
     }
     const handleImage=(data)=>{
       dispatch({type:"IMAGE_INPUT",payload: data})
     }
     const handleDate=(data,fieldname)=>{
       const date = new Date(data.$y, data.$M , data.$D)
-
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
       const formattedDate = `${year}-${month}-${day}`;
-      dispatch({type:"DATE_INPUT",payload:{fieldname ,formattedDate}})
+      dispatch({type:"DATE_INPUT",payload:{name:fieldname ,value:formattedDate}})
     }
-    const cookie = cookies.get("Authorization")
     const handleCreate= async() =>{
-      load(true)
-      const formData = new FormData()
-      formData.append("name",state.name)
-      formData.append("registerDate",state.registerDate)
-      formData.append("address",state.address)
-      formData.append("phone",state.phone)
-      formData.append("birthDate",state.birthDate)
-      formData.append("information",state.information)
-      axios.post("http://localhost:8000/api/customers",formData,{
-        headers:{
-          Authorization: `Bearer ${cookie}`
-        }
-      }).then(response=>{
-        console.log(response);
-      })
-      setTimeout(()=>{
-        load(false)
-      },1000)
-      handleCloseModal()
+      const formdata = { ...state.formData }; // Clone the formData to avoid modifying the original state
+
+      const errors = handleValidation(formdata);
+
+      if (Object.keys(errors).length > 0) {
+        return;
       }
-      console.log(state);
+      const formData = new FormData()
+      formData.append("name",state.formData.name)
+      formData.append("registerDate",state.formData.registerDate)
+      formData.append("address",state.formData.address)
+      formData.append("phone",state.formData.phone)
+      formData.append("birthDate",state.formData.birthDate)
+      formData.append("information",state.formData.information)
+      try {
+        await axios.post("http://localhost:8000/api/customers",formData,{
+          headers:{
+            Authorization: `Bearer ${cookie}`
+          }
+        }).then(response=>{
+          handleClick(response.data.message,'success')
+          setTimeout(()=>{
+            load(true)
+            setTimeout(()=>{
+              load(false)
+              handleCloseModal()
+            },1000)
+          },1500)
+        })
+      } catch (error) {
+        if (error.response.status === 500 ) {
+          handleClick(error.response.data.error,'error')
+        }
+        console.log(error);
+      }
+      }
     return(
         <>
          <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -87,31 +167,21 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
             fullWidth
             name='name'
             onChange={handleChange}
+            error={!!state.validationErrors.name}
+            helperText={state.validationErrors.name}
           />
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DemoContainer
-              components={[
-                'DatePicker',
-                'MobileDatePicker',
-                'DesktopDatePicker',
-                'StaticDatePicker',
-              ]}
-            >
-                <DatePicker  label="Register Date" onChange={(data)=>handleDate(data,"registerDate")}/>
-            </DemoContainer>
-          </LocalizationProvider>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DemoContainer
-              components={[
-                'DatePicker',
-                'MobileDatePicker',
-                'DesktopDatePicker',
-                'StaticDatePicker',
-              ]}
-            >
-                <DatePicker  label="Birth Date" onChange={(data)=>handleDate(data,"birthDate")}/>
-            </DemoContainer>
-          </LocalizationProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer
+                components={[
+                  'DatePicker',
+                  'MobileDatePicker',
+                  'DesktopDatePicker',
+                  'StaticDatePicker',
+                ]}
+              >
+                  <DatePicker  label="Birth Date" onChange={(data)=>handleDate(data,"birthDate")} slotProps={{ textField: { helperText:state.validationErrors.birthDate , error:!!state.validationErrors.birthDate} }}/>
+              </DemoContainer>
+            </LocalizationProvider>
           <TextField
             id="outlined-disabled"
             label="Address"
@@ -121,7 +191,21 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
             fullWidth
             name='address'
             onChange={handleChange}
+            error={!!state.validationErrors.address}
+            helperText={state.validationErrors.address}
           />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer
+                components={[
+                  'DatePicker',
+                  'MobileDatePicker',
+                  'DesktopDatePicker',
+                  'StaticDatePicker',
+                ]}
+              >
+                  <DatePicker  label="Register Date" onChange={(data)=>handleDate(data,"registerDate")} slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
+              </DemoContainer>
+            </LocalizationProvider>
           <TextField
             id="outlined-disabled"
             label="Phone"
@@ -131,9 +215,9 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
             fullWidth
             name='phone'
             onChange={handleChange}
+            error={!!state.validationErrors.phone}
+            helperText={state.validationErrors.phone}
           />
-  
-          <MuiFileInput sx={style2} label="Input Image"  fullWidth value={state.urlImage} onChange={handleImage}/>
 
           <TextField
             id="outlined-disabled"
@@ -144,6 +228,8 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
             fullWidth
             name='information'
             onChange={handleChange}
+            error={!!state.validationErrors.information}
+            helperText={state.validationErrors.information}
             />
         </DialogContent>
         <DialogActions>
@@ -151,6 +237,11 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
           <Button onClick={handleCreate}>Create</Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={open} autoHideDuration={1500} onClose={handleClose} anchorOrigin={{ vertical , horizontal }}>
+        <Alert onClose={handleClose} severity={state2.variant} sx={{ width: '100%' }}>
+        {state2.message}
+        </Alert>
+      </Snackbar>
         </>
     )
 }

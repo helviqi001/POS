@@ -184,7 +184,7 @@ class RestockController extends Controller
         }
 
         return response()->json([
-            "message"=>"Data Berhasil dibuat",
+            "message"=>"Data Berhasil diUpdate",
             "data"=>$restock
         ],Response::HTTP_OK);
     }

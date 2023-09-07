@@ -14,8 +14,10 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  Snackbar,
 } from '@mui/material';
-import { useContext, useEffect, useReducer, useState } from 'react';
+import MuiAlert from '@mui/material/Alert';
+import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
 import dayjs from 'dayjs';
 import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
@@ -29,20 +31,87 @@ import Loading2 from '../../../Loading/loading2';
 import { INITIAL_STATE, SupplierRecuder } from './SupplierReducer';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 
+
+
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
 const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
 
     const [loading, setLoading] = useState(true);
     const {load} = useContext(OutletContext)
     const [state,dispatch] = useReducer(SupplierRecuder,INITIAL_STATE)
     const cookies = new Cookies
+    const [state2, setState] = useState({
+      open: false,
+      vertical: 'top',
+      horizontal: 'center',
+      message:"",
+      variant:""
+    });
+    const { vertical, horizontal, open } = state2;
+  
+    const handleClick = (message,variant) => {
+      setState({ ...state2, open: true , message,variant });
+    };
+  
+    const handleClose = () => {
+      setState({ ...state2, open: false });
+    };
+
+    const handleChangeValidation=(formData)=>{
+      const errors = {};
+      
+      if(formData.name === 'phone') {
+          if (!/^(0|8)\d{9,12}$/.test(formData.value)) {
+            errors[formData.name] = 'Invalid phone number format.it cant be more than 13 digits and should start with 0 or 8';
+          }
+      }
+          // Update validationErrors state
+      Object.keys(errors).forEach((field) => {
+       dispatch({
+          type: 'SET_VALIDATION_ERROR',
+          payload: { field, error: errors[field] },
+        });
+      });
+      
+      return errors;
+    }
+    
+    const handleValidation=(formData)=>{
+      console.log(formData);
+      const errors = {};
+      
+      // Perform validation here
+      Object.keys(formData).forEach((field) => {
+        if (formData[field] === '') {
+          errors[field] = `${field} is required`;
+        }
+      });
+
+          // Update validationErrors state
+      Object.keys(errors).forEach((field) => {
+       dispatch({
+          type: 'SET_VALIDATION_ERROR',
+          payload: { field, error: errors[field] },
+        });
+      });
+      
+      return errors;
+    }
+
     const handleChange = e =>{
         dispatch(
           {type:"CHANGE_INPUT" , payload:{name:e.target.name , value:e.target.value}},
-          {type:"IMAGE_INPUT",   payload: e}
         )
+        const formdata = { name:e.target.name , value:e.target.value }; // Clone the formData to avoid modifying the original state
+
+      handleChangeValidation(formdata);
     }
-    const handleImage=(data)=>{
-      dispatch({type:"IMAGE_INPUT",payload: data})
+    const handleImage=(e)=>{
+      console.log(e.target);
+      dispatch({type:"IMAGE_INPUT",payload: e})
     }
 
     const handleDate=(data)=>{
@@ -58,27 +127,42 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
     const cookie = cookies.get("Authorization")
 
     const handleCreate= async() =>{
-      load(true)
-      const formData = new FormData()
-      formData.append("name",state.name)
-      formData.append("RegisterDate",state.RegisterDate)
-      formData.append("address",state.address)
-      formData.append("phone",state.phone)
-      formData.append("urlImage",state.urlImage)
-      formData.append("information",state.information)
-      formData.append("id",id)
-      axios.post("http://localhost:8000/api/update/suppliers",formData,{
-        headers:{
-          Authorization: `Bearer ${cookie}`
-        }
-      }).then(response=>{
-        console.log(response);
-      })
-      setTimeout(()=>{
-        load(false)
-      },1000)
-      handleCloseModal()
+      const formdata = { ...state.formData }; // Clone the formData to avoid modifying the original state
+
+      const errors = handleValidation(formdata);
+
+      if (Object.keys(errors).length > 0) {
+        return;
       }
+      const formData = new FormData()
+      formData.append("name",state.formData.name)
+      formData.append("RegisterDate",state.formData.RegisterDate)
+      formData.append("address",state.formData.address)
+      formData.append("phone",state.formData.phone)
+      formData.append("urlImage",state.formData.urlImage)
+      formData.append("information",state.formData.information)
+      formData.append("id",id)
+      try {
+        await axios.post("http://localhost:8000/api/update/suppliers",formData,{
+          headers:{
+            Authorization: `Bearer ${cookie}`
+          }
+        }).then(response=>{
+          handleClick(response.data.message,'success')
+          setTimeout(()=>{
+            load(true)
+            setTimeout(()=>{
+              load(false)
+              handleCloseModal()
+            },1000)
+          },1500)
+        })
+      } catch (error) {
+        if (error.response.status === 500 ) {
+          handleClick(error.response.data.error,'error')
+        }
+      }
+    }
 
       useEffect(()=>{
         setLoading(true)
@@ -97,7 +181,6 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
 
             getData()
           },[])
-          console.log(state);
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -120,8 +203,10 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             fullWidth
             name='name'
             onChange={handleChange}
-            defaultValue={state.name}
-            key={state.id}
+            defaultValue={state.formData.name}
+            key={state.formData.id}
+            error={!!state.validationErrors.name}
+            helperText={state.validationErrors.name || ' '}
           />
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DemoContainer
@@ -132,7 +217,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
                 'StaticDatePicker',
               ]}
             >
-                <DatePicker  label="Register Date" onChange={handleDate} defaultValue={dayjs(state.RegisterDate)} key={state.id}/>
+                <DatePicker  label="Register Date" onChange={handleDate} defaultValue={dayjs(state.formData.RegisterDate)} key={state.formData.id} slotProps={{ textField: { helperText:state.validationErrors.RegisterDate , error:!!state.validationErrors.RegisterDate} }}/>
             </DemoContainer>
           </LocalizationProvider>
           <TextField
@@ -143,8 +228,11 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             }
             fullWidth
             name='address'
-            defaultValue={state.address}
-            key={state.id}
+            onChange={handleChange}
+            defaultValue={state.formData.address}
+            key={state.formData.id}
+            error={!!state.validationErrors.address}
+            helperText={state.validationErrors.address || ' '}
           />
           <TextField
             id="outlined-disabled"
@@ -154,11 +242,21 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             }
             fullWidth
             name='phone'
-            defaultValue={state.phone}
-            key={state.id}
+            onChange={handleChange}
+            defaultValue={state.formData.phone}
+            key={state.formData.phone}
+            error={!!state.validationErrors.id}
+            helperText={state.validationErrors.phone || ' '}
           />
   
-          <MuiFileInput sx={style2} label="Input Image"  fullWidth value={state.urlImage} onChange={handleImage} helperText={"Kosongkan kolom Input Image jika tidak ingin update*"}/>
+          <MuiFileInput 
+          sx={style2} 
+          label="Input Image"  
+          fullWidth 
+          value={state.formData.urlImage} 
+          onChange={(e)=>handleImage(e)} 
+          helperText={"Kosongkan kolom Input Image jika tidak ingin update*"}
+          inputProps={{ accept: '.png, .jpeg ,.jpg' }}/>
 
           <TextField
             id="outlined-disabled"
@@ -169,8 +267,10 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             fullWidth
             name='information'
             onChange={handleChange}
-            defaultValue={state.information}
-            key={state.id}
+            defaultValue={state.formData.information}
+            key={state.formData.id}
+            error={!!state.validationErrors.information}
+            helperText={state.validationErrors.information || ' '}
             />
             </>
            )
@@ -183,6 +283,11 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
           </DialogActions>
         </Dialog>
         
+        <Snackbar open={open} autoHideDuration={1500} onClose={handleClose} anchorOrigin={{ vertical , horizontal }}>
+        <Alert onClose={handleClose} severity={state2.variant} sx={{ width: '100%' }}>
+        {state2.message}
+        </Alert>
+      </Snackbar>
         </>
     )
 }

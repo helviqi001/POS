@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Position;
 use App\Models\Staff;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -58,11 +60,12 @@ class StaffContoller extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
+            "id_staff"=>"string",
             "name"=>"required|string",
             "registerDate"=>"required|date_format:Y-m-d",
             "name"=>"required|string",
             "address"=>"required|string",
-            "phone"=>"required|integer",
+            "phone"=>"required|string",
             "information"=>"required|string",
             "position_id"=>"required|integer"
         ]);
@@ -71,12 +74,25 @@ class StaffContoller extends Controller
                 "message"=>$validator->errors()
             ],Response::HTTP_BAD_REQUEST);
         }
+        do {
+            $randomNumber = rand(1000, 9999);
+            $position = Position::find($request->position_id); // Assuming you have a Category model
+            $positionName = $position->shortname;
+            $idStaff = $positionName .'-'. $randomNumber;
+            $existingProduct = Staff::where('id_staff', $idStaff)->first();
+        } while ($existingProduct);
         $validated = $validator->validated();
+        $validated['id_staff'] = $idStaff;
         try{
             $newValue= Staff::create($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Staff Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
         return response()->json([
             "message"=>"Data Berhasil dibuat",
@@ -144,12 +160,17 @@ class StaffContoller extends Controller
             $staff = Staff::findOrfail($request->id);
             $staff->update($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Staff Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
-            "message"=>"Data Berhasil dibuat",
+            "message"=>"Data Berhasil diUpdate",
             "data"=>$staff
         ],Response::HTTP_OK);
     }
@@ -167,4 +188,6 @@ class StaffContoller extends Controller
             "message"=>"data berhasil di delete"
         ],Response::HTTP_OK);
     }
+
+    
 }

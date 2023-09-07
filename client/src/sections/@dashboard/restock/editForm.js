@@ -34,6 +34,7 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  FormHelperText,
 } from '@mui/material';
 // components
 import dayjs from 'dayjs';
@@ -82,6 +83,23 @@ export default function EditRestock() {
 
   const navigate = useNavigate()
 
+  const [validationErrors, setValidationErrors] = useState({});
+
+
+  const validateQuantity = (quantity) => {
+    if (!/^[0-9]+$/.test(quantity)) {
+      return "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
+    }
+    return ''; // No error
+  };
+  
+  const validateColi = (coli) => {
+    if (!/^[0-9]+$/.test(coli)) {
+      return "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
+    }
+    return ''; // No error
+  };
+
   useEffect(()=>{
     const getdata=async()=>{
       await axios.get(`http://localhost:8000/api/restocks/${id}?relations=products`,{
@@ -123,10 +141,24 @@ export default function EditRestock() {
     const updatedId = newProduct.map(item => {
       if (item.id === Number(productId)) {
         if (e.target.name.split('-')[0] === 'quantity') {
-          return { ...item, quantity: Number(e.target.value) }; // Update quantity
+          const quantity = Number(e.target.value);
+          // Perform quantity validation here
+          const quantityError = validateQuantity(quantity);
+          setValidationErrors((prevState) => ({
+            ...prevState,
+            [`quantity-${productId}`]: quantityError,
+          }));
+          return { ...item, quantity };
         } 
         if (e.target.name.split('-')[0] === 'coli') {
-          return { ...item, coli: Number(e.target.value) }; // Update coli
+          const coli = Number(e.target.value);
+          // Perform coli validation here
+          const coliError = validateColi(coli);
+          setValidationErrors((prevState) => ({
+            ...prevState,
+            [`coli-${productId}`]: coliError,
+          }));
+          return { ...item, coli };
         }
       }
       return item;
@@ -138,7 +170,7 @@ export default function EditRestock() {
   // Calculate total cost based on id, quantity, and costOfGoodsSold
   const calculateTotalCost = () => {
     return newProduct.reduce((total, item) => {
-      return total+item.quantity * item.costOfGoodsSold
+      return total+item.quantity * item.netPrice
     }, 0);
   };
   
@@ -148,24 +180,39 @@ export default function EditRestock() {
   }, [newProduct, totalSpend]);
 
   const handleCreate=async()=>{
-    load(true)
-    await axios.post("http://localhost:8000/api/update/restocks",{id,supplier_id:state.supplier_id , restockDate:state.restockDate , totalSpend , product_id:newProduct.map(p=>({id:p.id,quantity:p.quantity,coli:p.coli}))},{
-      headers : {
-        "Content-Type" : 'application/json',
-        Authorization: `Bearer ${cookie}`
+    const validationErrors = {};
+    newProduct.forEach((item) => {
+      const { id, quantity, coli } = item;
+      if (quantity === 0) {
+        validationErrors[`quantity-${id}`] = 'Quantity cannot be 0 ';
       }
-    }).then(response=>{
-      console.log(response);
-    })
-    await load(false)
-    navigate("/dashboard/restock")
+      if (coli === 0  ) {
+        validationErrors[`coli-${id}`] = 'Coli cannot be 0';
+      }
+    });
+    if(state.restockDate === ''){
+      validationErrors.restockDate = 'restockDate Should be filled';
+    }
+    setValidationErrors(validationErrors);
+    if (Object.keys(validationErrors).length === 0) {
+      load(true)
+      await axios.post("http://localhost:8000/api/update/restocks",{id,supplier_id:state.supplier_id , restockDate:state.restockDate , totalSpend , product_id:newProduct.map(p=>({id:p.id,quantity:p.quantity,coli:p.coli}))},{
+        headers : {
+          "Content-Type" : 'application/json',
+          Authorization: `Bearer ${cookie}`
+        }
+      }).then(response=>{
+        console.log(response);
+      })
+      await load(false)
+      navigate("/dashboard/restock")
+    }
   }
-  console.log(newProduct);
-  console.log(state);
   const formattedTotalSpend = totalSpend.toLocaleString(undefined, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
+  console.log(validationErrors);
   return (
     <>
       <Container>
@@ -206,7 +253,9 @@ export default function EditRestock() {
                           onChange={handleChange}
                           defaultValue={p.pivot.quantity}
                           key={p.id}
+                          error={validationErrors[`quantity-${p.id}`]}
                         />
+                          <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`quantity-${p.id}`]}</FormHelperText>
                       </FormControl>
                      </TableCell>
 
@@ -219,7 +268,9 @@ export default function EditRestock() {
                           onChange={handleChange}
                           defaultValue={p.pivot.coli}
                           key={p.id}
+                          error={validationErrors[`coli-${id}`]}
                         />
+                          <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`coli-${p.id}`]}</FormHelperText>
                       </FormControl>
                      </TableCell>
 
@@ -250,7 +301,7 @@ export default function EditRestock() {
                     'StaticDatePicker',
                   ]}
                   >
-                    <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:5}} defaultValue={dayjs(row.restockDate)}/>
+                    <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:5}} defaultValue={dayjs(row.restockDate)}  slotProps={{ textField: { helperText:validationErrors.restockDate , error:!!validationErrors.restockDate}}}/>
                 </DemoContainer>
               </LocalizationProvider>
               <h4>TOTAL SPEND IDR {formattedTotalSpend}</h4>

@@ -1,5 +1,8 @@
 export const  INITIAL_STATE = {
-    itemType:"",
+    formData:{
+        itemType:"",
+    },
+    validationErrors:{}
 }
 
 export const CategoryRecuder = (state,action)=>{
@@ -7,23 +10,32 @@ export const CategoryRecuder = (state,action)=>{
         case "CHANGE_INPUT":
             return {
                 ...state,
-                [action.payload.name]:action.payload.value
-            }
-        case "IMAGE_INPUT":
-            return{
-                ...state,
-                urlImage:action.payload
-            }
-        case "DATE_INPUT":
-            return{
-                ...state,
-                RegisterDate:action.payload
+                formData: {
+                    ...state.formData,
+                    [action.payload.name]: action.payload.value,
+                  },
+                  validationErrors: {
+                    ...state.validationErrors,
+                    [action.payload.name]: '',
+                  },
             }
         case "UPDATE":
             return{
                 ...state,
-                ...action.payload,
+                formData: {
+                    ...state.formData,
+                    ...action.payload,
+                  },
             }
+            case 'SET_VALIDATION_ERROR':
+                return {
+                    ...state,
+                    validationErrors: {
+                    ...state.validationErrors,
+                    [action.payload.field]: action.payload.error,
+                    },
+                };
+    
         default:
             return state
     }

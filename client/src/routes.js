@@ -23,6 +23,7 @@ import EditReturn from './sections/@dashboard/return/editForm';
 import CustomerPage from './pages/CutomerPage';
 import StaffPage from './pages/staffPage';
 import PositionPage from './pages/PositionPage';
+import PosPage from './pages/PosPage';
 
 
 // ----------------------------------------------------------------------
@@ -37,6 +38,7 @@ export default function Router() {
         { path: 'app', element: <DashboardAppPage /> },
         { path: 'user', element: <CustomerPage /> },
         { path: 'sales', element: <SalesPage />},
+        { path: 'pos', element: <PosPage/>},
         { path: 'staff', element: <StaffPage />},
         { path: 'position', element: <PositionPage />},
         {path: 'createuser' , element:<Createuser/>},

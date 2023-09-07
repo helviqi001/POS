@@ -14,56 +14,163 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  FormHelperText,
+  Box,
+  Autocomplete,
+  Snackbar,
 } from '@mui/material';
-import { useContext, useEffect, useReducer, useState } from 'react';
+import MuiAlert from '@mui/material/Alert';
+import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import { INITIAL_STATE, ProductRecuder } from './productReducer';
 
-const CreateProduct = ({ style2 , openModal , handleCloseModal })=>{
-    
-    const [supplier,setSupplier] = useState("")
-    const [category,setCategory] = useState("")
-    const [unit,setUnit] = useState("")
-    const {load} = useContext(OutletContext)
-    const [state,dispatch] = useReducer(ProductRecuder,INITIAL_STATE)
-    const cookies = new Cookies
-    const handleChange = e =>{
-        dispatch(
-          {type:"CHANGE_INPUT" , payload:{name:e.target.name , value:e.target.value}}
-        )
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
+export default function CreateProduct({ style2 , openModal , handleCloseModal }){
+  
+  const [supplier,setSupplier] = useState("")
+  const [category,setCategory] = useState("")
+  const [unit,setUnit] = useState([])
+  const {load} = useContext(OutletContext)
+  const [state,dispatch] = useReducer(ProductRecuder,INITIAL_STATE)
+  const cookies = new Cookies
+  const cookie = cookies.get("Authorization")
+  const [state2, setState] = useState({
+    open: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"",
+    variant:""
+  });
+  const { vertical, horizontal, open } = state2;
+
+  const handleClick = (message,variant) => {
+    setState({ ...state2, open: true , message,variant });
+  };
+
+  const handleClose = () => {
+    setState({ ...state2, open: false });
+  };
+  
+  const handleChangeValidation=(formData)=>{
+      const errors = {};
+
+        if(formData.name === "netPrice" || formData.name === "discount" || formData.name === "sellingPrice" || formData.name === "tax"){
+          if (!/^[0-9]*$/.test(formData.value)) {
+            errors[formData.name] = "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
+          }
+        }
+          // Update validationErrors state
+      Object.keys(errors).forEach((field) => {
+       dispatch({
+          type: 'SET_VALIDATION_ERROR',
+          payload: { field, error: errors[field] },
+        });
+      });
+      
+      return errors;
     }
+    
+    const handleValidation=(formData)=>{
+      const errors = {};
+      
+      // Perform validation here
+      Object.keys(formData).forEach((field) => {
+      if (field !== "stock" && field !== "coli" && field !== "discount") {
+        if (formData[field] === '' || formData[field] === 0) {
+          errors[field] = `${field} is required`;
+        }
+      }
+        if(field === "netPrice" || field === "discount"|| field === "tax"){
+          if (!/^[0-9]+$/.test(formData[field])) {
+            errors[field] = "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
+          }
+        }
+      });
+
+          // Update validationErrors state
+      Object.keys(errors).forEach((field) => {
+       dispatch({
+          type: 'SET_VALIDATION_ERROR',
+          payload: { field, error: errors[field] },
+        });
+      });
+      
+      return errors;
+    }
+
+    const handleChange = e =>{
+      dispatch(
+        {type:"CHANGE_INPUT" , payload:{name:e.target.name , value:e.target.value}}
+      )
+      const formdata = { name:e.target.name , value:e.target.value }; // Clone the formData to avoid modifying the original state
+
+      handleChangeValidation(formdata);
+    }
+
+    const calculateTotalCost = () => {
+      return (((Number(state.formData.netPrice) * (100 + Number(state.formData.margin))) / 100 ) * (100 + Number(state.formData.tax)) ) / 100
+    };
+    
+    // Reset totalState when coli changes
+    useEffect(() => {
+      const newSellingPrice = calculateTotalCost();
+      dispatch({
+        type: 'SET_SELLING_PRICE',
+        payload: newSellingPrice,
+      });
+    }, [state.formData.netPrice, state.formData.margin]);
+
     const handleImage=(data)=>{
       dispatch({type:"IMAGE_INPUT",payload: data})
     }
-    const cookie = cookies.get("Authorization")
     const handleCreate= async() =>{
-      load(true)
+      const formdata = { ...state.formData }; // Clone the formData to avoid modifying the original state
+
+      const errors = handleValidation(formdata);
+
+      if (Object.keys(errors).length > 0) {
+        return;
+      }
+       
       const formData = new FormData()
-      formData.append("name",state.name)
-      formData.append("urlImage",state.urlImage)
-      formData.append("netPrice",state.netPrice)
-      formData.append("discount",state.discount)
-      formData.append("sellingPrice",state.sellingPrice)
-      formData.append("tax",state.tax)
-      formData.append("costOfGoodsSold",state.costOfGoodsSold)
-      formData.append("supplier_id",state.supplier_id)
-      formData.append("category_id",state.category_id)
-      formData.append("unit_id",state.unit_id)
-      formData.append("stock",state.stock)
-      formData.append("coli",state.coli)
-      formData.append("information",state.information)
-      axios.post("http://localhost:8000/api/products",formData,{
-        headers:{
-          Authorization: `Bearer ${cookie}`
+      formData.append("name",state.formData.name)
+      formData.append("urlImage",state.formData.urlImage)
+      formData.append("netPrice",state.formData.netPrice)
+      formData.append("discount",state.formData.discount)
+      formData.append("sellingPrice",state.formData.sellingPrice)
+      formData.append("tax",state.formData.tax)
+      formData.append("margin",state.formData.margin)
+      formData.append("supplier_id",state.formData.supplier_id)
+      formData.append("category_id",state.formData.category_id)
+      formData.append("unit_id",state.formData.unit_id)
+      formData.append("stock",0)
+      formData.append("coli",0)
+      formData.append("information",state.formData.information)
+      try {
+        await axios.post("http://localhost:8000/api/products",formData,{
+          headers:{
+            Authorization: `Bearer ${cookie}`
+          }
+        }).then(response=>{
+          handleClick(response.data.message,'success')
+          setTimeout(()=>{
+            load(true)
+            setTimeout(()=>{
+              load(false)
+              handleCloseModal()
+            },1000)
+          },1500)
+        })
+      } catch (error) {
+        if (error.response.status === 500 ) {
+          handleClick(error.response.data.error,'error')
         }
-      }).then(response=>{
-        console.log(response);
-      })
-      setTimeout(()=>{
-        load(false)
-      },1000)
-      handleCloseModal()
+        console.log(error);
+      }
       }
 
       useEffect(()=>{
@@ -97,6 +204,7 @@ const CreateProduct = ({ style2 , openModal , handleCloseModal })=>{
         }
         getSupplier()
       },[])
+      console.log(state);
     return(
         <>
          <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -113,7 +221,9 @@ const CreateProduct = ({ style2 , openModal , handleCloseModal })=>{
           fullWidth
           onChange={handleChange}
           name='name'
-        />
+          error={!!state.validationErrors.name}
+          helperText={state.validationErrors.name || ' '}
+          />
         <TextField
           disabled
           id="outlined-disabled"
@@ -123,7 +233,7 @@ const CreateProduct = ({ style2 , openModal , handleCloseModal })=>{
             style2
           }
           fullWidth
-        />
+          />
         <TextField
           disabled
           id="outlined-disabled"
@@ -133,7 +243,8 @@ const CreateProduct = ({ style2 , openModal , handleCloseModal })=>{
             style2
           }
           fullWidth
-        />
+          />
+        <Box sx={{ display:"flex" , justifyContent:"space-evenly"}}>
         <FormControl fullWidth sx={style2}>
           <InputLabel htmlFor="outlined-adornment-amount">Net Price</InputLabel>
           <OutlinedInput
@@ -142,103 +253,166 @@ const CreateProduct = ({ style2 , openModal , handleCloseModal })=>{
             label="Net Price"
             onChange={handleChange}
             name='netPrice'
-          />
+            error={!!state.validationErrors.netPrice}
+            />
+          <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.netPrice || ' '}</FormHelperText>
         </FormControl>
+
+        <FormControl sx={style2}>
+          <InputLabel htmlFor="outlined-adornment-amount">Margin</InputLabel>
+          <OutlinedInput
+            id="outlined-adornment-amount"
+            startAdornment={<InputAdornment position="start">%</InputAdornment>}
+            label="Margin"
+            onChange={handleChange}
+            name='margin'
+            error={!!state.validationErrors.margin}
+            />
+          <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.margin || ' '}</FormHelperText>
+        </FormControl>
+
+        </Box>
 
         <FormControl fullWidth sx={style2}>
           <InputLabel htmlFor="outlined-adornment-amount">Discount</InputLabel>
           <OutlinedInput
             id="outlined-adornment-amount"
-            startAdornment={<InputAdornment position="start">IDR</InputAdornment>}
+            startAdornment={<InputAdornment position="start">%</InputAdornment>}
             label="Discount"
             onChange={handleChange}
             name='discount'
-          />
-        </FormControl>
-
-        <FormControl fullWidth sx={style2}>
-          <InputLabel htmlFor="outlined-adornment-amount">Sell Price</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-amount"
-            startAdornment={<InputAdornment position="start">IDR</InputAdornment>}
-            label="Sell Price"
-            onChange={handleChange}
-            name='sellingPrice'
-          />
+            error={!!state.validationErrors.discount}
+            />
+          <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.discount || ' '}</FormHelperText>
         </FormControl>
 
         <FormControl fullWidth sx={style2}>
           <InputLabel htmlFor="outlined-adornment-amount">Tax</InputLabel>
           <OutlinedInput
             id="outlined-adornment-amount"
-            startAdornment={<InputAdornment position="start">IDR</InputAdornment>}
+            startAdornment={<InputAdornment position="start">%</InputAdornment>}
             label="Tax"
             onChange={handleChange}
             name='tax'
-          />
-        </FormControl>
+            error={!!state.validationErrors.tax}
+            
+            />
+          <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.tax || ' '}</FormHelperText>
 
+        </FormControl>
         <FormControl fullWidth sx={style2}>
-          <InputLabel htmlFor="outlined-adornment-amount">COGS</InputLabel>
+          <InputLabel htmlFor="outlined-adornment-amount">Sell Price</InputLabel>
           <OutlinedInput
+            disabled
             id="outlined-adornment-amount"
             startAdornment={<InputAdornment position="start">IDR</InputAdornment>}
-            label="COGS"
-            onChange={handleChange}
-            name='costOfGoodsSold'
-          />
+            label="Sell Price"
+            value={state.formData.sellingPrice}
+            name='sellingPrice'
+            />
         </FormControl>
 
-        <MuiFileInput sx={style2} label="Input Image"  fullWidth value={state.urlImage} onChange={handleImage}/>
-
-        <FormControl fullWidth sx={style2}>
-        <InputLabel id="demo-simple-select-label">Supplier</InputLabel>
-          <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          label="Supplier"
-          value={state.supplier_id}
-          onChange={handleChange}
-          name='supplier_id'
-          >
-          {supplier && supplier.map(s=>(
-            <MenuItem value={s.id}>{s.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl fullWidth sx={style2}>
-        <InputLabel id="demo-simple-select-label">Category</InputLabel>
-          <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          label="Supplier"
-          value={state.category_id}
-          onChange={handleChange}
-          name='category_id'
-          >
-          {category && category.map(s=>(
-            <MenuItem value={s.id}>{s.itemType}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl fullWidth sx={style2}>
-        <InputLabel id="demo-simple-select-label">Unit Type</InputLabel>
-          <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          label="Unit Type"
-          value={state.unit_id}
-          onChange={handleChange}
-          name='unit_id'
-          >
-          {unit && unit.map(s=>(
-            <MenuItem value={s.id}>{s.shortname}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
         
+        <FormControl fullWidth>
+        <MuiFileInput sx={style2} label="Input Image"  fullWidth value={state.formData.urlImage} onChange={handleImage} 
+          error={!!state.validationErrors.urlImage}
+          />
+         <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.urlImage || ' '}</FormHelperText>
+        </FormControl>
+          
+
+        <Autocomplete
+            id="country-select-demo"
+            name="supplier_id"
+            sx={style2}
+            disableClearable
+            options={supplier}
+            autoHighlight
+            getOptionLabel={(option) => option.name}
+            renderOption={(props, option) => (
+              <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
+                {option.name}
+              </Box>
+            )}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Choose a Supplier"
+                inputProps={{
+                  ...params.inputProps,
+                }}
+                error={!!state.validationErrors.supplier_id}
+                helperText={state.validationErrors.supplier_id || ' '}
+                />
+                )}
+                onChange={(event, newValue) => {
+                  if (newValue) {
+                    handleChange({ target: { name: 'supplier_id', value: newValue.id } });
+                  }
+                }}
+                />
+
+        <Autocomplete
+            id="country-select-demo"
+            name="category_id"
+            sx={style2}
+            disableClearable
+            options={category}
+            autoHighlight
+            getOptionLabel={(option) => option.itemType}
+            renderOption={(props, option) => (
+              <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
+                {option.itemType}
+              </Box>
+            )}
+            renderInput={(params) => (
+              <TextField
+              {...params}
+              label="Choose a Category"
+              inputProps={{
+                ...params.inputProps,
+              }}
+                error={!!state.validationErrors.category_id}
+                helperText={state.validationErrors.category_id || ' '}
+                />
+                )}
+                onChange={(event, newValue) => {
+                  if (newValue) {
+                    handleChange({ target: { name: 'category_id', value: newValue.id } });
+                  }
+                }}
+                
+                />
+        <Autocomplete
+            id="country-select-demo"
+            name="unit_id"
+            sx={style2}
+            disableClearable
+            options={unit}
+            getOptionLabel={(option) => option.shortname}
+            renderOption={(props, option) => (
+              <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
+                {option.shortname}
+              </Box>
+            )}
+            renderInput={(params) => (
+              <TextField
+              {...params}
+              label="Choose a Unit"
+              inputProps={{
+                ...params.inputProps,
+              }}
+              error={!!state.validationErrors.unit_id}
+              helperText={state.validationErrors.unit_id || ' '}
+              />
+              )}
+              onChange={(event,newValue) => {
+                if (newValue) {
+                handleChange({ target: { name: 'unit_id', value: newValue.id } });
+              }
+            }}
+            
+            />
         <TextField
           id="outlined-disabled"
           label="Information"
@@ -248,14 +422,21 @@ const CreateProduct = ({ style2 , openModal , handleCloseModal })=>{
           fullWidth
           name='information'
           onChange={handleChange}
-        />
+          error={!!state.validationErrors.information}
+          helperText={state.validationErrors.information || ' '}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseModal}>Cancel</Button>
           <Button onClick={handleCreate}>Create</Button>
         </DialogActions>
       </Dialog>
+      
+      <Snackbar open={open} autoHideDuration={1500} onClose={handleClose} anchorOrigin={{ vertical , horizontal }}>
+        <Alert onClose={handleClose} severity={state2.variant} sx={{ width: '100%' }}>
+        {state2.message}
+        </Alert>
+      </Snackbar>
         </>
     )
 }
-export default CreateProduct

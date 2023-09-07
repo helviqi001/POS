@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-        $data = [
+        $data = [ 
             [
                 "name"=>"user1",
                 "password"=>bcrypt("user1312"),

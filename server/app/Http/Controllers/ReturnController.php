@@ -183,7 +183,7 @@ class ReturnController extends Controller
         }
 
         return response()->json([
-            "message"=>"Data Berhasil dibuat",
+            "message"=>"Data Berhasil diUpdate",
             "data"=>$retur
         ],Response::HTTP_OK);
     }

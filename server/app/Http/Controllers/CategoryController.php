@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request as Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -69,8 +70,13 @@ class CategoryController extends Controller
         try{
             $newValue= Category::create($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Item Type already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
@@ -126,9 +132,15 @@ class CategoryController extends Controller
             $unit = Category::findOrfail($request->id);
             $unit->update($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Item Type already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
+
 
         return response()->json([
             "message"=>"Berhasil Update",

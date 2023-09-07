@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Models\Category;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\File;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {   
@@ -59,11 +62,12 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
+            "idProduk" => "string",
             "name" => "required|string",
             "stock"=> "required|integer",
-            "costOfGoodsSold"=> "required|integer",
+            "margin"=> "required|integer",
             "tax"=> "required|integer",
-            "sellingPrice"=> "required|integer",
+            "sellingPrice"=> "required|decimal:0,4",
             "discount"=> "required|integer",
             "netPrice"=> "required|integer",
             "coli"=> "required|integer",
@@ -78,19 +82,32 @@ class ProductController extends Controller
                 "message"=>$validator->errors()
             ],Response::HTTP_BAD_REQUEST);
         }
+        do {
+            $randomNumber = rand(1000, 9999);
+            $category = Category::find($request->category_id); // Assuming you have a Category model
+            $categoryName = $category->itemType;
+            $idProduk = $categoryName .'-'. $randomNumber;
+            $existingProduct = Product::where('id_produk', $idProduk)->first();
+        } while ($existingProduct);
         $validated = $validator->validated();
+        $validated["idProduk"] = $idProduk;
         $validated["urlImage"] = $request->file("urlImage")->store("product_image");
 
         try{
             $newValue= Product::create($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Product Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
             "message"=>"Data Berhasil dibuat",
-            "data"=>$newValue
+            "data"=>$newValue,
         ],Response::HTTP_OK);
     }
 
@@ -126,9 +143,9 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(),[
             "name" => "string",
             "stock"=> "integer",
-            "costOfGoodsSold"=> "integer",
+            "margin"=> "integer",
             "tax"=> "integer",
-            "sellingPrice"=> "integer",
+            "sellingPrice"=> "decimal:0,4",
             "discount"=> "integer",
             "netPrice"=> "integer",
             "coli"=> "integer",
@@ -156,12 +173,16 @@ class ProductController extends Controller
         try{
             $product->update($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Product Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
-
         return response()->json([
-            "message"=>"Berhasil Update",
+            "message"=>"Data Berhasil Update",
             "data"=>$product
         ],Response::HTTP_OK);
     }

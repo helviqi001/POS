@@ -117,8 +117,6 @@ export default function CategoryPage() {
   const [id,setId] = useState()
   
   const {load} = useContext(OutletContext)
-
-  console.log(productList);
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
     const getdata=async()=>{
@@ -170,7 +168,7 @@ export default function CategoryPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = productList.map((n) => n.name);
+      const newSelecteds = productList.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -248,7 +246,7 @@ export default function CategoryPage() {
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
   
   const isNotFound = !filteredUsers.length && !!filterName;
-  
+  console.log(selected);
   return (
     <>
       <Helmet>
@@ -284,12 +282,12 @@ export default function CategoryPage() {
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const { id, itemType} = row;
-                    const selectedUser = selected.indexOf(itemType) !== -1;
+                    const selectedUser = selected.indexOf(id) !== -1;
 
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, itemType)} />
+                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
                         </TableCell>
 
                         <TableCell component="th" scope="row" padding="none" align='center'>

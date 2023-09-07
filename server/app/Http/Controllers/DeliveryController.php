@@ -159,7 +159,7 @@ class DeliveryController extends Controller
         }
 
         return response()->json([
-            "message"=>"Data Berhasil dibuat",
+            "message"=>"Data Berhasil diUpdate",
             "data"=>$delivery
         ],Response::HTTP_OK);
     }

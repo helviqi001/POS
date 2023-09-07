@@ -9,35 +9,17 @@ import { MuiFileInput } from 'mui-file-input';
 // @mui
 import {
   Card,
-  Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
   Popover,
-  Checkbox,
-  TableRow,
   MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
 } from '@mui/material';
+import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+
 // components
 import CreateProduct from '../sections/@dashboard/product/createform';
 import EditForm from '../sections/@dashboard/product/editForm';
@@ -45,30 +27,11 @@ import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/prod
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-// sections
-// import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
 import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
+import FullImage from './fullImage';
 
 // ----------------------------------------------------------------------
-
-const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'unit_name', label: 'Unit name', alignRight: false },
-  { id: 'supplier', label: 'Supplier name', alignRight: false },
-  { id: 'category.itemType', label: 'Category', alignRight: false },
-  { id: 'image', label:'Image', alignRight: false },
-  { id: 'stock', label: 'Stock', alignRight: false },
-  { id: 'coli', label: 'coli', alignRight: false },
-  { id: 'tax', label: 'Tax ', alignRight: false },
-  { id: 'sellingPrice', label: 'Selling price (IDR)', alignRight: false },
-  { id: 'discount', label: 'Discount (IDR)', alignRight: false },
-  { id: 'netPrice', label: 'Net_price (IDR)', alignRight: false },
-  { id: 'information', label: 'Information', alignRight: false },
-  { id: '' },
-];
-
 // ----------------------------------------------------------------------
 
 function descendingComparator(a, b, orderBy) {
@@ -84,8 +47,15 @@ function descendingComparator(a, b, orderBy) {
 function getComparator(order, orderBy) {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
+    : (a, b) => {
+        if (orderBy === 'category') {
+          return descendingComparator(a.category.itemType, b.category.itemType);
+        }
+        return -descendingComparator(a, b, orderBy);
+      };
 }
+
+
 
 function applySortFilter(array, comparator, query) {
   const stabilizedThis = array.map((el, index) => [el, index]);
@@ -101,8 +71,8 @@ function applySortFilter(array, comparator, query) {
 }
 
 export default function ProductPage() {
-  const navigate = useNavigate()
   const [open, setOpen] = useState(null);
+
   const [openModal, setOpenModal] = useState(false);
 
   const [page, setPage] = useState(0);
@@ -115,13 +85,12 @@ export default function ProductPage() {
 
   const [filterName, setFilterName] = useState('');
 
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const [create,setCreate] = useState(false)
 
   const cookies = new Cookies()
 
   const [productList,setProduct] = useState([])
+
 
   const [edit,setEdit] = useState(false)
 
@@ -129,27 +98,109 @@ export default function ProductPage() {
   
   const {load} = useContext(OutletContext)
 
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+
+
+
+
+  const handleEditClick = (event , id)=> {
+    setOpen(event.currentTarget)
+    setId(id)
+  };
+
+  const openFullscreen = (imageSrc) => {
+    setFullscreenImage(imageSrc);
+    
+  };
+
+  const closeFullscreen = () => {
+    setFullscreenImage(null);
+  };
+
+  const DATAGRID_COLUMNS = [
+    { field: 'idProduk', headerName: 'Id Product', width: 150 , headerAlign: 'center', align:'center'},
+    { field: 'name', headerName: 'Name', width: 150 , headerAlign: 'center', align:'center'},
+    { field: 'unitName', headerName: 'Unit name', width: 130 , headerAlign: 'center',align:'center'},
+    { field: 'supplierName', headerName: 'Supplier name', width: 130 , headerAlign: 'center',align:'center'},
+    {
+      field: 'categoryType',
+      headerName: 'Category',
+      width: 90,
+      headerAlign: 'center',
+      align:'center'
+    },
+    { field: 'urlImage', headerName: 'Image', width: 150,headerAlign:'center', renderCell: (params) =>
+    <button
+    onClick={() => openFullscreen(`http://localhost:8000/storage/${params.value}`)}
+    className="image-button"
+    style={{ background:"none",cursor:'pointer' , border:"none"}}
+  >
+    <span className="image-span" aria-hidden="true">
+      <img
+        src={`http://localhost:8000/storage/${params.value}`}
+        alt='pic'
+        style={{ height: "100%" }}
+      />
+    </span>
+    <span className="image-text">View Image</span>
+  </button>},
+    { field: 'stock', headerName: 'Stock', width: 120,headerAlign: 'center',align:'center' },
+    { field: 'coli', headerName: 'coli', width: 120 , headerAlign: 'center',align:'center'},
+    { field: 'tax', headerName: 'Tax ', width: 120,renderCell: (params) => <p>{params.value}%</p> ,headerAlign: 'center',align:'center' },
+    { field: 'sellingPrice', headerName: 'Selling Price', width: 120, valueGetter:(params)=>{
+      const sellingPrice = params.row.sellingPrice
+      return `IDR ${sellingPrice.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      })}`} ,headerAlign: 'center',align:'center'},
+    { field: 'discount', headerName: 'Discount', width: 120, renderCell: (params) => <p>{params.value}%</p> ,headerAlign: 'center',align:'center'},
+    { field: 'netPrice', headerName: 'Net_price', width: 120, valueGetter:(params)=>{
+      const netPrice = params.row.netPrice
+      return `IDR ${netPrice.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      })}`} ,headerAlign: 'center',align:'center'},
+    { field: 'margin', headerName: 'Margin', width: 120, renderCell: (params) => <p>{params.value}% </p> ,headerAlign: 'center',align:'center'},
+    { field: 'information', headerName: 'Information',width:120,headerAlign: 'center',align:'center'},
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+        return [
+          <GridActionsCellItem
+            icon={<MoreVertIcon />}
+            label="3Dots"
+            className="textPrimary"
+            onClick={(e)=>handleEditClick(e,id)}
+            color="inherit"
+          />,
+        ];
+      },
+    },
+  ];
+
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
     const getdata=async()=>{
-      axios.get("http://localhost:8000/api/products?relations=category,unit,supplier,restocks",{
+      await axios.get("http://localhost:8000/api/products?relations=category,unit,supplier,restocks",{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data)
-        console.log(response.data.data)
+        setProduct( response.data.data.map((row) => ({
+          ...row,
+          unitName: row.unit.shortname,
+          supplierName: row.supplier.name,
+          categoryType: row.category.itemType,
+        })))
       })
     }
     getdata()
   },[])
-  
-  const handleOpenMenu = (event,id) => {
-    setOpen(event.currentTarget);
-    setId(id)
-  };
-
   const handleCloseMenu = () => {
     setOpen(null);
   };
@@ -172,22 +223,6 @@ export default function ProductPage() {
     setImmediate(false)
     setEdit(null)
   }
-
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = productList.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
   const handleDelete=async()=>{
     load(true)
     const cookie = cookies.get("Authorization")
@@ -202,64 +237,18 @@ export default function ProductPage() {
     setTimeout(()=>{
       load(false)
     },1000)
-  }
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflowY:"scroll"
-  };
-  
+  } 
   const style2 = {
     marginTop: 2
   }
-  const style3 = {
-    overflowX:"scroll",
-    marginTop:2,
-  }
-
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setPage(0);
-    setRowsPerPage(parseInt(event.target.value, 10));
-  };
-  
   const handleFilterByName = (event) => {
     setPage(0);
     setFilterName(event.target.value);
   };
-  
-  
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
-  
+
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
   
-  const isNotFound = !filteredUsers.length && !!filterName;
-
+  console.log(productList);
   return (
     <>
       <Helmet>
@@ -278,116 +267,47 @@ export default function ProductPage() {
 
         <Card>
           <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
           <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <ProductListHead
-                  order={order}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={productList.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                  
-                />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name,unit,supplier,category,urlImage,stock,coli,tax,sellingPrice,discount,netPrice,information} = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
-
-                    return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
-                        </TableCell>
-
-                        <TableCell component="th" scope="row" padding="none" align='center'>
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                        </TableCell>
-
-                        <TableCell align="center">{unit.shortname}</TableCell>
-
-                        <TableCell align="center">{supplier.name}</TableCell>
-
-                        <TableCell align="center">{category.itemType}</TableCell>
-
-                        <TableCell align="center">
-                          <img src={`http://localhost:8000/storage/${urlImage}`} alt=''/>
-                        </TableCell>
-
-
-                        <TableCell align="center">{stock}</TableCell>
-
-                        <TableCell align="center">{coli}</TableCell>
-
-                        {/* <TableCell align="center">{costOfGoodsSold}</TableCell> */}
-
-                        <TableCell align="center">{tax}</TableCell>
-
-                        <TableCell align="center">{sellingPrice}</TableCell>
-
-                        <TableCell align="center">{discount}</TableCell>
-
-                        <TableCell align="center">{netPrice}</TableCell>
-
-                        <TableCell align="center">{information}</TableCell>
-
-
-                        <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={(e)=>handleOpenMenu(e,id)}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6}/>
-                    </TableRow>
-                  )}
-                </TableBody>
-
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Not found
-                          </Typography>
-
-                          <Typography variant="body2">
-                            No results found for &nbsp;
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
+              {filteredUsers.length === 0 ? (
+              <Box sx={{ height:150 }}>
+              <DataGrid
+                rows={filteredUsers}
+                columns={DATAGRID_COLUMNS}
+                initialState={{
+                  pagination: {
+                    paginationModel: { page: 0, pageSize: 5 },
+                  },
+                }}
+                pageSizeOptions={[5, 10]}
+                onRowSelectionModelChange={(s)=>{
+                  setSelected(s)
+                }}
+                checkboxSelection 
+                disableRowSelectionOnClick
+                getRowHeight={() => 'auto'}
+              />
+            </Box>
+            ) :(
+              <Box sx={{ height:"auto" }}>
+              <DataGrid
+                rows={filteredUsers}
+                columns={DATAGRID_COLUMNS}
+                initialState={{
+                  pagination: {
+                    paginationModel: { page: 0, pageSize: 5 },
+                  },
+                }}
+                pageSizeOptions={[5, 10]}
+                onRowSelectionModelChange={(s)=>{
+                  setSelected(s)
+                }}
+                checkboxSelection 
+                disableRowSelectionOnClick
+                getRowHeight={() => 'auto'}
+              />
+              </Box>
+            )}
           </Scrollbar>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={productList.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
         </Card>
       </Container>
 
@@ -429,6 +349,11 @@ export default function ProductPage() {
                       )}
                   </>
               )}
+              {fullscreenImage && (
+                <>
+                 <FullImage fullImage={fullscreenImage} closeFullscreen={closeFullscreen}/>
+                </>
+                )}
         </>
   );
 }

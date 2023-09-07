@@ -15,15 +15,16 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string("name");
+            $table->string("idProduk");
+            $table->string("name")->unique();
             $table->string("urlImage")->nullable();
             $table->integer("stock");
-            $table->double("costOfGoodsSold");
-            $table->double("tax");
-            $table->double("sellingPrice");
-            $table->double("discount");
-            $table->double("netPrice");
-            $table->double("coli");
+            $table->double("margin",12,2);
+            $table->double("tax",12,2);
+            $table->double("sellingPrice",12,2);
+            $table->double("discount",12,2);
+            $table->double("netPrice",12,2);
+            $table->integer("coli");
             $table->string("information");
             $table->foreignId("unit_id")->constrained("units")->onDelete("cascade");
             $table->foreignId("supplier_id")->constrained("suppliers")->onDelete("cascade");

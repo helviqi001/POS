@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Position;
 use App\Models\Product;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
 class PositionController extends Controller
 {
+    
+      
 
     public $possible_relations = ["category", "unit", "supplier", "restocks","returns","transaction","deliveries"];
     /**
@@ -65,6 +68,7 @@ class PositionController extends Controller
     {
         $validator = Validator::make($request->all(),[
             "name" => "required|string",
+            "shortname" => "string",
         ]);
         if($validator->fails()){
             return response()->json([
@@ -72,12 +76,17 @@ class PositionController extends Controller
             ],Response::HTTP_BAD_REQUEST);
         }
         $validated = $validator->validated();
-
+        $validated['shortname'] = generateAbbreviation($request->name);
         try{
             $newValue= Position::create($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Position Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
@@ -141,12 +150,17 @@ class PositionController extends Controller
         try{
             $Position->update($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Position Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
-            "message"=>"Berhasil Update",
+            "message"=>"Data Berhasil diUpdate",
             "data"=>$Position
         ],Response::HTTP_OK);
     }
