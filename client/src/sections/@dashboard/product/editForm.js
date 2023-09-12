@@ -106,7 +106,13 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
     
 
     const calculateTotalCost = () => {
-      return (Number(state.formData.netPrice) * (100 + Number(state.formData.margin))) / 100
+      const netPrice = Number(state.formData.netPrice);
+      const margin = Number(state.formData.margin);
+      const tax = Number(state.formData.tax);
+      
+      const sellingPrice = netPrice + (netPrice * (margin / 100))  + (netPrice*(tax/100));
+      
+      return sellingPrice
     };
     
     // Reset totalState when coli changes
@@ -116,7 +122,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
         type: 'SET_SELLING_PRICE',
         payload: newSellingPrice,
       });
-    }, [state.formData.netPrice, state.formData.margin]);
+    }, [state.formData.netPrice, state.formData.margin, state.formData.tax]);
 
     const handleChange = e =>{
       dispatch(

@@ -208,7 +208,10 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
                 'StaticDatePicker',
               ]}
             >
-                <DatePicker  label="Register Date" onChange={(data)=>handleDate(data,"registerDate")} defaultValue={dayjs(state.formData.registerDate)} key={state.formData.id}/>
+                <DatePicker  label="Register Date" 
+                onChange={(data)=>handleDate(data,"registerDate")} 
+                disableFuture
+                defaultValue={dayjs(state.formData.registerDate)} key={state.formData.id}/>
             </DemoContainer>
           </LocalizationProvider>
           <FormHelperText>{state.validationErrors.registerDate}</FormHelperText>

@@ -83,11 +83,11 @@ class ProductController extends Controller
             ],Response::HTTP_BAD_REQUEST);
         }
         do {
-            $randomNumber = rand(1000, 9999);
+            $randomNumber = rand(01, 9999);
             $category = Category::find($request->category_id); // Assuming you have a Category model
             $categoryName = $category->itemType;
             $idProduk = $categoryName .'-'. $randomNumber;
-            $existingProduct = Product::where('id_produk', $idProduk)->first();
+            $existingProduct = Product::where('idProduk', $idProduk)->first();
         } while ($existingProduct);
         $validated = $validator->validated();
         $validated["idProduk"] = $idProduk;

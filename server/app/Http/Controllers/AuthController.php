@@ -15,10 +15,10 @@ class AuthController extends Controller
     {
         $validated = $request->validated();
 
-        $email = $validated["email"];
+        $username = $validated["username"];
         $password = $validated["password"];
 
-        $user = User::where("email", $email)->first();
+        $user = User::where("username", $username)->first();
 
         if (!Hash::check($password, $user->password)) {
             return response([

@@ -58,37 +58,36 @@ class DeliveryController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),[
-            "fleet_id"=>"required|integer",
-            "customer_id"=>"required|integer",
-            "product_id"=>"required|array",
-            "product_id.*"=>"integer",
-            "deliveryDate"=>"required|date_format:Y-m-d",
-            "information"=>"required|string",
-        ]);
-        if($validator->fails()){
-            return response()->json([
-                "message"=>"error nih"
-            ],Response::HTTP_BAD_REQUEST);
-        }
-        $validated = $validator->validated();
-        try{
-            $newValue= Delivery::create([
-            "fleet_id"=>$validated["fleet_id"],
-            "customer_id"=>$validated["customer_id"],
-            "deliveryDate"=>$validated["deliveryDate"],
-            "information"=>$validated["information"],
-            ]);
-            $newValue->products()->sync($validated["product_id"]);
-        }
-        catch(\Exception $e){
-            return $e;
-        }
+        // $validator = Validator::make($request->all(),[
+        //     "fleet_id"=>"required|integer",
+        //     "customer_id"=>"required|integer",
+        //     "transaction_id"=>"required|integer",
+        //     "deliveryDate"=>"required|date_format:Y-m-d",
+        //     "information"=>"required|string",
+        // ]);
+        // if($validator->fails()){
+        //     return response()->json([
+        //         "message"=>"error nih"
+        //     ],Response::HTTP_BAD_REQUEST);
+        // }
+        // $validated = $validator->validated();
+        // try{
+        //     $newValue= Delivery::create([
+        //     "fleet_id"=>$validated["fleet_id"],
+        //     "customer_id"=>$validated["customer_id"],
+        //     "deliveryDate"=>$validated["deliveryDate"],
+        //     "information"=>$validated["information"],
+        //     ]);
+        //     $newValue->products()->sync($validated["product_id"]);
+        // }
+        // catch(\Exception $e){
+        //     return $e;
+        // }
 
-        return response()->json([
-            "message"=>"Data Berhasil dibuat",
-            "data"=>$newValue
-        ],Response::HTTP_OK);
+        // return response()->json([
+        //     "message"=>"Data Berhasil dibuat",
+        //     "data"=>$newValue
+        // ],Response::HTTP_OK);
     }
 
     /**
@@ -133,9 +132,7 @@ class DeliveryController extends Controller
     {
         $validator = Validator::make($request->all(),[
             "fleet_id"=>"integer",
-            "customer_id"=>"integer",
-            "product_id"=>"array",
-            "product_id.*"=>"integer",
+            "transaction_id"=>"integer",
             "deliveryDate"=>"date_format:Y-m-d",
             "information"=>"string",
         ]);
@@ -148,11 +145,10 @@ class DeliveryController extends Controller
         try{
             $delivery->update([
             "fleet_id"=>$validated["fleet_id"],
-            "customer_id"=>$validated["customer_id"],
             "deliveryDate"=>$validated["deliveryDate"],
+            "transaction_id"=>$validated["transaction_id"],
             "information"=>$validated["information"],
             ]);
-            $delivery->products()->sync($validated["product_id"]);
         }
         catch(\Exception $e){
             return $e;

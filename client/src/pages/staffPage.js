@@ -41,7 +41,7 @@ import {
   DialogTitle,
 } from '@mui/material';
 // components
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import CreateStaff from '../sections/@dashboard/staff/createform';
 import EditForm from '../sections/@dashboard/staff/editForm';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
@@ -285,6 +285,9 @@ export default function StaffPage() {
                     paginationModel: { page: 0, pageSize: 5 },
                   },
                 }}
+                slots={{
+                  toolbar: CustomToolbar,
+                }}
                 pageSizeOptions={[5, 10]}
                 onRowSelectionModelChange={(s)=>{
                   setSelected(s)
@@ -338,5 +341,14 @@ export default function StaffPage() {
                   </>
               )}
         </>
+  );
+}
+
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+    </GridToolbarContainer>
   );
 }

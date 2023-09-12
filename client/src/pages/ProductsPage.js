@@ -17,7 +17,7 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // components
@@ -48,9 +48,6 @@ function getComparator(order, orderBy) {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => {
-        if (orderBy === 'category') {
-          return descendingComparator(a.category.itemType, b.category.itemType);
-        }
         return -descendingComparator(a, b, orderBy);
       };
 }
@@ -301,6 +298,10 @@ export default function ProductPage() {
                 onRowSelectionModelChange={(s)=>{
                   setSelected(s)
                 }}
+                slots={{
+                  toolbar: CustomToolbar,
+                }}
+                checkbo
                 checkboxSelection 
                 disableRowSelectionOnClick
                 getRowHeight={() => 'auto'}
@@ -355,5 +356,13 @@ export default function ProductPage() {
                 </>
                 )}
         </>
+  );
+}
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+    </GridToolbarContainer>
   );
 }

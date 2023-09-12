@@ -191,7 +191,11 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
                 'StaticDatePicker',
               ]}
             >
-                <DatePicker label="Register Date" onChange={handleDate} sx={{ borderColor:"red" }} slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
+                <DatePicker label="Register Date" 
+                onChange={handleDate} 
+                sx={{ borderColor:"red" }} 
+                disableFuture
+                slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
             </DemoContainer>
           </LocalizationProvider>
 

@@ -42,7 +42,7 @@ import {
 } from '@mui/material';
 // components
 import DetailsIcon from '@mui/icons-material/Details';
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
@@ -343,6 +343,9 @@ export default function ReturnPage() {
                     paginationModel: { page: 0, pageSize: 5 },
                   },
                 }}
+                slots={{
+                  toolbar: CustomToolbar,
+                }}
                 pageSizeOptions={[5, 10]}
                 checkboxSelection 
                 disableRowSelectionOnClick
@@ -395,5 +398,14 @@ export default function ReturnPage() {
                   </>
               )}
         </>
+  );
+}
+
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+    </GridToolbarContainer>
   );
 }

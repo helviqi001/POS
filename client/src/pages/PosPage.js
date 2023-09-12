@@ -1,11 +1,11 @@
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useReducer, useState } from 'react';
 // @mui
-import { Container, Stack, Typography } from '@mui/material';
+import { Box, Button, Container, Dialog, DialogContent, Stack, Typography } from '@mui/material';
 // components
 import axios from 'axios';
 import Cookies from 'universal-cookie';
-import { PosReducer,INITIAL_STATE } from '../sections/@dashboard/pos/posReducer';
+import { PosReducer,INITIAL_STATE, usePos } from '../sections/@dashboard/pos/posReducer';
 import { ProductSort, ProductList, ProductCartWidget, ProductFilterSidebar } from '../sections/@dashboard/pos';
 // mock
 import PRODUCTS from '../_mock/products';
@@ -14,7 +14,10 @@ import PRODUCTS from '../_mock/products';
 export default function PosPage() {
   const [openFilter, setOpenFilter] = useState(false);
 
+  const [openModal, setOpenModal] = useState(false);
+
   const [productList , setProduct] = useState([])
+  const { state, dispatch } = usePos();
 
   const handleOpenFilter = () => {
     setOpenFilter(true);
@@ -24,9 +27,15 @@ export default function PosPage() {
     setOpenFilter(false);
   };
 
-  const [state,dispatch] = useReducer(PosReducer,INITIAL_STATE)
-  
-  console.log(state.product);
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    dispatch({type:"RESET_STATE"})
+    setOpenModal(false);
+    
+  };
   const cookies = new Cookies()
 
   const cookie = cookies.get("Authorization");
@@ -38,13 +47,26 @@ export default function PosPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct( response.data.data.map((row) => ({
+        const serverProductList = response.data.data.map((row) => ({
           ...row,
           unitName: row.unit.shortname,
           supplierName: row.supplier.name,
           categoryType: row.category.itemType,
+        }))
+        const localStorageProductList = JSON.parse(localStorage.getItem("itemsAdded")) || [];
 
-        })))
+        // Memeriksa dan menghapus produk yang tidak ada dalam productList
+        const updatedLocalStorageProductList = localStorageProductList.filter((localStorageProduct) => {
+          return serverProductList.some((serverProduct) => {
+            return serverProduct.id === localStorageProduct.id;
+          });
+        });
+
+        // Menyimpan produk yang sudah diperbarui ke localStorage
+        localStorage.setItem("itemsAdded", JSON.stringify(updatedLocalStorageProductList));
+
+        // Set productList dengan data produk yang sudah diperbarui
+        setProduct(serverProductList)
       })
     }
     getData()
@@ -74,7 +96,7 @@ export default function PosPage() {
         </Stack>
 
         <ProductList products={productList} />
-        <ProductCartWidget />
+        <ProductCartWidget openModal={openModal} handleCloseModal={handleCloseModal} handleOpenModal={handleOpenModal}/>
       </Container>
     </>
   );

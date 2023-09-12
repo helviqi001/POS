@@ -24,4 +24,8 @@ class Customer extends Model
     public function transaction(){
         return $this->hasMany(Transaction::class);
     }
+
+    public function debit(){
+        return $this->hasMany(Debit::class);
+    }
 }

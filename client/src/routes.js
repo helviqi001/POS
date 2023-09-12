@@ -24,6 +24,7 @@ import CustomerPage from './pages/CutomerPage';
 import StaffPage from './pages/staffPage';
 import PositionPage from './pages/PositionPage';
 import PosPage from './pages/PosPage';
+import DebitPage from './pages/DebitPage';
 
 
 // ----------------------------------------------------------------------
@@ -50,6 +51,7 @@ export default function Router() {
         { path: 'unit', element: <UnitPage /> },
         { path: 'restock', element: <RestockPage />},
         { path: 'return', element: <ReturnPage />},
+        { path: 'debit', element: <DebitPage />},
         {path:'restock/create', element:<CreateRestock/>},
         {path:'restock/edit', element:<EditRestock/>},
         {path:'returns/create', element:<CreateReturn/>},

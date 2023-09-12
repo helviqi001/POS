@@ -187,6 +187,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
                   <DatePicker 
                   label="Register Date"
                   onChange={handleDate}
+                  disableFuture
                   slotProps={{ textField: { helperText:state.validationErrors.RegisterDate , error:!!state.validationErrors.RegisterDate} }}
                   />
 

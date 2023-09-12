@@ -40,7 +40,7 @@ import {
   Select,
   DialogTitle,
 } from '@mui/material';
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 // components
 import CreateSupplier from '../sections/@dashboard/supplier/createform';
 import EditForm from '../sections/@dashboard/supplier/editForm';
@@ -333,6 +333,9 @@ export default function SupplierPage() {
                     paginationModel: { page: 0, pageSize: 5 },
                   },
                 }}
+                slots={{
+                  toolbar: CustomToolbar,
+                }}
                 pageSizeOptions={[5, 10]}
                 onRowSelectionModelChange={(s)=>{
                   setSelected(s)
@@ -391,5 +394,13 @@ export default function SupplierPage() {
                 </>
                 )}
         </>
+  );
+}
+
+function CustomToolbar() {
+  return (
+    <GridToolbarContainer>
+      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+    </GridToolbarContainer>
   );
 }

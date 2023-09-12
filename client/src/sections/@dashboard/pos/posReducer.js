@@ -1,37 +1,83 @@
-import { createContext, useContext, useReducer } from "react"
+import { createContext, useContext, useEffect, useReducer } from "react"
 
 const PosContext = createContext();
 
 export const INITIAL_STATE = {
-    product: JSON.parse(localStorage.getItem("itemsAdded")) || []
+    product: JSON.parse(localStorage.getItem("itemsAdded")) || [],
+    formData:{
+      transactionDate:"",
+      deliveryMethod:"",
+      paymentMethod:"",
+      installment:0,
+      information:"",
+      customer_id:0,
+      staff_id:0,
+      total:0,
+    },
+    validationErrors:{}
 }
 
 export const PosReducer=(state,action)=>{
     switch(action.type){
         case "ADDED":{
-            const products =  JSON.parse(localStorage.getItem("itemsAdded")) 
-            if(!products){
-              localStorage.setItem("itemsAdded",JSON.stringify(action.payload))
-            }else{
-                localStorage.setItem("itemsAdded",JSON.stringify([...products, action.payload]))
-            }
-              return{
-                  ...state,
-                  product:[...state.product, action.payload],
-              }
+          const updatedCart = [...state.product, ...action.payload];
+          localStorage.setItem("itemsAdded", JSON.stringify(updatedCart));
+          return {
+            ...state,
+            product: updatedCart,
+          };
         }
         case "REMOVE":{
-            const products =  JSON.parse(localStorage.getItem("itemsAdded")) 
-            if(!products){
-              localStorage.setItem("itemsAdded",JSON.stringify(action.payload))
-            }else{
-                localStorage.setItem("itemsAdded",JSON.stringify(products.filter((item)=>{item.id === action.payload})))
-            }
-              return{
-                  ...state,
-                  product:[...state.product, action.payload],
-              }
+          const productIdToRemove = action.payload;
+          const updatedCart = state.product.filter((item) => item.id !== productIdToRemove);
+          localStorage.setItem("itemsAdded", JSON.stringify(updatedCart));
+          return {
+            ...state,
+            product: updatedCart,
+          };
         }
+        case 'RESET_STATE':
+            return {
+              ...INITIAL_STATE
+            }
+        case "CHANGE_INPUT":
+            return {
+                ...state,
+                formData: {
+                    ...state.formData,
+                    [action.payload.name]: action.payload.value,
+                  },
+                  validationErrors: {
+                    ...state.validationErrors,
+                    [action.payload.name]: '',
+                  },
+            }
+        case "DATE" : 
+        return{
+          ...state,
+          formData: {
+            ...state.formData,
+            transactionDate: action.payload,
+          },
+          validationErrors: {
+            ...state.validationErrors,
+            transactionDate: '',
+          },
+        }
+        case "UPDATE": {
+          return {
+            ...state,
+            product: action.payload,
+          }
+        }
+        case 'SET_VALIDATION_ERROR':
+                return {
+                    ...state,
+                    validationErrors: {
+                    ...state.validationErrors,
+                    [action.payload.field]: action.payload.error,
+                    },
+                };
             default:
                 return state
     }
@@ -43,7 +89,11 @@ export const usePos = () => {
   
   export const PosProvider = ({ children }) => {
     const [state, dispatch] = useReducer(PosReducer, INITIAL_STATE);
-  
+
+    useEffect(() => {
+      // Simpan data keranjang ke localStorage setiap kali ada perubahan
+      localStorage.setItem("itemsAdded", JSON.stringify(state.product));
+    }, [state.product]);
     return (
       <PosContext.Provider value={{ state, dispatch }}>
         {children}

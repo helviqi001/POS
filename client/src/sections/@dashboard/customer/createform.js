@@ -179,7 +179,10 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
                   'StaticDatePicker',
                 ]}
               >
-                  <DatePicker  label="Birth Date" onChange={(data)=>handleDate(data,"birthDate")} slotProps={{ textField: { helperText:state.validationErrors.birthDate , error:!!state.validationErrors.birthDate} }}/>
+                  <DatePicker  label="Birth Date"
+                  onChange={(data)=>handleDate(data,"birthDate")}
+                  disableFuture
+                  slotProps={{ textField: { helperText:state.validationErrors.birthDate , error:!!state.validationErrors.birthDate} }}/>
               </DemoContainer>
             </LocalizationProvider>
           <TextField
@@ -203,7 +206,7 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
                   'StaticDatePicker',
                 ]}
               >
-                  <DatePicker  label="Register Date" onChange={(data)=>handleDate(data,"registerDate")} slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
+                  <DatePicker  label="Register Date" onChange={(data)=>handleDate(data,"registerDate")} disableFuture slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
               </DemoContainer>
             </LocalizationProvider>
           <TextField

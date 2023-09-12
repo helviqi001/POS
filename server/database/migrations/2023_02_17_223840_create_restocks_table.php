@@ -17,7 +17,6 @@ return new class extends Migration
             $table->id();
             $table->date("restockDate");
             $table->integer("totalSpend");
-            
             $table->foreignId("supplier_id")->constrained("suppliers")->onDelete("cascade");
             $table->timestamps();
         });

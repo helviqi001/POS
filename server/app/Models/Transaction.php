@@ -10,10 +10,10 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
+        "idTransaction",
         "staff_id",
         "customer_id",
         "product_id",
-        "numberOfItemsOut",
         "total",
         "paymentStatus",
         "itemStatus",
@@ -33,4 +33,7 @@ class Transaction extends Model
         return $this->belongsTo(customer::class);
     }
 
+    public function debit(){
+        return $this->hasMany(Debit::class);
+    }
 }

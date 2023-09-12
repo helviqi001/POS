@@ -10,15 +10,10 @@ class Delivery extends Model
     use HasFactory;
     protected $fillable = [
         "fleet_id",
-        "customer_id",
-        "product_id",
+        "transaction_id",
         "deliveryDate",
         "information",
     ];
-
-    public function customer(){
-        return $this->belongsTo(Customer::class);
-    }
     public function fleet(){
         return $this->belongsTo(Customer::class);
     }

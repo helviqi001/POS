@@ -4,6 +4,7 @@ import { Box, Card, Link, Typography, Stack, IconButton } from '@mui/material';
 import { useReducer, useState } from 'react';
 import { styled } from '@mui/material/styles';
 // utils
+import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 // components
 import Label from '../../../components/label';
@@ -26,10 +27,10 @@ ShopProductCard.propTypes = {
   product: PropTypes.object,
 };
 
-export default function ShopProductCard({ product }) {
+export default function ShopProductCard({ product}) {
   const { state,dispatch} = usePos()
-
   const {id,idProduk,name,stock,urlImage, sellingPrice, discount } = product;
+  const isInCart= state.product.some((item) => item.id === id)
   const formattedNumber = sellingPrice.toLocaleString(undefined,{
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
@@ -39,12 +40,14 @@ export default function ShopProductCard({ product }) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
 })
+const handleAddToCart = () => {
+    const addedData = [{ ...product, quantity: 1,sellingPrice:afterDisc }];
+    dispatch({ type: "ADDED", payload: addedData });
+};
 
-  const handleAdd=(data)=>{
-    const addedData = [{...data,quantity:0}]
-    dispatch({type:"ADDED" , payload:addedData})
-  }
-  console.log(state.product);
+const handleRemoveFromCart = () => {
+    dispatch({ type: "REMOVE", payload: id });
+};
   return (
     <>
     <Card >
@@ -109,10 +112,13 @@ export default function ShopProductCard({ product }) {
           </Typography>
             )}
             {stock >0 ? (
-
-            <IconButton size="large" color="inherit" onClick={()=>handleAdd(product)}>
-                <AddIcon/>
-            </IconButton>
+             <IconButton
+             size="large"
+             color="inherit"
+             onClick={isInCart ? handleRemoveFromCart : handleAddToCart}
+           >
+             {isInCart ? <RemoveIcon /> : <AddIcon />}
+           </IconButton>
             ) : (
               <Typography fontSize={12} height={0}>Tidak Tesedia</Typography>
             )}

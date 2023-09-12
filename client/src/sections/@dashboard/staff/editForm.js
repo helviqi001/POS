@@ -223,7 +223,12 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
                 'StaticDatePicker',
               ]}
             >
-                <DatePicker  label="Register Date" onChange={handleDate} defaultValue={dayjs(state.formData.registerDate)} key={state.formData.id} slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
+                <DatePicker  label="Register Date" 
+                onChange={handleDate} 
+                defaultValue={dayjs(state.formData.registerDate)} 
+                key={state.formData.id} 
+                disableFuture
+                slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
             </DemoContainer>
           </LocalizationProvider>
 

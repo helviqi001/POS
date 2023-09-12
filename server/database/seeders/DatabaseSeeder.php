@@ -6,9 +6,11 @@ namespace Database\Seeders;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Position;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Sale;
+use App\Models\Staff;
 use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
@@ -23,39 +25,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
-
-        // $this->call(ProductSeeder::class);
-
-        $this->call(SettingSeeder::class);
-        // $this->call(UserSeeder::class);
-
-        // User::factory(10)->create();
-        // Category::factory(10)->create();
-        // Unit::factory(10)->create();
-        // Brand::factory(10)->create();
-        // Supplier::factory(10)->create();
-        // Sale::factory(10)->create();
-        // Purchase::factory(10)->create();
-        // Product::factory(100)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
+        $dataStaff= [
+            [
+                "id_staff"=>"SA-1242",
+                "name"=>"Andreas",
+                "registerDate"=>"2023-05-12",
+                "address"=>"anyWhere",
+                "phone"=>"081242124",
+                "position_id"=>1,
+                "information"=>"awdasadawaw",
+            ]
+            ];
+        $dataPosition= [
+            [
+                "name"=>"Super Admin",
+                "shortname"=>"SA",
+            ]
+            ];
         $data = [ 
             [
-                "name"=>"user1",
-                "password"=>bcrypt("user1312"),
-                "email"=>"user1@gmail.com",
-            ],
-            [
-                "name"=>"admin1",
-                "password"=>bcrypt("admin11312"),
-                "email"=>"admin1@gmail.com",
+                "username"=>"superAdmin",
+                "password"=>bcrypt("super123"),
+                "position_id"=>1,
+                "staff_id"=>1,
             ],
         ];
+        Position::insert($dataPosition);
+        Staff::insert($dataStaff);
         User::insert($data);
     }
 }

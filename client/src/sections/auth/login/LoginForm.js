@@ -19,7 +19,7 @@ export default function LoginForm() {
   const handleClick = async() => {
     try{
       await login({
-        email: valueEmail,
+        username: valueEmail,
         password: valuePassword,
       })
     }
@@ -31,7 +31,7 @@ export default function LoginForm() {
   return (
     <>
       <Stack spacing={3}>
-        <TextField name="email" label="Email address" onChange={(e)=>setEmail(e.target.value)}/>
+        <TextField name="email" label="Username" onChange={(e)=>setEmail(e.target.value)}/>
 
         <TextField
           name="password"

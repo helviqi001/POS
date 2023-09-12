@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -48,11 +51,22 @@ class UserController extends Controller
     {
         $validated = $request->validated();
 
-        $user = User::create([
-            "name" => $validated["name"],
-            "password" => bcrypt($validated["password"]),
-            "email" => $validated["email"]
-        ]);
+        try{
+            $user = User::create([
+                "username" => $validated["username"],
+                "password" => bcrypt($validated["password"]),
+                "position_id" => $validated["position_id"],
+                "staff_id" => $validated["staff_id"],
+            ]);
+        }
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Username already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
+        }
 
         return response($user, 201);
     }
@@ -75,11 +89,28 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(Request $request)
     {
+        $validator = Validator::make($request->all(),[
+            "username" => "string",
+            "position_id" => "integer",
+            "staff_id" => "integer",
+            "password" => "string",
+            "id" => "integer",
+        ]);
         $validated = $request->validated();
-
-        $user->update($validated);
+        $user = User::findOrfail($request->id);
+        try{
+            $user->update($validated);
+        }
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Username already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
+        }
 
         return $user;
     }

@@ -6,62 +6,31 @@ import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-
 // @mui
 import {
   Card,
-  Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
   Popover,
-  Checkbox,
-  TableRow,
   MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
 } from '@mui/material';
+import { DataGrid, GridActionsCellItem,GridCsvExportOptions, GridToolbar, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+
 // components
-import DetailsIcon from '@mui/icons-material/Details';
-import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import EditForm from '../sections/@dashboard/debit/editForm';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
+import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
-import DetailRestock from '../sections/@dashboard/restock/detail';
+import FullImage from './fullImage';
 
 // ----------------------------------------------------------------------
-
-const TABLE_HEAD = [
-  { id: 'productName', label: 'products', alignRight: false },
-  { id: 'supplierName', label: 'Supplier name', alignRight: false },
-  { id: 'restockDate', label: 'Restock Date', alignRight: false },
-  { id: 'quantity', label: 'Quantity', alignRight: false },
-  { id: 'coli', label: 'Coli', alignRight: false },
-  { id: 'totalSpend', label: 'Total Spend', alignRight: false },
-  { id: '' },
-];
-
 // ----------------------------------------------------------------------
 
 function descendingComparator(a, b, orderBy) {
@@ -76,9 +45,13 @@ function descendingComparator(a, b, orderBy) {
 
 function getComparator(order, orderBy) {
   return order === 'desc'
-  ? (a, b) => descendingComparator(a, b, orderBy)
-  : (a, b) => -descendingComparator(a, b, orderBy);
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => {
+        return -descendingComparator(a, b, orderBy);
+      };
 }
+
+
 
 function applySortFilter(array, comparator, query) {
   const stabilizedThis = array.map((el, index) => [el, index]);
@@ -88,61 +61,61 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.iDTransaction.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function RestockPage() {
-  const navigate = useNavigate()
-  
+export default function DebitPage() {
   const [open, setOpen] = useState(null);
-  
+
   const [openModal, setOpenModal] = useState(false);
-  
-  const [Detail, setDetail] = useState(false);
-  
-  
+
   const [page, setPage] = useState(0);
-  
+
   const [order, setOrder] = useState('asc');
-  
+
   const [selected, setSelected] = useState([]);
-  
-  const [orderBy, setOrderBy] = useState('name');
-  
+
+  const [orderBy, setOrderBy] = useState('');
+
   const [filterName, setFilterName] = useState('');
-  
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  
+
+  const [create,setCreate] = useState(false)
+
   const cookies = new Cookies()
-  
+
   const [productList,setProduct] = useState([])
-  
+
+
+  const [edit,setEdit] = useState(false)
+
   const [id,setId] = useState()
   
   const {load} = useContext(OutletContext)
 
-  const handleOpenMenu = (event,id) => {
-    setOpen(event.currentTarget);
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+
+
+
+
+  const handleEditClick = (event , id)=> {
+    setOpen(event.currentTarget)
     setId(id)
   };
+
   const DATAGRID_COLUMNS = [
-    { field: 'productName', headerName: 'Product', width: 150,
-       headerAlign: 'center', align:'center'},
-    { field: 'supplierName', headerName: 'Supplier name', width: 150 , headerAlign: 'center',align:'center'},
-    { field: 'quantity', headerName: 'Quantity', width: 150,
-   headerAlign: 'center',align:'center' },
-    { field: 'coli', headerName: 'Coli', width: 150,
-   headerAlign: 'center',align:'center'},
-    { field: 'restockDate', headerName: 'Restock Date',width:150,headerAlign: 'center',align:'center'},
-    { field: 'totalSpend', headerName: 'Total Spend',width:150,headerAlign: 'center',align:'center',
-    valueGetter: (params) => {
-        const totalSpend = params.row.totalSpend;
-        return totalSpend.toLocaleString(undefined, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        })}},
+    { field: 'iDTransaction', headerName: 'Id Transaction', width: 150 , headerAlign: 'center', align:'center'},
+    { field: 'nameCustomer', headerName: 'Customer Name', width: 150 , headerAlign: 'center', align:'center'},
+    { field: 'dueDate', headerName: 'Due Date', width: 150 , headerAlign: 'center',align:'center'},
+    { field: 'nominal', headerName: 'Nominal', width: 150, valueGetter:(params)=>{
+      const sellingPrice = params.row.nominal
+      return `IDR ${sellingPrice.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      })}`} ,headerAlign: 'center',align:'center'},
+    { field: 'information', headerName: 'Information',width:150,headerAlign: 'center',align:'center'},
+    { field: 'status', headerName: 'Status ',width:150,headerAlign: 'center',align:'center'},
     {
       field: 'actions',
       type: 'actions',
@@ -155,7 +128,7 @@ export default function RestockPage() {
             icon={<MoreVertIcon />}
             label="3Dots"
             className="textPrimary"
-            onClick={(e)=>handleOpenMenu(e,id)}
+            onClick={(e)=>handleEditClick(e,id)}
             color="inherit"
           />,
         ];
@@ -163,74 +136,50 @@ export default function RestockPage() {
     },
   ];
 
-  const getProcessedData = (data) => {
-    const processedData = [];
-    
-    data.forEach((entry) => {
-      const { supplier, products, ...rest } = entry;
-      
-      if (products && products.length > 0) {
-        // Loop through each product in the current restock
-        products.forEach((product) => {
-          const productRow = {
-            productId: product.id,
-            supplierName: supplier.name,
-            productName: product.name,
-            quantity: product.pivot.quantity,
-            coli: product.pivot.coli,
-            ...rest,
-          };
-          processedData.push(productRow);
-        });
-      }
-    });
-    
-    return processedData;
-  };
-
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
     const getdata=async()=>{
-      axios.get("http://localhost:8000/api/restocks?relations=supplier,products",{
+      await axios.get("http://localhost:8000/api/debits?relations=customer,transaction",{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        const ProcessedData = getProcessedData(response.data.data)
-        setProduct(ProcessedData)
+        setProduct(response.data.data.map(p=>({
+          ...p,
+          nameCustomer:p.customer.name,
+          iDTransaction:p.transaction.idTransaction 
+        })));
       })
     }
     getdata()
   },[])
-  
-
   const handleCloseMenu = () => {
     setOpen(null);
   };
 
-  const handleOpenModalDetail=()=>{
+  const handleOpenModal=()=>{
+    setCreate(true)
+    setEdit(null)
     setOpenModal(true)
-    setDetail(true)
+  }
+  const handleOpenModalEdit=()=>{
+    setEdit(true)
+    setCreate(null)
+    setOpenModal(true)
+    setOpen(null);
   }
 
   const handleCloseModal=()=>{
     setOpenModal(false)
-    setDetail(false)
+    setCreate(false)
+    setImmediate(false)
+    setEdit(null)
   }
-
-  const handleOpenModal=()=>{
-    navigate('/dashboard/restock/create')
-  }
-  const handleOpenModalEdit=()=>{
-    setOpen(null);
-    navigate('/dashboard/restock/edit',{state:{id}})
-  }
-
   const handleDelete=async()=>{
     load(true)
     const cookie = cookies.get("Authorization")
-    axios.delete(`http://localhost:8000/api/restocks/${id}`,{
+    axios.delete(`http://localhost:8000/api/debits/${id}`,{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -241,41 +190,18 @@ export default function RestockPage() {
     setTimeout(()=>{
       load(false)
     },1000)
-  }
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflowY:"scroll"
-  };
-  
+  } 
   const style2 = {
     marginTop: 2
   }
-  const style3 = {
-    overflowX:"scroll",
-    marginTop:2,
-  }
-  
   const handleFilterByName = (event) => {
     setPage(0);
     setFilterName(event.target.value);
   };
-  
-  
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
-  
+
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
   
-  const isNotFound = !filteredUsers.length && !!filterName;
-
-  console.log(filteredUsers);
+  console.log(productList);
   return (
     <>
       <Helmet>
@@ -285,18 +211,14 @@ export default function RestockPage() {
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Restock List
+            Product List
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleOpenModal}>
-            New Resctock
-          </Button>
         </Stack>
 
         <Card>
           <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
           <Scrollbar>
-          {filteredUsers.length === 0 ? (
+              {filteredUsers.length === 0 ? (
               <Box sx={{ height:150 }}>
               <DataGrid
                 rows={filteredUsers}
@@ -306,7 +228,7 @@ export default function RestockPage() {
                     paginationModel: { page: 0, pageSize: 5 },
                   },
                 }}
-                pageSizeOptions={[5, 10]}
+                pageSizeOptions={[5, 10,25,50,100]}
                 onRowSelectionModelChange={(s)=>{
                   setSelected(s)
                 }}
@@ -325,8 +247,7 @@ export default function RestockPage() {
                     paginationModel: { page: 0, pageSize: 5 },
                   },
                 }}
-                
-                pageSizeOptions={[5, 10]}
+                pageSizeOptions={[5, 10,25,50,100]}
                 onRowSelectionModelChange={(s)=>{
                   setSelected(s)
                 }}
@@ -370,16 +291,11 @@ export default function RestockPage() {
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>
-
-        <MenuItem onClick={handleOpenModalDetail}> 
-          <DetailsIcon sx={{ mr: 2 }} />
-          Detail
-        </MenuItem>
       </Popover>
-      {openModal && (
+              {openModal && (
                   <>
-                      {Detail && (
-                          <DetailRestock style2={style2} openModal={openModal} handleCloseModal={handleCloseModal} id={id} />
+                      {edit && (
+                          <EditForm id={id} style2={style2} openModal={openModal} handleCloseModal={handleCloseModal} productList={productList} />
                       )}
                   </>
               )}

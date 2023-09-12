@@ -63,10 +63,15 @@ const navConfig = [
     //   },
     // ]
   },
+  // {
+  //   title: 'sales',
+  //   path: '/dashboard/sales',
+  //   icon: icon('ic_cart'),
+  // },
   {
-    title: 'sales',
-    path: '/dashboard/sales',
-    icon: icon('ic_cart'),
+    title: 'Debit',
+    path: '/dashboard/debit',
+    icon: icon('credit-card-svgrepo-com'),
   },
   {
     title: 'sales',

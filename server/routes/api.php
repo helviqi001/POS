@@ -5,6 +5,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DebitController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\FleetController;
 use App\Http\Controllers\PositionController;
@@ -58,7 +59,8 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::apiResource("returs", ReturnController::class);
     Route::apiResource("deliveries", DeliveryController::class);
     Route::apiResource("transactions", TransactionController::class);
-
+    Route::apiResource("debits", DebitController::class);
+    
 
     // users related
     Route::apiResource("users", UserController::class);
@@ -81,6 +83,7 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/categories',[CategoryController::class,'update']);
         Route::post('/customers',[CustomerController::class,'update']);
         Route::post('/transactions',[TransactionController::class,'update']);
+        Route::post('/debits',[DebitController::class,'update']);
     });
     
     
