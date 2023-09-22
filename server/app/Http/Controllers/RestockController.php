@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\ImportRestocks;
 use App\Models\Product;
 use App\Models\Restock;
 use Exception;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\File;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RestockController extends Controller
 {
@@ -62,6 +64,7 @@ class RestockController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
+            "idRestock"=>"integer",
             "product_id.*.quantity"=>"required|integer",
             "restockDate"=>"required|date_format:Y-m-d",
             "totalSpend"=>"required|integer",
@@ -75,10 +78,17 @@ class RestockController extends Controller
                 "message"=>$validator->errors(),
             ],Response::HTTP_BAD_REQUEST);
         }
+        do {
+            $randomNumber = rand(01, 9999);
+            $idRestock = 'Restock'.'-'. $randomNumber;
+            $existingProduct = Restock::where('idRestock', $idRestock)->first();
+        } while ($existingProduct);
         $validated = $validator->validated();
+        $validated['idRestock'] = $idRestock;
         $products = $this->convert_array($validated["product_id"]);
         try{
             $newValue= Restock::create([
+                "idRestock"=>$validated['idRestock'],
                 'restockDate'=>$validated['restockDate'],
                 'totalSpend'=>$validated['totalSpend'],
                 'supplier_id'=>$validated['supplier_id'],
@@ -143,6 +153,7 @@ class RestockController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(),[
+            "idRestock"=>"integer",
             "product_id.*.quantity"=>"integer",
             "restockDate"=>"date_format:Y-m-d",
             "totalSpend"=>"integer",
@@ -173,6 +184,7 @@ class RestockController extends Controller
                 $productModel->save(); 
             }
             $restock->update([
+            'idRestock'=>$validated['idRestock'],
             'restockDate'=>$validated['restockDate'],
             'totalSpend'=>$validated['totalSpend'],
             'supplier_id'=>$validated['supplier_id'],
@@ -235,5 +247,20 @@ class RestockController extends Controller
             }
         }
         return $result;
+    }
+
+    public function import(Request $request){
+        $file = $request->file('excel_file');
+
+        try{
+            Excel::import(new ImportRestocks,$file);
+        }catch(\Exception $e){
+            return response()->json([
+                "error"=>$e->getMessage()
+            ],Response::HTTP_BAD_REQUEST);
+        }
+        return response()->json([
+            'message'=>"berhasil Import"
+        ],Response::HTTP_OK);
     }
 }

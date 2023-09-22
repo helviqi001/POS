@@ -225,6 +225,7 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
             }
             fullWidth
             name='address'
+            onChange={handleChange}
             defaultValue={state.formData.address}
             key={state.formData.id}
             error={!!state.validationErrors.address}

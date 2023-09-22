@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Supplier;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
+use App\Imports\ImportSuppliers;
 use App\Models\Product;
 use App\Models\Purchase;
 use Illuminate\Database\QueryException;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Support\Str;
-
+use Maatwebsite\Excel\Facades\Excel;
 
 class SupplierController extends Controller
 {
@@ -175,5 +176,23 @@ class SupplierController extends Controller
         return response()->json([
             "message"=>"Delete sucess"
         ],Response::HTTP_NO_CONTENT);
+    }
+
+    public function import(Request $request){
+        $file = $request->file('excel_file');
+
+        try{
+            Excel::import(new ImportSuppliers,$file);
+        }catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => $e], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
+        }
+        return response()->json([
+            'message'=>"berhasil Import"
+        ],Response::HTTP_OK);
     }
 }

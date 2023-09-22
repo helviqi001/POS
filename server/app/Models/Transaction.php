@@ -23,7 +23,7 @@ class Transaction extends Model
     ];
 
     public function products(){
-        return $this->belongsToMany(Product::class);
+        return $this->belongsToMany(Product::class)->withPivot('quantity');
     }
 
     public function staff(){
@@ -33,7 +33,13 @@ class Transaction extends Model
         return $this->belongsTo(customer::class);
     }
 
+    public function deposit(){
+        return $this->hasMany(Deposit::class);
+    }
     public function debit(){
         return $this->hasMany(Debit::class);
+    }
+    public function invoice(){
+        return $this->hasMany(Invoice::class);
     }
 }

@@ -14,6 +14,7 @@ class Restock extends Model
         "totalSpend",
         "coli",
         "product_id",
+        "idRestock",
         "supplier_id",
     ];
 

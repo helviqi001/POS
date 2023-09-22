@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\ImportFleets;
 use App\Models\Fleet;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class FleetController extends Controller
 {
-    public $possible_relations = ["staffs", "delivery"];
+    public $possible_relations = ["staff", "delivery","staff.position"];
 
     /**
      * Display a listing of the resource.
@@ -59,27 +62,33 @@ class FleetController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            "staff_id"=>"required|integer",   
-            "vehicleType"=>"required|string",
+            "idFleet"=>"string",
+            "staff_id"=>"required|integer", 
             "plateNumber"=>"required|string",
             "informations"=>"required|string",
         ]);
         if($validator->fails()){
             return response()->json([
-                "message"=>"error nih"
+                "message"=>$validator->errors()
             ],Response::HTTP_BAD_REQUEST);
         }
+        do {
+            $randomNumber = rand(1000, 9999);
+            $idFleet = 'F'.'-'. $randomNumber;
+            $existingProduct = Fleet::where('idFleet', $idFleet)->first();
+        } while ($existingProduct);
         $validated = $validator->validated();
+        $validated['idFleet'] = $idFleet;
         try{
-            $newValue= Fleet::create([ 
-            "vehicleType"=>$validated["vehicleType"],
-            "plateNumber"=>$validated["plateNumber"],
-            "informations"=>$validated["informations"],
-            ]);
-            $newValue->staffs()->sync($validated["staff_id"]);
+            $newValue= Fleet::create($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Customer Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
@@ -129,27 +138,29 @@ class FleetController extends Controller
     public function update(Request $request, Fleet $fleet)
     {
         $validator = Validator::make($request->all(),[
+            "idFleet"=>"string",
             "staff_id"=>"integer",   
-            "vehicleType"=>"string",
             "plateNumber"=>"string",
             "informations"=>"string",
+            "id"=>"integer"
         ]);
         if($validator->fails()){
             return response()->json([
-                "message"=>"error nih"
+                "message"=>$validator->errors()
             ],Response::HTTP_BAD_REQUEST);
         }
         $validated = $validator->validated();
+        $fleet = Fleet::findOrfail($request->id);
         try{
-            $fleet->update([
-            "vehicleType"=>$validated["vehicleType"],
-            "plateNumber"=>$validated["plateNumber"],
-            "informations"=>$validated["informations"],
-            ]);
-            $fleet->staffs()->sync($validated["staff_id"]);
+            $fleet->update($validated);
         }
-        catch(\Exception $e){
-            return $e;
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Customer Name already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([
@@ -169,6 +180,20 @@ class FleetController extends Controller
         $fleet->delete();
         return response()->json([
             "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+    public function import(Request $request){
+        $file = $request->file('excel_file');
+
+        try{
+            Excel::import(new ImportFleets,$file);
+        }catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => $e], 500);
+            }
+        }
+        return response()->json([
+            'message'=>"berhasil Import"
         ],Response::HTTP_OK);
     }
 }

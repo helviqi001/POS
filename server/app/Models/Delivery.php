@@ -9,15 +9,17 @@ class Delivery extends Model
 {
     use HasFactory;
     protected $fillable = [
+        "idDelivery",
         "fleet_id",
         "transaction_id",
         "deliveryDate",
         "information",
+        "status",
     ];
     public function fleet(){
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Fleet::class);
     }
-    public function products(){
-        return $this->belongsToMany(Product::class);
+    public function transaction(){
+        return $this->belongsTo(Transaction::class);
     }
 }

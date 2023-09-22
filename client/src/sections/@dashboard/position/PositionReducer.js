@@ -19,6 +19,14 @@ export const PositionReducer = (state,action)=>{
                     [action.payload.name]: '',
                   },
             }
+        case "CHANGE_CHECKBOX":
+            return {
+                ...state,
+                formData: {
+                    ...state.formData,
+                    menu: action.value,
+                  }
+            }
         case "UPDATE":
             return{
                 ...state,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Debit;
 use App\Models\Delivery;
+use App\Models\Deposit;
 use App\Models\Product;
 use App\Models\Staff;
 use App\Models\Transaction;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Validator;
 
 class TransactionController extends Controller
 {
-    public $possible_relations = ["staff","kredit","customer","products"] ; 
+    public $possible_relations = ["staff","customer","products"] ; 
     /**
      * Display a listing of the resource.
      *
@@ -124,17 +125,41 @@ class TransactionController extends Controller
                     $debit->save();
                 }
             }
+            if ($validated['paymentStatus'] === 'deposit') {
+                $Deposit = Deposit::where('customer_id', $validated['customer_id'])->latest()->first();
+                do {
+                    $randomNumber = rand(01, 9999);
+                    $idDeposit = 'D'.'-'. $randomNumber;
+                    $existingProduct = Deposit::where('idDeposit', $idDeposit)->first();
+                } while ($existingProduct);
+                    $debit = new Deposit();
+                    $debit->idDeposit = $idDeposit;
+                    $debit->customer_id = $validated['customer_id'];
+                    $debit->transaction_id = $newValue->id;
+                    $debit->depositDate = $validated['transactionDate'];
+                    $debit->ammount = $validated['total'];
+                    $debit->total = $Deposit->total - $validated['total'];
+                    $debit->status = 'Payment';
+                    $debit->information = 'Payment' . $newValue->idTransaction;
+                    $debit->save();
+                }
             if ($validated['itemStatus'] === 'delivery') {
                 $fleet_id = $request->input('fleet_id'); 
-                $status = $request->input('statusDelivery'); 
+                $status = "in Waiting"; 
                 $information = $request->input('informationDelivery'); 
+                do {
+                    $randomNumber = rand(01, 9999);
+                    $idDelivery = "D" .'-'. $randomNumber;
+                    $existingProduct = Delivery::where('idDelivery', $idDelivery)->first();
+                } while ($existingProduct);
 
                 $delivery = new Delivery();
-                $debit->transaction_id = $newValue->id;
-                $debit->deliveryDate = $validated['trasactionDate'];
-                $debit->fleet_id = $fleet_id;
-                $debit->status = $status;
-                $debit->information = $information;
+                $delivery->idDelivery = $idDelivery;
+                $delivery->transaction_id = $newValue->id;
+                $delivery->fleet_id = $fleet_id;
+                $delivery->status = $status;
+                $delivery->information = $information;
+                $delivery->save();
             }
         }
         catch(\Exception $e){
@@ -252,6 +277,31 @@ class TransactionController extends Controller
      */
     public function destroy(Transaction $transaction)
     {
+        $pivottransaction =$transaction->products;
+        foreach($pivottransaction as $product){
+            $productModel = Product::findOrFail($product['id']);
+                $oldQuantity =$transaction->products()->where('product_id', $product['id'])->first()->pivot->quantity;
+                $productModel->stock += $oldQuantity;
+                $oldColi =$transaction->products()->where('product_id', $product['id'])->first()->pivot->coli;
+                $productModel->coli += $oldColi;
+                $productModel->save(); 
+        }
+        if($transaction->itemStatus === 'delivery'){
+            $delivery = Delivery::firstWhere('transaction_id',$transaction->id);
+            $delivery->delete();
+        }
+        if($transaction->paymentStatus === 'debit'){
+            $debits = Debit::where('transaction_id', $transaction->id)->get();
+        
+            // Menghapus setiap entitas Debit
+            foreach ($debits as $debit) {
+                $debit->delete();
+            }
+        }
+        // if($transaction->paymentStatus === 'deposit'){
+        //     $debit = Deposit::firstWhere('transaction_id',$transaction->id);
+        //     $debit->delete();
+        // }
         $transaction->delete();
         return response()->json([
             "message"=>"data berhasil di delete"

@@ -21,10 +21,18 @@ import ReturnPage from './pages/ReturnPage';
 import CreateReturn from './sections/@dashboard/return/createform';
 import EditReturn from './sections/@dashboard/return/editForm';
 import CustomerPage from './pages/CutomerPage';
-import StaffPage from './pages/staffPage';
 import PositionPage from './pages/PositionPage';
 import PosPage from './pages/PosPage';
 import DebitPage from './pages/DebitPage';
+import StaffPage from './pages/staffPage';
+import FleetPage from './pages/fleetPage';
+import DeliveryPage from './pages/deliveryPage';
+import HistoryDeliveryPage from './pages/historyDeliveryPage';
+import InvoicePage from './pages/invoicePage';
+import TransactionPage from './pages/transactionPage';
+import DepositPage from './pages/depositPage';
+import CreatePosition from './sections/@dashboard/position/createPage';
+import EditPosition from './sections/@dashboard/position/editPage';
 
 
 // ----------------------------------------------------------------------
@@ -37,9 +45,8 @@ export default function Router() {
       children: [
         { element: <Navigate to="/dashboard/app" />},
         { path: 'app', element: <DashboardAppPage /> },
-        { path: 'user', element: <CustomerPage /> },
-        { path: 'sales', element: <SalesPage />},
-        { path: 'pos', element: <PosPage/>},
+        { path: 'customer', element: <CustomerPage /> },
+        { path: 'sales', element: <PosPage/>},
         { path: 'staff', element: <StaffPage />},
         { path: 'position', element: <PositionPage />},
         {path: 'createuser' , element:<Createuser/>},
@@ -51,13 +58,21 @@ export default function Router() {
         { path: 'unit', element: <UnitPage /> },
         { path: 'restock', element: <RestockPage />},
         { path: 'return', element: <ReturnPage />},
-        { path: 'debit', element: <DebitPage />},
+        { path: 'credit', element: <DebitPage />},
+        { path: 'fleet', element: <FleetPage />},
+        { path: 'delivery', element: <DeliveryPage />},
+        { path: 'deposit', element: <DepositPage/>},
+        { path: 'historyDelivery', element: <HistoryDeliveryPage />},
         {path:'restock/create', element:<CreateRestock/>},
         {path:'restock/edit', element:<EditRestock/>},
         {path:'returns/create', element:<CreateReturn/>},
         {path:'returns/edit', element:<EditReturn/>},
+        { path: 'historyTransaction', element: <TransactionPage />},
+        {path:'position/create', element:<CreatePosition/>},
+        {path:'position/update', element:<EditPosition/>},
       ],
     },
+    { path: 'invoice', element: <InvoicePage />},
     {
       path: '/',
       element: <LoginPage />,

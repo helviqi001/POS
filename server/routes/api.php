@@ -7,7 +7,12 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DebitController;
 use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\DepositController;
 use App\Http\Controllers\FleetController;
+use App\Http\Controllers\historydeliveryController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\MenugroupController;
+use App\Http\Controllers\MenuitemController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
@@ -22,6 +27,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
+use App\Models\historydelivery;
 use App\Models\Restock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +66,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::apiResource("deliveries", DeliveryController::class);
     Route::apiResource("transactions", TransactionController::class);
     Route::apiResource("debits", DebitController::class);
+    Route::apiResource("deposits", DepositController::class);
     
 
     // users related
@@ -69,13 +76,19 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::apiResource("suppliers", SupplierController::class);
     Route::apiResource("customers", CustomerController::class);
     Route::apiResource("fleets", FleetController::class);
+    Route::apiResource("historydeliveries", historydeliveryController::class);
+    Route::apiResource("invoices", InvoiceController::class);
+
+    //role Permisison
+    Route::apiResource("menugroups", MenugroupController::class);
+    Route::apiResource("menuitems", MenuitemController::class);
 
     Route::prefix("update")->group(function(){
         Route::post('/suppliers',[SupplierController::class,'update']);
         Route::post('/products',[ProductController::class,'update']);
         Route::post('/units',[UnitController::class,'update']);
         Route::post('/restocks',[RestockController::class,'update']);
-        Route::post('/returns',[ReturnController::class,'update']);
+        Route::post('/returs',[ReturnController::class,'update']);
         Route::post('/fleets',[FleetController::class,'update']);
         Route::post('/deliveries',[DeliveryController::class,'update']);
         Route::post('/staffs',[StaffContoller::class,'update']);
@@ -84,7 +97,25 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/customers',[CustomerController::class,'update']);
         Route::post('/transactions',[TransactionController::class,'update']);
         Route::post('/debits',[DebitController::class,'update']);
+        Route::post('/deliveries',[DeliveryController::class,'update']);
+        Route::post('/deposits',[DepositController::class,'update']);
+        Route::post('/menugroups',[MenugroupController::class,'update']);
+        Route::post('/menuitems',[MenuitemController::class,'update']);
     });
+    Route::prefix("import")->group(function(){
+        Route::post('/suppliers',[SupplierController::class,'import']);
+        Route::post('/products',[ProductController::class,'import']);
+        Route::post('/units',[UnitController::class,'import']);
+        Route::post('/fleets',[FleetController::class,'import']);
+        Route::post('/staffs',[StaffContoller::class,'import']);
+        Route::post('/positions',[PositionController::class,'import']);
+        Route::post('/categories',[CategoryController::class,'import']);
+        Route::post('/customers',[CustomerController::class,'import']);
+        Route::post('/restocks',[RestockController::class,'import']);
+        Route::post('/returs',[ReturnController::class,'import']);
+        
+    });
+    Route::post('/getLatest/deposits',[DepositController::class,'getLatest']);
     
     
     // logout

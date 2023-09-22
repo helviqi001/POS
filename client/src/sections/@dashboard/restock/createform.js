@@ -582,12 +582,13 @@ export default function CreateRestock() {
                     'StaticDatePicker',
                   ]}
                 >
-                    <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:5}} slotProps={{ textField: { helperText:validationErrors.restockDate, error:!!validationErrors.restockDate}}}/>
+                    <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:3,marginBottom:3}} slotProps={{ textField: { helperText:validationErrors.restockDate, error:!!validationErrors.restockDate}}}/>
                 </DemoContainer>
               </LocalizationProvider>
-              <h4>TOTAL SPEND IDR {formattedTotalSpend}</h4>
 
-              <Button  variant="contained" onClick={handleCreate}  sx={{marginBottom:5}}>Create</Button>
+              <Typography variant='subtitle2'>TOTAL SPEND IDR {formattedTotalSpend}</Typography>
+
+              <Button  variant="contained" onClick={handleCreate}  sx={{marginTop:3,marginBottom:3}}>Create</Button>
               </div>
             </>
           </Box>

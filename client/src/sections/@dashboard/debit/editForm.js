@@ -177,7 +177,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
-          <DialogTitle align='center'>Update Product Form</DialogTitle>
+          <DialogTitle align='center'>Update Credit Form</DialogTitle>
           <DialogContent>
       
           {loading ? <div style={{ height:500 , width:400 }}>

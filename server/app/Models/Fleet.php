@@ -9,14 +9,14 @@ class Fleet extends Model
 {
     use HasFactory;
     protected $fillable = [
-        "staff_id",   
-        "vehicleType",
+        "idFleet",
+        "staff_id",
         "plateNumber",
         "informations",
     ];
 
-    public function staffs(){
-        return $this->belongsToMany(Staff::class);
+    public function staff(){
+        return $this->belongsTo(Staff::class);
     }
 
     public function delivery(){

@@ -15,8 +15,9 @@ return new class extends Migration
     {
         Schema::create('returs', function (Blueprint $table) {
             $table->id();
+            $table->string("idRetur");
             $table->date("returnDate");
-            $table->integer("totalSpend");
+            $table->double("totalSpend",12,2);
             $table->foreignId("supplier_id")->constrained("suppliers")->onDelete("cascade");
             $table->timestamps();
         });

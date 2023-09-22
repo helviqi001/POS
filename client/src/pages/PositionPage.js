@@ -1,11 +1,13 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, size } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useContext, useEffect, useState } from 'react';
+import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+
 // @mui
 import {
   Card,
@@ -37,27 +39,15 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  Snackbar,
 } from '@mui/material';
 // components
-import CreatePosition from '../sections/@dashboard/position/createform';
-import EditPosition from '../sections/@dashboard/position/editForm';
+import MuiAlert from '@mui/material/Alert';
+import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
-import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-// sections
-// import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
-
-// ----------------------------------------------------------------------
-
-const TABLE_HEAD = [
-  { id: 'name', label: 'Position Name', alignRight: false },
-  { id: 'shortname', label: 'Short Name', alignRight: false },
-  { id: '', label: 'Action', },
-];
 
 // ----------------------------------------------------------------------
 
@@ -115,14 +105,41 @@ export default function PositionPage() {
 
   const [edit,setEdit] = useState(false)
 
+  const [loading,setLoading] = useState(true)
+
   const [id,setId] = useState()
   
   const {load} = useContext(OutletContext)
 
+  const DATAGRID_COLUMNS = [
+    { field: 'id', headerName: 'ID', width: 120 , headerAlign: 'center', align:'center'},
+    { field: 'name', headerName: 'Position Name', width: 350 , headerAlign: 'center', align:'center'},
+    { field: 'shortname', headerName: 'Short Name', width:350 , headerAlign: 'center', align:'center'},
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 120,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+        return [
+          <GridActionsCellItem
+            icon={<MoreVertIcon />}
+            label="3Dots"
+            className="textPrimary"
+            onClick={(e)=>handleOpenMenu(e,id)}
+            color="inherit"
+          />,
+        ];
+      },
+    },
+  ];
+
   useEffect(()=>{
+    setLoading(true)
     const cookie = cookies.get("Authorization")
     const getdata=async()=>{
-      axios.get("http://localhost:8000/api/positions",{
+     await axios.get("http://localhost:8000/api/positions",{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -130,6 +147,7 @@ export default function PositionPage() {
       }).then(response=>{
         setProduct(response.data.data)
       })
+      setLoading(false)
     }
     getdata()
   },[])
@@ -144,15 +162,10 @@ export default function PositionPage() {
   };
 
   const handleOpenModal=()=>{
-    setCreate(true)
-    setEdit(null)
-    setOpenModal(true)
+    navigate('/dashboard/position/create')
   }
   const handleOpenModalEdit=()=>{
-    setEdit(true)
-    setCreate(null)
-    setOpenModal(true)
-    setOpen(null);
+    navigate('/dashboard/position/update',{state:{paramName:id}})
   }
 
   const handleCloseModal=()=>{
@@ -161,21 +174,6 @@ export default function PositionPage() {
     setImmediate(false)
     setEdit(null)
   }
-
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = productList.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
 
   const handleDelete=async()=>{
     load(true)
@@ -192,19 +190,6 @@ export default function PositionPage() {
       load(false)
     },1000)
   }
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflowY:"scroll"
-  };
-  
   const style2 = {
     marginTop: 2
   }
@@ -213,20 +198,6 @@ export default function PositionPage() {
     marginTop:2,
   }
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
-  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -252,7 +223,7 @@ export default function PositionPage() {
   return (
     <>
       <Helmet>
-        <title> User | Minimal UI </title>
+        <title> Position Page </title>
       </Helmet>
 
       <Container>
@@ -269,90 +240,57 @@ export default function PositionPage() {
           <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 
           <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <ProductListHead
-                  order={order}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={productList.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                  
+            {loading ? (
+              <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
+            ):(
+              filteredUsers.length === 0 ? (
+                <Box sx={{ height:150 }}>
+                <DataGrid
+                  rows={filteredUsers}
+                  columns={DATAGRID_COLUMNS}
+                  initialState={{
+                    pagination: {
+                      paginationModel: { page: 0, pageSize: 5 },
+                    },
+                  }}
+                  pageSizeOptions={[5, 10]}
+                  onRowSelectionModelChange={(s)=>{
+                    setSelected(s)
+                  }}
+                  slots={{
+                    toolbar: CustomToolbar,
+                  }}
+                  checkboxSelection 
+                  disableRowSelectionOnClick
+                  getRowHeight={() => 'auto'}
                 />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name,shortname} = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
-
-                    return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
-                        </TableCell>
-
-                        <TableCell component="th" scope="row" padding="none" align='center'>
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                        </TableCell>
-                        <TableCell component="th" scope="row" padding="none" align='center'>
-                            <Typography  noWrap>
-                              {shortname}
-                            </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          <IconButton size="large" color="inherit" onClick={(e)=>handleOpenMenu(e,id)}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6}/>
-                    </TableRow>
-                  )}
-                </TableBody>
-
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Not found
-                          </Typography>
-
-                          <Typography variant="body2">
-                            No results found for &nbsp;
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
+              </Box>
+              ) :(
+                <Box sx={{ height:"auto" }}>
+                <DataGrid
+                  rows={filteredUsers}
+                  columns={DATAGRID_COLUMNS}
+                  initialState={{
+                    pagination: {
+                      paginationModel: { page: 0, pageSize: 5 },
+                    },
+                  }}
+                  pageSizeOptions={[5, 10]}
+                  onRowSelectionModelChange={(s)=>{
+                    setSelected(s)
+                  }}
+                  slots={{
+                    toolbar: CustomToolbar,
+                  }}
+                  checkbo
+                  checkboxSelection 
+                  disableRowSelectionOnClick
+                  getRowHeight={() => 'auto'}
+                />
+                </Box>
+              ) 
+            )}
           </Scrollbar>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={productList.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
         </Card>
       </Container>
 
@@ -384,16 +322,118 @@ export default function PositionPage() {
           Delete
         </MenuItem>
       </Popover>
-              {openModal && (
-                  <>
-                      {create && (
-                          <CreatePosition style2={style2} openModal={openModal} handleCloseModal={handleCloseModal} productList={productList} />
-                      )}
-                      {edit && (
-                          <EditPosition id={id} style2={style2} openModal={openModal} handleCloseModal={handleCloseModal} productList={productList} />
-                      )}
-                  </>
-              )}
         </>
   );
+}
+
+
+function CustomToolbar() {
+  const Alert = forwardRef((props, ref) =>{
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+  });
+  const [open,setOpen] = useState(false)
+  const [file,setFile] = useState([])
+  const cookies = new Cookies()
+  const cookie = cookies.get("Authorization")
+  const {load} = useContext(OutletContext)
+  const [state2, setState] = useState({
+    open: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"",
+    variant:""
+  });
+  const { vertical, horizontal, openSnack } = state2;
+
+  const handleClick = (message,variant) => {
+    setState({ ...state2, openSnack: true , message,variant });
+  };
+
+  const handleClosesnack = () => {
+    setState({ ...state2, openSnack: false });
+  };
+  const handleImport = (files) => {
+    setFile(files)
+    const formData = new FormData();
+    formData.append('excel_file', files);
+  
+    // Kirim file ke server menggunakan Axios atau library lainnya
+    axios.post('http://localhost:8000/api/import/positions', formData,{
+      headers:{
+        'Authorization':`Bearer ${cookie}`
+      }
+    })
+      .then((response) => {
+        handleClick(response.data.message,'success')
+        setTimeout(()=>{
+          load(true)
+          setTimeout(()=>{
+            load(false)
+            handleCLose()
+          },1000)
+        },1500)
+      })
+      .catch((error) => {
+        if (error.response.status === 500 ) {
+          if(error.response.data.message){
+            handleClick(error.response.data.message,'error')
+          }
+          else if(error.response.data.error.errorInfo){
+            handleClick(error.response.data.error.errorInfo[2],'error')
+          }
+        }
+        console.log(error);
+      });
+  };
+  const handleOpenModal=()=>{
+    setOpen(true)
+  }
+  const handleCLose=()=>{
+    setOpen(false)
+  }
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
+  return (
+    <>
+    <GridToolbarContainer>
+      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      <Button onClick={handleOpenModal}>Import</Button>
+    </GridToolbarContainer>
+    {open && (
+      <>
+      <Dialog
+      open={open}
+      onClose={handleCLose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <DialogContent>
+      <MuiFileInput
+        accept=".xlsx, .csv" // Sesuaikan dengan tipe file yang diizinkan
+        label="Import Data" // Label tombol
+        onChange={handleImport}
+        value={file} // Fungsi yang akan dipanggil saat file dipilih
+      />
+    <Snackbar open={openSnack} autoHideDuration={1500} onClose={handleClosesnack} anchorOrigin={{ vertical , horizontal }}>
+        <Alert onClose={handleClosesnack} severity={state2.variant} sx={{ width: '100%' }}>
+        {state2.message}
+        </Alert>
+      </Snackbar>
+      </DialogContent>
+    </Dialog>
+      </>
+    )}
+    </>
+    
+  );
+
 }

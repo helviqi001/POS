@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class DeliveryController extends Controller
 {
-    public $possible_relations = ["fleet", "deliveries","customer"];
+    public $possible_relations = ["fleet","fleet.staff","transaction","transaction.customer"];
 
     /**
      * Display a listing of the resource.
@@ -128,27 +128,26 @@ class DeliveryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Delivery $delivery)
+    public function update(Request $request)
     {
         $validator = Validator::make($request->all(),[
+            "idDelivery"=>'string',
             "fleet_id"=>"integer",
             "transaction_id"=>"integer",
-            "deliveryDate"=>"date_format:Y-m-d",
+            "deliveryDate"=>"date_format:Y-m-d H:i",
+            "status"=>"string",
             "information"=>"string",
+            "id"=>"integer"
         ]);
         if($validator->fails()){
             return response()->json([
-                "message"=>"error nih"
+                "message"=>$validator->errors()
             ],Response::HTTP_BAD_REQUEST);
         }
         $validated = $validator->validated();
+        $delivery= Delivery::findOrfail($request->id);
         try{
-            $delivery->update([
-            "fleet_id"=>$validated["fleet_id"],
-            "deliveryDate"=>$validated["deliveryDate"],
-            "transaction_id"=>$validated["transaction_id"],
-            "information"=>$validated["information"],
-            ]);
+            $delivery->update($validated);
         }
         catch(\Exception $e){
             return $e;

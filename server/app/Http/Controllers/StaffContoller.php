@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\ImportStaffs;
 use App\Models\Position;
 use App\Models\Staff;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StaffContoller extends Controller
 {
@@ -189,5 +191,22 @@ class StaffContoller extends Controller
         ],Response::HTTP_OK);
     }
 
+    public function import(Request $request){
+        $file = $request->file('excel_file');
+
+        try{
+            Excel::import(new ImportStaffs,$file);
+        }catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => $e], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
+        }
+        return response()->json([
+            'message'=>"berhasil Import"
+        ],Response::HTTP_OK);
+    }
     
 }

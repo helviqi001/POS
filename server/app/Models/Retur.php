@@ -9,6 +9,7 @@ class Retur extends Model
 {
     use HasFactory;
     protected $fillable = [
+        "idRetur",
         "returnDate",
         "totalSpend",
         "product_id",

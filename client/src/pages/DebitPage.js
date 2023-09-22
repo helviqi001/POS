@@ -90,6 +90,8 @@ export default function DebitPage() {
 
   const [edit,setEdit] = useState(false)
 
+  const [loading,setLoading] = useState(true)
+
   const [id,setId] = useState()
   
   const {load} = useContext(OutletContext)
@@ -138,6 +140,7 @@ export default function DebitPage() {
 
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
+    setLoading(true)
     const getdata=async()=>{
       await axios.get("http://localhost:8000/api/debits?relations=customer,transaction",{
         headers:{
@@ -148,9 +151,10 @@ export default function DebitPage() {
         setProduct(response.data.data.map(p=>({
           ...p,
           nameCustomer:p.customer.name,
-          iDTransaction:p.transaction.idTransaction 
+          iDTransaction:p.transaction.idTransaction
         })));
       })
+      setLoading(false)
     }
     getdata()
   },[])
@@ -205,20 +209,24 @@ export default function DebitPage() {
   return (
     <>
       <Helmet>
-        <title> User | Minimal UI </title>
+        <title> Debit Page </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Product List
+            Credit List
           </Typography>
         </Stack>
 
         <Card>
           <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
           <Scrollbar>
-              {filteredUsers.length === 0 ? (
+            {loading ? (
+              <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
+            ):(
+
+              filteredUsers.length === 0 ? (
               <Box sx={{ height:150 }}>
               <DataGrid
                 rows={filteredUsers}
@@ -259,6 +267,7 @@ export default function DebitPage() {
                 getRowHeight={() => 'auto'}
               />
               </Box>
+            )
             )}
           </Scrollbar>
         </Card>

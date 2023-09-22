@@ -16,6 +16,8 @@ export default function PosPage() {
 
   const [openModal, setOpenModal] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+
   const [productList , setProduct] = useState([])
   const { state, dispatch } = usePos();
 
@@ -32,7 +34,6 @@ export default function PosPage() {
   };
 
   const handleCloseModal = () => {
-    dispatch({type:"RESET_STATE"})
     setOpenModal(false);
     
   };
@@ -40,8 +41,9 @@ export default function PosPage() {
 
   const cookie = cookies.get("Authorization");
   useEffect(()=>{
+    setLoading(true)
     const getData=async()=>{
-      axios.get("http://localhost:8000/api/products?relations=category,unit,supplier",{
+     await axios.get("http://localhost:8000/api/products?relations=category,unit,supplier",{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -61,22 +63,18 @@ export default function PosPage() {
             return serverProduct.id === localStorageProduct.id;
           });
         });
-
-        // Menyimpan produk yang sudah diperbarui ke localStorage
-        localStorage.setItem("itemsAdded", JSON.stringify(updatedLocalStorageProductList));
-
+        dispatch({type:"UPDATE" , payload:updatedLocalStorageProductList})
         // Set productList dengan data produk yang sudah diperbarui
         setProduct(serverProductList)
       })
+      setLoading(false)
     }
     getData()
   },[])
-
-  console.log(productList);
   return (
     <>
       <Helmet>
-        <title> Dashboard: Products | Minimal UI </title>
+        <title> Point Of Sale Page </title>
       </Helmet>
 
       <Container>
@@ -94,8 +92,11 @@ export default function PosPage() {
             <ProductSort />
           </Stack>
         </Stack>
-
-        <ProductList products={productList} />
+        {loading  ? (
+              <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
+        ):(
+          <ProductList products={productList} />
+        )}
         <ProductCartWidget openModal={openModal} handleCloseModal={handleCloseModal} handleOpenModal={handleOpenModal}/>
       </Container>
     </>

@@ -15,9 +15,10 @@ return new class extends Migration
     {
         Schema::create('deliveries', function (Blueprint $table) {
             $table->id();
+            $table->string("idDelivery");
             $table->foreignId("fleet_id")->constrained("fleets")->onDelete("cascade");
             $table->foreignId("transaction_id")->constrained("transactions")->onDelete("cascade");
-            $table->dateTime("deliveryDate");
+            $table->dateTime("deliveryDate")->nullable();
             $table->string("status");
             $table->string("information");
             $table->timestamps();

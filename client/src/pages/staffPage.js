@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, get, size } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useContext, useEffect, useState } from 'react';
+import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -39,8 +39,10 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  Snackbar,
 } from '@mui/material';
 // components
+import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import CreateStaff from '../sections/@dashboard/staff/createform';
 import EditForm from '../sections/@dashboard/staff/editForm';
@@ -89,7 +91,6 @@ function applySortFilter(array, comparator, query) {
 }
 
 export default function StaffPage() {
-  const navigate = useNavigate()
   const [open, setOpen] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
@@ -113,6 +114,8 @@ export default function StaffPage() {
 
   const [edit,setEdit] = useState(false)
 
+  const [loading,setLoading] = useState(true)
+
   const [id,setId] = useState()
   
   const {load} = useContext(OutletContext)
@@ -123,7 +126,8 @@ export default function StaffPage() {
   };
 
   const DATAGRID_COLUMNS = [
-    { field: 'id_staff', headerName: 'ID Staff', width:150 , headerAlign: 'center', align:'center'},
+    { field: 'id', headerName: 'ID', width:80 , headerAlign: 'center', align:'center'},
+    { field: 'id_staff', headerName: 'Kode Staff', width:150 , headerAlign: 'center', align:'center'},
     { field: 'name', headerName: 'Name', width:150 , headerAlign: 'center', align:'center'},
     { field: 'phone', headerName: 'Phone', width: 150 , headerAlign: 'center',align:'center'},
     { field: 'address', headerName: 'Address', width: 150 , headerAlign: 'center',align:'center'},
@@ -158,8 +162,9 @@ export default function StaffPage() {
 
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
+    setLoading(true)
     const getdata=async()=>{
-      axios.get("http://localhost:8000/api/staffs?relations=transaction,position",{
+     await axios.get("http://localhost:8000/api/staffs?relations=transaction,position",{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -170,7 +175,7 @@ export default function StaffPage() {
           positionName : p.position.name
         })))
       })
-
+      setLoading(false)
     }
     getdata()
   },[])
@@ -235,11 +240,29 @@ export default function StaffPage() {
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
   
   const isNotFound = !filteredUsers.length && !!filterName;
+
+  const handleImport = (files) => {
+  const file = files[0];
+
+  const formData = new FormData();
+  formData.append('excel_file', file);
+
+  // Kirim file ke server menggunakan Axios atau library lainnya
+  axios.post('URL_API', formData)
+    .then((response) => {
+      // Handle respons dari server (misalnya, tampilkan pesan sukses atau error)
+      console.log('Respon dari server:', response.data);
+    })
+    .catch((error) => {
+      // Handle error jika terjadi kesalahan
+      console.error('Kesalahan saat mengimpor data:', error);
+    });
+};
   
   return (
     <>
       <Helmet>
-        <title> User | Minimal UI </title>
+        <title> Staff Page </title>
       </Helmet>
 
       <Container>
@@ -256,7 +279,10 @@ export default function StaffPage() {
           <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 
           <Scrollbar>
-          {filteredUsers.length === 0 ? (
+            {loading ? (
+              <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
+            ):(
+          filteredUsers.length === 0 ? (
               <Box sx={{ height:150 }}>
               <DataGrid
                 rows={filteredUsers}
@@ -269,6 +295,9 @@ export default function StaffPage() {
                 pageSizeOptions={[5, 10]}
                 onRowSelectionModelChange={(s)=>{
                   setSelected(s)
+                }}
+                slots={{
+                  toolbar: CustomToolbar,
                 }}
                 checkboxSelection 
                 disableRowSelectionOnClick
@@ -297,6 +326,7 @@ export default function StaffPage() {
                 getRowHeight={() => 'auto'}
               />
               </Box>
+            )
             )}
           </Scrollbar>
         </Card>
@@ -346,9 +376,112 @@ export default function StaffPage() {
 
 
 function CustomToolbar() {
+  const Alert = forwardRef((props, ref) =>{
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+  });
+  const [open,setOpen] = useState(false)
+  const [file,setFile] = useState([])
+  const cookies = new Cookies()
+  const cookie = cookies.get("Authorization")
+  const {load} = useContext(OutletContext)
+  const [state2, setState] = useState({
+    open: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"",
+    variant:""
+  });
+  const { vertical, horizontal, openSnack } = state2;
+
+  const handleClick = (message,variant) => {
+    setState({ ...state2, openSnack: true , message,variant });
+  };
+
+  const handleClosesnack = () => {
+    setState({ ...state2, openSnack: false });
+  };
+  const handleImport = (files) => {
+    setFile(files)
+    const formData = new FormData();
+    formData.append('excel_file', files);
+  
+    // Kirim file ke server menggunakan Axios atau library lainnya
+    axios.post('http://localhost:8000/api/import/staffs', formData,{
+      headers:{
+        'Authorization':`Bearer ${cookie}`
+      }
+    })
+      .then((response) => {
+        handleClick(response.data.message,'success')
+        setTimeout(()=>{
+          load(true)
+          setTimeout(()=>{
+            load(false)
+            handleCLose()
+          },1000)
+        },1500)
+      })
+      .catch((error) => {
+        if (error.response.status === 500 ) {
+          if(error.response.data.message){
+            handleClick(error.response.data.message,'error')
+          }
+          else if(error.response.data.error.errorInfo){
+            handleClick(error.response.data.error.errorInfo[2],'error')
+          }
+        }
+        console.log(error);
+      });
+  };
+  const handleOpenModal=()=>{
+    setOpen(true)
+  }
+  const handleCLose=()=>{
+    setOpen(false)
+  }
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
   return (
+    <>
     <GridToolbarContainer>
       <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      <Button onClick={handleOpenModal}>Import</Button>
     </GridToolbarContainer>
+    {open && (
+      <>
+      <Dialog
+      open={open}
+      onClose={handleCLose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <DialogContent>
+      <MuiFileInput
+        accept=".xlsx, .csv" // Sesuaikan dengan tipe file yang diizinkan
+        label="Import Data" // Label tombol
+        onChange={handleImport}
+        value={file} // Fungsi yang akan dipanggil saat file dipilih
+      />
+    <Snackbar open={openSnack} autoHideDuration={1500} onClose={handleClosesnack} anchorOrigin={{ vertical , horizontal }}>
+        <Alert onClose={handleClosesnack} severity={state2.variant} sx={{ width: '100%' }}>
+        {state2.message}
+        </Alert>
+      </Snackbar>
+      </DialogContent>
+    </Dialog>
+      </>
+    )}
+    </>
+    
   );
+
 }

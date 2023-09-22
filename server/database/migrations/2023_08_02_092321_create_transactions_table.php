@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->integer("total");
+            $table->double("total",12,2);
             $table->string("idTransaction");
             $table->string("paymentStatus");
             $table->string("itemStatus");

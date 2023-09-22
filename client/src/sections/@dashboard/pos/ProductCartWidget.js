@@ -54,11 +54,13 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
   const {state,dispatch} = usePos()
   const [activeStep, setActiveStep] = useState(0);
   const [staff,setStaff] = useState([])
+  const [fleet,setFleet] = useState([])
+  const [deposit,setDeposit] = useState({})
   const cookies = new Cookies
   const cookie = cookies.get("Authorization")
   const [customer,setCustomer] = useState([])
   
-  const formatedTotal = state.formData.total.toLocaleString(undefined,{
+  const formatedTotal = state.formData.total.toLocaleString('id-ID',{
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
 })
@@ -80,6 +82,14 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
             }
           }).then(response=>{
             setStaff(response.data.data)
+          })
+    axios.get("http://localhost:8000/api/fleets?relations=staff",{
+            headers:{
+              "Content-Type":"aplication/json",
+              Authorization: `Bearer ${cookie}`
+            }
+          }).then(response=>{
+            setFleet(response.data.data)
           })
   } 
     mapping()
@@ -105,14 +115,21 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
 
   const handleValidation=(formData)=>{ 
     const errors = {};
-    
+      // Check if paymentMethod is not 'debit'
+        if (state.formData.paymentMethod !== 'debit') {
+          delete formData.installment;
+        }
+        if (state.formData.deliveryMethod !== 'delivery') {
+          delete formData.fleet_id;
+          delete formData.informationDelivery;
+        }
+
     // Perform validation here
     Object.keys(formData).forEach((field) => {
-      if( field !== 'information'){
-        if (formData[field] === '' || formData[field] === 0 ) {
-          errors[field] = `${field} is required`;
-        }
-      }
+       
+          if (formData[field] === '' || formData[field] === 0 ) {
+            errors[field] = `${field} is required`;
+          }
     });
 
         // Update validationErrors state
@@ -136,25 +153,28 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
   }
 
   const handleNext = () => {
-    if (activeStep === 1) {
+    if (activeStep === 0) {
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      }
+  else if (activeStep === 1) {
       const errors = handleValidation(state.formData);
 
     if (Object.keys(errors).length === 0) {
       handleCreate()
-      // setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    }
-    } else {
       setActiveStep((prevActiveStep) => prevActiveStep + 1);
     }
+  } 
+  if (activeStep === 2){
+    handleCloseModal()
+    setActiveStep(0);
+    dispatch({type:"RESET_STATE"})
+  }
   };
-
+  console.log(state);
   const handleBack = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handleReset = () => {
-    setActiveStep(0);
-  };
 
   const handleChange=(e,id)=>{
     const newquantity = parseInt(e.target.value,10);
@@ -190,15 +210,17 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
   }, [state, state.formData.total]);
 
   const handleCreate= async() =>{
-    
+   
     try {
       await axios.post("http://localhost:8000/api/transactions",{
         staff_id:state.formData.staff_id,
+        fleet_id:state.formData.fleet_id,
         customer_id:state.formData.customer_id,
         transactionDate:state.formData.transactionDate,
         paymentStatus:state.formData.paymentMethod,
         itemStatus:state.formData.deliveryMethod,
         information:state.formData.information,
+        informationDelivery:state.formData.informationDelivery,
         total:state.formData.total,
         installment:Number(state.formData.installment),
         product_id:state.product.map(p=>({
@@ -209,15 +231,21 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
         headers:{
           Authorization: `Bearer ${cookie}`
         }
-      }).then(response=>{
-          console.log(response);
       })
     } catch (error) {
       console.log(error);
     }
     }
-
-    
+      const dataDepositCustomer=async(id)=>{
+        await axios.post(`http://localhost:8000/api/getLatest/deposits?relations=customer`,{id},{
+          headers:{
+            "Content-Type" : "aplication/json",
+            "Authorization" : `Bearer ${cookie}`
+          }
+        }).then(response=>{
+          setDeposit([response.data])
+        })
+      }
   return (
     <>
       <StyledRoot>
@@ -245,17 +273,6 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
               );
             })}
           </Stepper>
-          {activeStep === steps.length ? (
-            <>
-              <Typography sx={{ mt: 2, mb: 1 }}>
-                All steps completed - you&apos;re finished
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                <Box sx={{ flex: '1 1 auto' }} />
-                <Button onClick={handleReset}>Reset</Button>
-              </Box>
-            </>
-          ) : (
             <>
             <Scrollbar>
               <Stack>
@@ -264,7 +281,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
               state.product.length > 0 ? (
               state.product.map((p)=>{
               const {name,urlImage,sellingPrice,idProduk,id,quantity} = p
-              const formattedAfterDisc = sellingPrice.toLocaleString(undefined,{
+              const formattedAfterDisc = sellingPrice.toLocaleString('id-ID',{
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             })
@@ -342,6 +359,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                         onChange={(event,newValue) => {
                           if (newValue) {
                             handleChangeForm({ target: { name: 'customer_id', value: newValue.id } });
+                            dataDepositCustomer( newValue.id);
                           }
                       }}
             />
@@ -384,7 +402,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                         ]}
                         sx={{ marginTop:2 }}
                       >
-                          <DatePicker label="Trasaction Date" onChange={(data)=>handleDate(data)} defaultValue={dayjs()} slotProps={{ textField: { helperText:state.validationErrors.transactionDate , error:!!state.validationErrors.transactionDate} }}/>
+                          <DatePicker label="Trasaction Date" onChange={(data)=>handleDate(data)} value={state.formData.transactionDate} slotProps={{ textField: { helperText:state.validationErrors.transactionDate , error:!!state.validationErrors.transactionDate} }}/>
                       </DemoContainer>
                     </LocalizationProvider>
                     
@@ -398,10 +416,35 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                       onChange={(e)=>handleRadioButton("paymentMethod",e.target.value)}
                     >
                       <FormControlLabel value="cash" control={<Radio />} label="Cash" />
+                      {deposit.length > 0 && (
+                        deposit.map(d=>(
+                          <>
+                          {state.formData.total > d.total && (
+                            <Box display={'flex'} alignItems={'center'}>
+                              <FormControlLabel value="deposit" disabled control={<Radio />} label="Deposit"/>
+                              <Typography variant='overline'  color="textSecondary">
+                                Balance Deposit: Rp {d.total.toLocaleString('id-ID')}
+                              </Typography>
+                            </Box>
+                             
+                           )}
+                          {state.formData.total <= d.total && (
+                            <Box display={'flex'} alignItems={'center'}>
+                             <FormControlLabel value="deposit" control={<Radio />} label="Deposit"/>
+                             <Typography variant='overline'>
+                                Balance Deposit: Rp {d.total.toLocaleString('id-ID')}
+                              </Typography>
+                            </Box>
+                           )}
+                          </>
+                        ))
+                      )}
                       {state.formData.total > 30000 && (
                         <FormControlLabel value="debit" control={<Radio />} label="Debit" />
                         )}
+                      
                       {state.formData.paymentMethod ==='debit' && (
+                         <FormControl sx={{ marginTop:2 }} error={!!state.validationErrors.installment}>
                         <RadioGroup
                         aria-labelledby="demo-row-radio-buttons-group-label"
                         name="row-radio-buttons-group"
@@ -413,6 +456,8 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                         <FormControlLabel value={6} control={<Radio />} label="6 Bulan" />
                         <FormControlLabel value={12} control={<Radio />} label="12 Bulan" />
                       </RadioGroup>
+                    <FormHelperText>{state.validationErrors.installment}</FormHelperText>
+                      </FormControl>
                       )}
                     </RadioGroup>
                     <FormHelperText>{state.validationErrors.paymentMethod}</FormHelperText>
@@ -428,6 +473,47 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                     >
                       <FormControlLabel value="pickUp" control={<Radio />} label="Pick Up" />
                       <FormControlLabel value="delivery" control={<Radio />} label="Delivery" />
+                      {state.formData.deliveryMethod ==='delivery' && (
+                        <>
+                          <Autocomplete
+                                    id="country-select-demo"
+                                    sx={{ marginTop:2 }}
+                                    disableClearable
+                                    options={fleet}
+                                    getOptionLabel={(option) => option.staff.name}
+                                    renderOption={(props, option) => (
+                                      <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
+                                        {option.staff.name}
+                                      </Box>
+                                    )}
+                                    renderInput={(params) => (
+                                      <TextField
+                                      {...params}
+                                      label="Choose a Fleet"
+                                      inputProps={{
+                                        ...params.inputProps,
+                                      }}
+                                      error={!!state.validationErrors.fleet_id}
+                                      helperText={state.validationErrors.fleet_id || ' '}
+                                      />
+                                      )}
+                                      onChange={(event,newValue) => {
+                                        if (newValue) {
+                                          handleChangeForm({ target: { name: 'fleet_id', value: newValue.id } });
+                                        }
+                                      }}
+                            />
+                             <TextField
+                              id="outlined-disabled"
+                              label="information Delivery"
+                              fullWidth
+                              name='informationDelivery'
+                              onChange={handleChangeForm}
+                              error={!!state.validationErrors.informationDelivery}
+                              helperText={state.validationErrors.informationDelivery}
+                            />
+                        </>
+                      )}
                     </RadioGroup>
                     <FormHelperText>{state.validationErrors.deliveryMethod}</FormHelperText>
                   </FormControl>
@@ -446,7 +532,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                     </Box>
                 <Typography variant='subtitle1' fontSize={17} sx={{ marginTop:3 }}>Total Purchase :</Typography>
                 {state.product.map(p=>{
-                  const formattedAfterDisc = p.sellingPrice.toLocaleString(undefined,{
+                  const formattedAfterDisc = p.sellingPrice.toLocaleString('id-ID',{
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
                   })
@@ -482,25 +568,24 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
               )
               )}
             {activeStep === 2 && (
-              state.product.length > 0 ? (
                 <>
-                finish
+                    <Typography>
+                      <>
+                      <Box display={'flex' } flexDirection={'column'} alignItems={'center'} marginTop={10}>
+                        <i className="fa-regular fa-circle-check" style={{ color: "#19c876", fontSize:250}}/>
+                        <Typography variant='subtitle2' fontSize={30} marginTop={5}>Transaction Success</Typography>
+                      </Box>
+                      </>
+                    </Typography>
+                    
                 </>
-                ) :
-              (
-                <>
-                  <Typography variant="subtitle1" color="text.secondary" component="div" sx={{ textAlign:'center'}}>
-                    no items in the cart
-                  </Typography>
-                </>
-              )
             )}
               </Stack>
             </Scrollbar>
               <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2}}>
                 <Button
                   color="inherit"
-                  disabled={activeStep === 0}
+                  disabled={activeStep === 0 || activeStep === 2}
                   onClick={handleBack}
                   sx={{ mr: 1 }}
                 >
@@ -512,7 +597,6 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                 </Button>
               </Box>
             </>
-          )}
       </Drawer>
     </>
     );

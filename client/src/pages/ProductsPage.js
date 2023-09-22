@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, size } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useContext, useEffect, useState } from 'react';
+import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -16,11 +16,15 @@ import {
   Container,
   Typography,
   Box,
+  Snackbar,
+  Dialog,
+  DialogContent,
 } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // components
+import MuiAlert from '@mui/material/Alert';
 import CreateProduct from '../sections/@dashboard/product/createform';
 import EditForm from '../sections/@dashboard/product/editForm';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
@@ -91,6 +95,8 @@ export default function ProductPage() {
 
   const [edit,setEdit] = useState(false)
 
+  const [loading,setLoading] = useState(true)
+
   const [id,setId] = useState()
   
   const {load} = useContext(OutletContext)
@@ -115,7 +121,8 @@ export default function ProductPage() {
   };
 
   const DATAGRID_COLUMNS = [
-    { field: 'idProduk', headerName: 'Id Product', width: 150 , headerAlign: 'center', align:'center'},
+    { field: 'id', headerName: 'ID', width: 80 , headerAlign: 'center', align:'center'},
+    { field: 'idProduk', headerName: 'Kode Product', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'name', headerName: 'Name', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'unitName', headerName: 'Unit name', width: 130 , headerAlign: 'center',align:'center'},
     { field: 'supplierName', headerName: 'Supplier name', width: 130 , headerAlign: 'center',align:'center'},
@@ -143,21 +150,21 @@ export default function ProductPage() {
   </button>},
     { field: 'stock', headerName: 'Stock', width: 120,headerAlign: 'center',align:'center' },
     { field: 'coli', headerName: 'coli', width: 120 , headerAlign: 'center',align:'center'},
-    { field: 'tax', headerName: 'Tax ', width: 120,renderCell: (params) => <p>{params.value}%</p> ,headerAlign: 'center',align:'center' },
+    { field: 'tax', headerName: 'Tax ', width: 120,renderCell: (params) => `${params.value}%` ,headerAlign: 'center',align:'center' },
     { field: 'sellingPrice', headerName: 'Selling Price', width: 120, valueGetter:(params)=>{
       const sellingPrice = params.row.sellingPrice
       return `IDR ${sellingPrice.toLocaleString(undefined, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       })}`} ,headerAlign: 'center',align:'center'},
-    { field: 'discount', headerName: 'Discount', width: 120, renderCell: (params) => <p>{params.value}%</p> ,headerAlign: 'center',align:'center'},
+    { field: 'discount', headerName: 'Discount', width: 120, renderCell: (params) => `${params.value}%` ,headerAlign: 'center',align:'center'},
     { field: 'netPrice', headerName: 'Net_price', width: 120, valueGetter:(params)=>{
       const netPrice = params.row.netPrice
       return `IDR ${netPrice.toLocaleString(undefined, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       })}`} ,headerAlign: 'center',align:'center'},
-    { field: 'margin', headerName: 'Margin', width: 120, renderCell: (params) => <p>{params.value}% </p> ,headerAlign: 'center',align:'center'},
+    { field: 'margin', headerName: 'Margin', width: 120, renderCell: (params) => `${params.value}%` ,headerAlign: 'center',align:'center'},
     { field: 'information', headerName: 'Information',width:120,headerAlign: 'center',align:'center'},
     {
       field: 'actions',
@@ -181,6 +188,7 @@ export default function ProductPage() {
 
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
+    setLoading(true)
     const getdata=async()=>{
       await axios.get("http://localhost:8000/api/products?relations=category,unit,supplier,restocks",{
         headers:{
@@ -195,6 +203,7 @@ export default function ProductPage() {
           categoryType: row.category.itemType,
         })))
       })
+      setLoading(false)
     }
     getdata()
   },[])
@@ -249,7 +258,7 @@ export default function ProductPage() {
   return (
     <>
       <Helmet>
-        <title> User | Minimal UI </title>
+        <title> Product Page </title>
       </Helmet>
 
       <Container>
@@ -265,7 +274,10 @@ export default function ProductPage() {
         <Card>
           <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
           <Scrollbar>
-              {filteredUsers.length === 0 ? (
+              {loading ? (
+              <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
+              ) : (
+              filteredUsers.length === 0 ? (
               <Box sx={{ height:150 }}>
               <DataGrid
                 rows={filteredUsers}
@@ -278,6 +290,9 @@ export default function ProductPage() {
                 pageSizeOptions={[5, 10]}
                 onRowSelectionModelChange={(s)=>{
                   setSelected(s)
+                }}
+                slots={{
+                  toolbar: CustomToolbar,
                 }}
                 checkboxSelection 
                 disableRowSelectionOnClick
@@ -307,7 +322,8 @@ export default function ProductPage() {
                 getRowHeight={() => 'auto'}
               />
               </Box>
-            )}
+            )
+              )}
           </Scrollbar>
         </Card>
       </Container>
@@ -360,9 +376,112 @@ export default function ProductPage() {
 }
 
 function CustomToolbar() {
+  const Alert = forwardRef((props, ref) =>{
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+  });
+  const [open,setOpen] = useState(false)
+  const [file,setFile] = useState([])
+  const cookies = new Cookies()
+  const cookie = cookies.get("Authorization")
+  const {load} = useContext(OutletContext)
+  const [state2, setState] = useState({
+    open: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"",
+    variant:""
+  });
+  const { vertical, horizontal, openSnack } = state2;
+
+  const handleClick = (message,variant) => {
+    setState({ ...state2, openSnack: true , message,variant });
+  };
+
+  const handleClosesnack = () => {
+    setState({ ...state2, openSnack: false });
+  };
+  const handleImport = (files) => {
+    setFile(files)
+    const formData = new FormData();
+    formData.append('excel_file', files);
+  
+    // Kirim file ke server menggunakan Axios atau library lainnya
+    axios.post('http://localhost:8000/api/import/products', formData,{
+      headers:{
+        'Authorization':`Bearer ${cookie}`
+      }
+    })
+      .then((response) => {
+        handleClick(response.data.message,'success')
+        setTimeout(()=>{
+          load(true)
+          setTimeout(()=>{
+            load(false)
+            handleCLose()
+          },1000)
+        },1500)
+      })
+      .catch((error) => {
+        if (error.response.status === 500 ) {
+          if(error.response.data.message){
+            handleClick(error.response.data.message,'error')
+          }
+          else if(error.response.data.error.errorInfo){
+            handleClick(error.response.data.error.errorInfo[2],'error')
+          }
+        }
+        console.log(error);
+      });
+  };
+  const handleOpenModal=()=>{
+    setOpen(true)
+  }
+  const handleCLose=()=>{
+    setOpen(false)
+  }
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
   return (
+    <>
     <GridToolbarContainer>
       <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      <Button onClick={handleOpenModal}>Import</Button>
     </GridToolbarContainer>
+    {open && (
+      <>
+      <Dialog
+      open={open}
+      onClose={handleCLose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <DialogContent>
+      <MuiFileInput
+        accept=".xlsx, .csv" // Sesuaikan dengan tipe file yang diizinkan
+        label="Import Data" // Label tombol
+        onChange={handleImport}
+        value={file} // Fungsi yang akan dipanggil saat file dipilih
+      />
+    <Snackbar open={openSnack} autoHideDuration={1500} onClose={handleClosesnack} anchorOrigin={{ vertical , horizontal }}>
+        <Alert onClose={handleClosesnack} severity={state2.variant} sx={{ width: '100%' }}>
+        {state2.message}
+        </Alert>
+      </Snackbar>
+      </DialogContent>
+    </Dialog>
+      </>
+    )}
+    </>
+    
   );
+
 }

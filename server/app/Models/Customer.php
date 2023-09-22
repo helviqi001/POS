@@ -17,10 +17,6 @@ class Customer extends Model
     "information",
     ];
 
-    public function delivery(){
-        return $this->hasMany(Delivery::class);
-    }
-
     public function transaction(){
         return $this->hasMany(Transaction::class);
     }

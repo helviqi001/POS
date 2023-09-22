@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Imports\ImportProducts;
 use App\Models\Category;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {   
@@ -198,5 +200,20 @@ class ProductController extends Controller
         Storage::delete($product->urlImage);
         $product->delete();
         return response(null, 204);
+    }
+
+    public function import(Request $request){
+        $file = $request->file('excel_file');
+
+        try{
+            Excel::import(new ImportProducts,$file);
+        }catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => $e], 500);
+            }
+        }
+        return response()->json([
+            'message'=>"berhasil Import"
+        ],Response::HTTP_OK);
     }
 }

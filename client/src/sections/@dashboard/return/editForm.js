@@ -304,8 +304,7 @@ export default function EditReturn() {
                     <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:5}} defaultValue={dayjs(row.restockDate)}  slotProps={{ textField: { helperText:validationErrors.returnDate , error:!!validationErrors.returnDate}}}/>
                 </DemoContainer>
               </LocalizationProvider>
-              <h4>TOTAL SPEND IDR {formattedTotalSpend}</h4>
-
+              <Typography variant='subtitile2'>TOTAL REFUND IDR {formattedTotalSpend}</Typography>
               <Button  variant="contained" onClick={handleCreate}  sx={{marginBottom:5}}>Update</Button>
               </div>
             </>

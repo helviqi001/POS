@@ -10,7 +10,9 @@ export const INITIAL_STATE = {
       paymentMethod:"",
       installment:0,
       information:"",
+      informationDelivery:"",
       customer_id:0,
+      fleet_id:0,
       staff_id:0,
       total:0,
     },
@@ -38,7 +40,8 @@ export const PosReducer=(state,action)=>{
         }
         case 'RESET_STATE':
             return {
-              ...INITIAL_STATE
+              ...state,
+              product: []
             }
         case "CHANGE_INPUT":
             return {

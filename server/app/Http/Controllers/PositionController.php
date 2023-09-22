@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\ImportPositions;
+use App\Models\Menuitem;
 use App\Models\Position;
+use App\Models\Privilage;
 use App\Models\Product;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PositionController extends Controller
 {
     
       
 
-    public $possible_relations = ["category", "unit", "supplier", "restocks","returns","transaction","deliveries"];
+    public $possible_relations = ["staff","privilage","privilage.menuitem","privilage.menuitem.menugroup"];
     /**
      * Display a listing of the resource.
      *
@@ -69,6 +73,7 @@ class PositionController extends Controller
         $validator = Validator::make($request->all(),[
             "name" => "required|string",
             "shortname" => "string",
+            "menu"=>'array'
         ]);
         if($validator->fails()){
             return response()->json([
@@ -79,6 +84,47 @@ class PositionController extends Controller
         $validated['shortname'] = generateAbbreviation($request->name);
         try{
             $newValue= Position::create($validated);
+            if ($newValue) {
+                // get all menu for insert privilege later
+                $menuItems = Menuitem::get()->toArray();
+                foreach ($menuItems as $keyX => $menuItem) {
+                    // set param and default value to insert privilege
+                    $privilege['position_id'] = $newValue->id;
+                    $privilege['menuitem_id'] = $menuItem['id'];
+                    $privilege['view'] = 0;
+                    $privilege['add'] = 0;
+                    $privilege['edit'] = 0;
+                    $privilege['delete'] = 0;
+                    $privilege['export'] = 0;
+                    $privilege['import'] = 0;
+                    if (array_key_exists('menu', $validated)) {
+                        foreach ($validated['menu'] as $keyY => $menu) {
+                            if ($menuItem['id'] == $keyY) {
+                                if (array_key_exists('view', $menu)) {
+                                    $privilege['view'] = 1;
+                                }
+                                if (array_key_exists('add', $menu)) {
+                                    $privilege['add'] = 1;
+                                }
+                                if (array_key_exists('edit', $menu)) {
+                                    $privilege['edit'] = 1;
+                                }
+                                if (array_key_exists('delete', $menu)) {
+                                    $privilege['delete'] = 1;
+                                }
+                                if (array_key_exists('export', $menu)) {
+                                    $privilege['export'] = 1;
+                                }
+                                if (array_key_exists('import', $menu)) {
+                                    $privilege['import'] = 1;
+                                }
+                            }
+                        }
+                    }
+                    // create privilege for new role
+                    Privilage::create($privilege);
+                }
+            }
         }
         catch(QueryException $e){
             if ($e->errorInfo[1] === 1062) { 
@@ -137,6 +183,7 @@ class PositionController extends Controller
     {
         $validator = Validator::make($request->all(),[
             "name" => "string",
+            "menu"=>"array",
             "id"=>"integer"
         ]);
         if($validator->fails()){
@@ -145,10 +192,44 @@ class PositionController extends Controller
             ],Response::HTTP_BAD_REQUEST);
         }
         $validated = $validator->validated();
-        $Position = Position::findOrfail($request->id);
-
+        
         try{
+            $Position = Position::where('id', $request->id)->with('privilege')->first();
+        if ($Position) {
+            foreach ($Position->privileges as $keyX => $positionPrivilege) {
+                // set param and default value to update privilege
+                $privilege['view'] = 0;
+                $privilege['add'] = 0;
+                $privilege['edit'] = 0;
+                $privilege['delete'] = 0;
+                $privilege['other'] = 0;
+                if (array_key_exists('menu', $validated)) {
+                    foreach ($validated['menu'] as $keyY => $menu) {
+                        if ($positionPrivilege['menuitem_id'] == $keyY) {
+                            if (array_key_exists('view', $menu)) {
+                                $privilege['view'] = 1;
+                            }
+                            if (array_key_exists('add', $menu)) {
+                                $privilege['add'] = 1;
+                            }
+                            if (array_key_exists('edit', $menu)) {
+                                $privilege['edit'] = 1;
+                            }
+                            if (array_key_exists('delete', $menu)) {
+                                $privilege['delete'] = 1;
+                            }
+                            if (array_key_exists('other', $menu)) {
+                                $privilege['other'] = 1;
+                            }
+                        }
+                    }
+                }
+                // update privilege
+                Privilage::where('id', $positionPrivilege->id)->update($privilege);
+            }
             $Position->update($validated);
+        }
+
         }
         catch(QueryException $e){
             if ($e->errorInfo[1] === 1062) { 
@@ -175,5 +256,19 @@ class PositionController extends Controller
     {
         $position->delete();
         return response(null, 204);
+    }
+    public function import(Request $request){
+        $file = $request->file('excel_file');
+
+        try{
+            Excel::import(new ImportPositions,$file);
+        }catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => $e], 500);
+            }
+        }
+        return response()->json([
+            'message'=>"berhasil Import"
+        ],Response::HTTP_OK);
     }
 }

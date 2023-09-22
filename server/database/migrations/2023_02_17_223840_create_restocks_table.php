@@ -15,8 +15,9 @@ return new class extends Migration
     {
         Schema::create('restocks', function (Blueprint $table) {
             $table->id();
+            $table->string("idRestock");
             $table->date("restockDate");
-            $table->integer("totalSpend");
+            $table->double("totalSpend",12,2);
             $table->foreignId("supplier_id")->constrained("suppliers")->onDelete("cascade");
             $table->timestamps();
         });

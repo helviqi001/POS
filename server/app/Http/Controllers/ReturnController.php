@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\ImportReturs;
 use App\Models\Product;
 use App\Models\Retur;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\File;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReturnController extends Controller
 {
@@ -61,6 +63,7 @@ class ReturnController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
+            "idRetur"=>"integer",
             "product_id.*.quantity"=>"required|integer",
             "returnDate"=>"required|date_format:Y-m-d",
             "totalSpend"=>"required|integer",
@@ -142,6 +145,7 @@ class ReturnController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(),[
+            "idRetur"=>"integer",
             "product_id.*.quantity"=>"integer",
             "returnDate"=>"date_format:Y-m-d",
             "totalSpend"=>"integer",
@@ -156,7 +160,13 @@ class ReturnController extends Controller
                 "message"=>$validator->errors()
             ],Response::HTTP_BAD_REQUEST);
         }
+        do {
+            $randomNumber = rand(01, 9999);
+            $idRetur = 'Retur'.'-'. $randomNumber;
+            $existingProduct = Retur::where('idRetur', $idRetur)->first();
+        } while ($existingProduct);
         $validated = $validator->validated();
+        $validated['idRetur'] = $idRetur;
         $products = $this->convert_array($validated["product_id"]);
         try{
             $retur = Retur::findOrfail($request->id);
@@ -172,6 +182,7 @@ class ReturnController extends Controller
                 $productModel->save(); 
             }
             $retur->update([
+            'idRetur'=>$validated['idRetur'],
             'returnDate'=>$validated['returnDate'],
             'totalSpend'=>$validated['totalSpend'],
             'supplier_id'=>$validated['supplier_id'],
@@ -234,5 +245,19 @@ class ReturnController extends Controller
             }
         }
         return $result;
+    }
+    public function import(Request $request){
+        $file = $request->file('excel_file');
+
+        try{
+            Excel::import(new ImportReturs,$file);
+        }catch(\Exception $e){
+            return response()->json([
+                "error"=>$e->getMessage()
+            ],Response::HTTP_BAD_REQUEST);
+        }
+        return response()->json([
+            'message'=>"berhasil Import"
+        ],Response::HTTP_OK);
     }
 }

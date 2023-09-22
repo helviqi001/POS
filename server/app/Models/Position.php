@@ -15,4 +15,8 @@ class Position extends Model
     public function staff(){
         return $this->hasMany(Staff::class);
     }
+    public function privilage()
+    {
+        return $this->hasMany(privilage::class);
+    }
 }

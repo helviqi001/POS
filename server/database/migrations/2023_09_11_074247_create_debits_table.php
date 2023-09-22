@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->integer("customer_id");
             $table->integer("transaction_id");
-            $table->integer("nominal");
+            $table->double("nominal",12,2);
             $table->date("dueDate");
             $table->string("information");
             $table->string("status");

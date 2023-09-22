@@ -41,13 +41,6 @@ export default function DashboardLayout() {
   const handleLoading=(data)=>{
     setLoading(data)
   }
-  useEffect(()=>{
-    setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-    }, 1000);
-  },[])
-  console.log(loading);
   return (
     <StyledRoot>
       {loading ? <Loading/> : (<>

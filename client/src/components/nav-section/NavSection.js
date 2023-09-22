@@ -1,9 +1,15 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Cookies from 'universal-cookie';
+import axios from 'axios';
 import PropTypes from 'prop-types';
 import { NavLink as RouterLink } from 'react-router-dom';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 // @mui
-import { Box, List, ListItemText, Menu, MenuItem } from '@mui/material';
+import { Box, Collapse, List, ListItemText, Menu, MenuItem } from '@mui/material';
 //
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import NavConfig from '../../layouts/dashboard/nav/config';
 import { StyledNavItem, StyledNavItemIcon } from './styles';
 
 // ----------------------------------------------------------------------
@@ -12,9 +18,10 @@ NavSection.propTypes = {
   data: PropTypes.array,
 };
 
-export default function NavSection({ data = [] , load, ...other }) {
+export default function NavSection({load, ...other }) {
   const [openedDropdown, setOpenedDropdown] = useState('');
-
+  // const [navConfig, setNavConfig] = useState([]);
+  const navConfig = NavConfig()
   const handleOpen = (title) => {
     setOpenedDropdown(title);
   };
@@ -25,13 +32,13 @@ export default function NavSection({ data = [] , load, ...other }) {
   return (
     <Box {...other}>
       <List disablePadding sx={{ p: 1 }}>
-        {data.map((item) => (
+        {navConfig.map((item) => (
           <NavItem
             handleOpen={handleOpen}
             handleClose={handleClose}
             item={item}
             currentItem={openedDropdown}
-            key={item.title}
+            key={item.id}
           />
         ))}
       </List>
@@ -45,16 +52,17 @@ NavItem.propTypes = {
   item: PropTypes.object,
 };
 
-function NavItem({ item, handleOpen, handleClose, currentItem, ...props }) {
-  const { title, path, icon, info, menuItems } = item;
-  const anchorEl = useRef(null);
-  // console.log(getNavItemPath());
+function NavItem({ item, handleOpen, handleClose, currentItem, ...props}) {
+  const { name, path, icon, info, menuitem } = item;
+  const [checked, setChecked] = React.useState(false);
+
+  const handleChange = () => {
+    setChecked(!checked);
+  };
   return (
-    <div ref={anchorEl}>
+    <div>
       <StyledNavItem
-        onClick={() => handleOpen(title)}
-        component={RouterLink}
-        to={path}
+        onClick={() => handleChange()}
         sx={{
           '&.active': {
             color: 'text.primary',
@@ -63,46 +71,34 @@ function NavItem({ item, handleOpen, handleClose, currentItem, ...props }) {
           },
         }}
       >
-        <StyledNavItemIcon>{icon && icon}</StyledNavItemIcon>
+        <StyledNavItemIcon><i className={`fa-solid ${icon} fa-xl`}/></StyledNavItemIcon>
 
-        <ListItemText disableTypography primary={title} />
-
-        {info && info}
+        <ListItemText disableTypography primary={name} sx={{ fontSize:16 }}/>
+        {checked ? <ExpandMoreIcon/> : <ExpandLessIcon/>}
       </StyledNavItem>
-      {menuItems && menuItems.length > 0 && (
-        <NavDropdown
-          anchorEl={anchorEl.current}
-          open={currentItem === title}
-          menuItems={menuItems}
-          onClose={handleClose}
-        />
-      )}
+      <Collapse in={checked} timeout={'auto'} unmountOnExit>
+        <>
+
+           {menuitem.map((p)=>(
+              <StyledNavItem
+              component={RouterLink}
+              to={p.url}
+              sx={{
+                '&.active': {
+                  color: 'text.primary',
+                  bgcolor: 'action.selected',
+                  fontWeight: 'fontWeightBold',
+                },
+              }}
+              >
+              <StyledNavItemIcon><i className={`fa-solid ${p.icon} fa-lg`}/></StyledNavItemIcon>
+
+                  <ListItemText disableTypography primary={p.name} />
+
+              </StyledNavItem>
+            ))}
+        </>
+      </Collapse>
     </div>
   );
 }
-
-const NavDropdown = ({ anchorEl, onClose, menuItems, open }) => {
-
-  return (
-    <Menu
-      
-      id="basic-menu"
-      anchorEl={anchorEl}
-      open={open}
-      onClose={onClose}
-      anchorOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
-      }}
-      transformOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
-      }}
-      MenuListProps={{
-        'aria-labelledby': 'basic-button',
-      }}
-    >
-      {menuItems.length > 0 && menuItems.map((item, i) => <MenuItem key={i} component={RouterLink} to={item.path}>{item.title}</MenuItem>)}
-    </Menu>
-  );
-};

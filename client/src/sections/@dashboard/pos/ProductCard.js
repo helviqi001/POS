@@ -31,12 +31,12 @@ export default function ShopProductCard({ product}) {
   const { state,dispatch} = usePos()
   const {id,idProduk,name,stock,urlImage, sellingPrice, discount } = product;
   const isInCart= state.product.some((item) => item.id === id)
-  const formattedNumber = sellingPrice.toLocaleString(undefined,{
+  const formattedNumber = sellingPrice.toLocaleString('id-ID',{
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
   })
   const afterDisc = sellingPrice * (100 - discount) / 100;
-  const formattedAfterDisc = afterDisc.toLocaleString(undefined,{
+  const formattedAfterDisc = afterDisc.toLocaleString('id-ID',{
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
 })
