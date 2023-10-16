@@ -1,2 +1,2 @@
-export { default as UserListHead } from './UserListHead';
-export { default as UserListToolbar } from './UserListToolbar';
+export { default as ProductListHead } from './productListHead';
+export { default as ProductListToolbar } from './productListToolbar';

@@ -168,12 +168,12 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
         getData()
       },[])
 
-      const handleRadioButton = (name,value) =>{
-        dispatch(
-          {type:"CHANGE_INPUT" , payload:{name , value}},
-        )
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          // Tombol Enter ditekan, panggil handleClick
+          handleCreate();
+        }
       }
-      console.log(state);
     return(
         <>
          <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -186,6 +186,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
           disableClearable
           options={customer}
           autoHighlight
+          onKeyDown={handleKeyDown}
           getOptionLabel={(option) => option.name}
           renderOption={(props, option) => (
             <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
@@ -233,6 +234,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
                 label="Ammount"
                 onChange={handleChange}
                 name='ammount'
+                onKeyDown={handleKeyDown}
                 />
               <FormHelperText>{state.validationErrors.ammount || ' '}</FormHelperText>
         </FormControl>
@@ -244,6 +246,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.information}
             helperText={state.validationErrors.information || ' '}
+            onKeyDown={handleKeyDown}
             />
 
         </DialogContent>

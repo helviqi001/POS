@@ -32,4 +32,12 @@ class Supplier extends Model
     {
         return $this->hasMany(Product::class);
     }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($staff){
+            $staff->product()->delete();
+        });
+    }
 }

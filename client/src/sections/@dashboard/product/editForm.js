@@ -227,6 +227,12 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
 
           getData()
       },[])
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          // Tombol Enter ditekan, panggil handleClick
+          handleCreate();
+        }
+      }
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -253,6 +259,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
             key={state.formData.id}
             error={!!state.validationErrors.name}
             helperText={state.validationErrors.name || ' '}
+            onKeyDown={handleKeyDown}
           />
           <TextField
             disabled
@@ -263,6 +270,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
               style2
             }
             fullWidth
+            onKeyDown={handleKeyDown}
           />
         <Box sx={{ display:"flex" , justifyContent:"space-evenly"}}>
         <FormControl fullWidth sx={style2}>
@@ -275,6 +283,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
             name='netPrice'
             defaultValue={state.formData.netPrice}
             error={!!state.validationErrors.netPrice}
+            onKeyDown={handleKeyDown}
           />
           <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.netPrice || ' '}</FormHelperText>
         </FormControl>
@@ -289,6 +298,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
             defaultValue={state.formData.margin}
             name='margin'
             error={!!state.validationErrors.margin}
+            onKeyDown={handleKeyDown}
           />
           <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.margin || ' '}</FormHelperText>
         </FormControl>
@@ -304,6 +314,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
               name='discount'
               value={state.formData.discount}
               error={!!state.validationErrors.discount}
+              onKeyDown={handleKeyDown}
             />
              <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.discount || ' '}</FormHelperText>
           </FormControl>
@@ -317,6 +328,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
               label="Sell Price"
               name='sellingPrice'
               value={state.formData.sellingPrice}
+              onKeyDown={handleKeyDown}
             />
           </FormControl>
   
@@ -330,11 +342,12 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
               name='tax'
               value={state.formData.tax}
               error={!!state.validationErrors.tax}
+              onKeyDown={handleKeyDown}
             />
              <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.tax || ' '}</FormHelperText>
           </FormControl>
   
-          <MuiFileInput sx={style2} label="Input Image"  fullWidth value={state.formData.urlImage} onChange={handleImage} helperText={"Kosongkan kolom Input Image jika tidak ingin update*"}/>
+          <MuiFileInput sx={style2} label="Input Image"  fullWidth value={state.formData.urlImage} onKeyDown={handleKeyDown} onChange={handleImage} helperText={"Kosongkan kolom Input Image jika tidak ingin update*"}/>
   
           <Autocomplete
             id="country-select-demo"
@@ -351,6 +364,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
                 {option.name}
               </Box>
             )}
+            onKeyDown={handleKeyDown}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -384,6 +398,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
                 {option.itemType}
               </Box>
             )}
+            onKeyDown={handleKeyDown}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -416,6 +431,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
                 {option.shortname}
               </Box>
             )}
+            onKeyDown={handleKeyDown}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -448,6 +464,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
             key={state.formData.id}
             error={state.validationErrors.information}
             helperText={state.validationErrors.information || ' '}
+            onKeyDown={handleKeyDown}
             />
             </>
            )

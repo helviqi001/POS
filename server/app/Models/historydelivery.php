@@ -23,4 +23,12 @@ class Historydelivery extends Model
     public function transaction(){
         return $this->belongsTo(Transaction::class);
     }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($historydelivery){
+            $historydelivery->transaction()->delete();
+        });
+    }
 }

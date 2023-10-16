@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Delivery;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -145,9 +146,18 @@ class DeliveryController extends Controller
             ],Response::HTTP_BAD_REQUEST);
         }
         $validated = $validator->validated();
-        $delivery= Delivery::findOrfail($request->id);
+        $delivery = Delivery::with('transaction')->where('id', $request->id)->firstOrFail();
         try{
             $delivery->update($validated);
+            if($validated['status'] === 'On Process Delivery'){
+                Notification::create([
+                    'title' => "Your Pakcage On Delivery!!",
+                    'description' => 'your transaction id is ' . $delivery->transaction->idTransaction,
+                    'avatar' => null,
+                    'type' => 'order_shipped',
+                    'isUnread' => true,
+                ]);
+            }
         }
         catch(\Exception $e){
             return $e;
@@ -170,6 +180,17 @@ class DeliveryController extends Controller
         $delivery->delete();
         return response()->json([
             "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $deliveries = Delivery::whereIn('id', $id)->get();
+        foreach ($deliveries as $delivery) {
+            $delivery->delete();
+        }
+        return response()->json([
+            "message"=>"berhasil di delete"
         ],Response::HTTP_OK);
     }
 }

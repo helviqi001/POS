@@ -105,9 +105,6 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
         const formdata = { name:e.target.name , value:e.target.value }; // Clone the formData to avoid modifying the original state
         handleChangeValidation(formdata);
     }
-    const handleImage=(data)=>{
-      dispatch({type:"IMAGE_INPUT",payload: data})
-    }
     const handleDate=(data,fieldname)=>{
       const date = new Date(data.$y, data.$M , data.$D)
       const day = String(date.getDate()).padStart(2, '0');
@@ -153,6 +150,12 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
         console.log(error);
       }
       }
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          // Tombol Enter ditekan, panggil handleClick
+          handleCreate();
+        }
+      }
     return(
         <>
          <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -169,6 +172,7 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.name}
             helperText={state.validationErrors.name}
+            onKeyDown={handleKeyDown}
           />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer
@@ -196,6 +200,7 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.address}
             helperText={state.validationErrors.address}
+            onKeyDown={handleKeyDown}
           />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer
@@ -206,7 +211,7 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
                   'StaticDatePicker',
                 ]}
               >
-                  <DatePicker  label="Register Date" onChange={(data)=>handleDate(data,"registerDate")} disableFuture slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
+                  <DatePicker  label="Register Date" onChange={(data)=>handleDate(data,"registerDate")}  disableFuture slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
               </DemoContainer>
             </LocalizationProvider>
           <TextField
@@ -220,6 +225,7 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.phone}
             helperText={state.validationErrors.phone}
+            onKeyDown={handleKeyDown}
           />
 
           <TextField
@@ -233,6 +239,7 @@ const CreateCustomer = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.information}
             helperText={state.validationErrors.information}
+            onKeyDown={handleKeyDown}
             />
         </DialogContent>
         <DialogActions>

@@ -22,4 +22,13 @@ class Fleet extends Model
     public function delivery(){
         return $this->hasMany(Delivery::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($fleet){
+            $fleet->delivery()->delete();
+        });
+    }
 }

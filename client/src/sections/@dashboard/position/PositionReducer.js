@@ -32,7 +32,7 @@ export const PositionReducer = (state,action)=>{
                 ...state,
                 formData: {
                     ...state.formData,
-                    ...action.payload,
+                    ...action.value,
                   },
             }
         case 'SET_VALIDATION_ERROR':

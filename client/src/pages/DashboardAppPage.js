@@ -1,8 +1,13 @@
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import Cookies from 'universal-cookie';
 import { Helmet } from 'react-helmet-async';
 import { faker } from '@faker-js/faker';
 // @mui
 import { useTheme } from '@mui/material/styles';
-import { Grid, Container, Typography } from '@mui/material';
+import { Grid, Container, Typography, Button, Popover } from '@mui/material';
+import { DateRangePicker } from 'react-date-range';
+import { addDays, toDate } from 'date-fns';
 // components
 import Iconify from '../components/iconify';
 // sections
@@ -17,75 +22,176 @@ import {
   AppCurrentSubject,
   AppConversionRates,
 } from '../sections/@dashboard/app';
-
 // ----------------------------------------------------------------------
 
 export default function DashboardAppPage() {
+  const cookies = new Cookies()
+  const setting = JSON.parse(localStorage.getItem('setting'))
+  const cookie = cookies.get("Authorization")
+  const [open,setOpen] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [allTime , setAllTime] = useState(false)
+  const [state2, setState2] = useState(
+    {
+      startDate: "",
+      endDate: "",
+      flag: 0,
+    }
+  );
+  const [state, setState] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection',
+    }
+  ]);
+  const [productList,setProduct] = useState([])
+  useEffect(()=>{
+    const dataState =()=> state.forEach(p => {
+      const startdate = p.startDate
+      const enddate = p.endDate
+      let flag = 0
+      const formattedStartDate = `${startdate.getFullYear()}-${(startdate.getMonth() + 1).toString().padStart(2, '0')}-${startdate.getDate().toString().padStart(2, '0')} 00:00`;
+      const formattedEndDate = `${enddate.getFullYear()}-${(enddate.getMonth() + 1).toString().padStart(2, '0')}-${enddate.getDate().toString().padStart(2, '0')} 23:59`;
+
+      // pertahun
+      if (startdate.getFullYear() !== enddate.getFullYear() && startdate.getMonth() === enddate.getMonth() && startdate.getDate() === enddate.getDate()){
+         flag = 1
+      }
+      if (startdate.getFullYear() !== enddate.getFullYear() && startdate.getMonth() === enddate.getMonth() && startdate.getDate() !== enddate.getDate()){
+         flag = 1
+      }
+      if (startdate.getFullYear() !== enddate.getFullYear() && startdate.getMonth() !== enddate.getMonth() && startdate.getDate() !== enddate.getDate()){
+         flag = 1
+      }
+      if (startdate.getFullYear() !== enddate.getFullYear() && startdate.getMonth() !== enddate.getMonth() && startdate.getDate() === enddate.getDate()){
+         flag = 1
+      }
+
+      // perbulan
+      if (startdate.getFullYear() === enddate.getFullYear() && startdate.getMonth() !== enddate.getMonth() && startdate.getDate() <= enddate.getDate()){
+        flag = 2
+      }
+      
+      // perminggu
+      if (startdate.getFullYear() === enddate.getFullYear() && startdate.getMonth() === enddate.getMonth() && startdate.getDate() !== enddate.getDate()){
+        flag = 3
+      }
+      if (startdate.getFullYear() === enddate.getFullYear() && startdate.getMonth() !== enddate.getMonth() && startdate.getDate() > enddate.getDate()){
+        flag = 3
+      }
+      
+      // perhari
+      if (startdate.getFullYear() === enddate.getFullYear() && startdate.getMonth() === enddate.getMonth() && startdate.getDate() === enddate.getDate()){
+         flag = 4
+      }
+      setState2(
+        {
+          startDate:formattedStartDate,
+          endDate:formattedEndDate,
+          flag
+        }
+      )
+    })
+    dataState()
+  },[state])
+
+  useEffect(() => {
+    const Data = async () => {
+      setOpen(false)
+      setLoading(true)
+      await axios.post("http://localhost:8000/api/dashboard", {
+        startDate: state2.startDate, // Misalnya, Anda hanya ingin mengambil data dari elemen pertama state2
+        endDate: state2.endDate,
+        flag:state2.flag
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${cookie}`
+        }
+      }).then(response => {
+        setLoading(false)
+        setProduct(response.data);
+      });
+    }
+    Data();
+  }, [state2, cookie]);
   const theme = useTheme();
 
+  const Calender =(event)=>{
+    setAllTime(false)
+    setAnchorEl(event.currentTarget);
+    setOpen(true)
+  }
+  const handleClose =()=>{
+    setOpen(false)
+  }
+  console.log(productList);
   return (
     <>
-      <Helmet>
-        <title> Dashboard | Minimal UI </title>
-      </Helmet>
-
-      <Container maxWidth="xl">
+      <Helmet
+        title="Dashboard Page"
+        link={[
+              {"rel": "icon", 
+               "type": "image/png", 
+               "sizes": '32x32',
+               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+              }
+             ]}
+      />
+        {loading ? (
+          <>
+             <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
+          </>
+        ) : (
+          <>
+          <Container maxWidth="xl">
         <Typography variant="h4" sx={{ mb: 5 }}>
           Hi, Welcome back
         </Typography>
 
         <Grid container spacing={3}>
+          <Grid container justifyContent={'flex-end'} spacing={2}>
+            <Grid item>
+                <Button variant="outlined" onClick={(e)=>Calender(e)}>
+                  Calender
+                </Button>
+            </Grid>
+          </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Weekly Sales" total={714000} icon={'ant-design:android-filled'} />
+            <AppWidgetSummary type='string' title="Total Products" total={`${Number(productList.Product)}`} icon={'carbon:product'} />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="New Users" total={1352831} color="info" icon={'ant-design:apple-filled'} />
+            <AppWidgetSummary type='number' title="income" total={`${Number(productList.Income)}`} color="info" icon={'uil:money-insert'} />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Item Orders" total={1723315} color="warning" icon={'ant-design:windows-filled'} />
+            <AppWidgetSummary type='number' title="Expense" total={`${Number(productList.Expense)}`} color="warning" icon={'uil:money-withdraw'} />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Bug Reports" total={234} color="error" icon={'ant-design:bug-filled'} />
+            <AppWidgetSummary type='string' title="Total Quantity Sold" total={`${Number(productList.quantitySold)}`} color="error" icon={'material-symbols:move-item-rounded'} />
           </Grid>
 
-          <Grid item xs={12} md={6} lg={8}>
+          <Grid item xs={12} md={6} lg={12}>
             <AppWebsiteVisits
-              title="Website Visits"
-              subheader="(+43%) than last year"
-              chartLabels={[
-                '01/01/2003',
-                '02/01/2003',
-                '03/01/2003',
-                '04/01/2003',
-                '05/01/2003',
-                '06/01/2003',
-                '07/01/2003',
-                '08/01/2003',
-                '09/01/2003',
-                '10/01/2003',
-                '11/01/2003',
-              ]}
+              title="Gross Income & Expense"  
+              // subheader="Gross satuan Rupiah"
+              chartLabels={Object.keys(productList.transactionDay)}
               chartData={[
                 {
-                  name: 'Team A',
-                  type: 'column',
-                  fill: 'solid',
-                  data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30],
-                },
-                {
-                  name: 'Team B',
+                  name: 'Gross',
                   type: 'area',
                   fill: 'gradient',
-                  data: [44, 55, 41, 67, 22, 43, 21, 41, 56, 27, 43],
+                  data: Object.keys(productList.transactionDay).map(key=>productList.transactionDay[key]),
                 },
                 {
-                  name: 'Team C',
-                  type: 'line',
-                  fill: 'solid',
-                  data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39],
+                  name: 'Expense',
+                  type: 'area',
+                  fill: 'gradient',
+                  data: Object.keys(productList.expenseDay).map(key=>productList.expenseDay[key]),
                 },
               ]}
             />
@@ -110,25 +216,22 @@ export default function DashboardAppPage() {
           </Grid>
 
           <Grid item xs={12} md={6} lg={8}>
+            <Button onClick={()=>setAllTime(true)}>All Time</Button>
             <AppConversionRates
-              title="Conversion Rates"
-              subheader="(+43%) than last year"
-              chartData={[
-                { label: 'Italy', value: 400 },
-                { label: 'Japan', value: 430 },
-                { label: 'China', value: 448 },
-                { label: 'Canada', value: 470 },
-                { label: 'France', value: 540 },
-                { label: 'Germany', value: 580 },
-                { label: 'South Korea', value: 690 },
-                { label: 'Netherlands', value: 1100 },
-                { label: 'United States', value: 1200 },
-                { label: 'United Kingdom', value: 1380 },
-              ]}
+              title="Top 10 Products"
+              chartData={allTime === true ?  Object.keys(productList.SalesProductAllTime).map((key) => ({
+                label: key, // Use the key as the label
+                value: productList.SalesProductAllTime[key], // Use the value based on the key
+              })) : Object.keys(productList.SalesProductPeriode).map((key) => ({
+                label: key, // Use the key as the label
+                value: productList.SalesProductPeriode[key], // Use the value based on the key
+              }))}
             />
           </Grid>
 
-          <Grid item xs={12} md={6} lg={4}>
+
+
+          {/* <Grid item xs={12} md={6} lg={4}>
             <AppCurrentSubject
               title="Current Subject"
               chartLabels={['English', 'History', 'Physics', 'Geography', 'Chinese', 'Math']}
@@ -211,9 +314,34 @@ export default function DashboardAppPage() {
                 { id: '5', label: 'Sprint Showcase' },
               ]}
             />
-          </Grid>
+          </Grid> */}
         </Grid>
+          <Popover
+          open={open}
+          anchorEl={anchorEl}
+          onClose={handleClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <DateRangePicker
+            onChange={item => setState([item.selection])}
+            showSelectionPreview
+            moveRangeOnFirstSelection={false}
+            months={2}
+            ranges={state}
+            direction="horizontal"
+          />;
+        </Popover>
       </Container>
+          </>
+        )}
+      
     </>
   );
 }

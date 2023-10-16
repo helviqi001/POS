@@ -8,12 +8,15 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
 
     public $possible_fields = ["id", "name", "shortname", "created_at", "updated_at"];
+    public $possible_relations = ["staff"];
 
     /**
      * Display a listing of the resource.
@@ -22,22 +25,15 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $paginate = $request->input("paginate");
-        $search = $request->input("search");
-        $fields = $request->input("fields");
+        $relation = $request->input("relations");
 
         $users = new User();
 
-        if ($fields) {
-            $users = handle_fields($fields, $this->possible_fields, $users);
+
+        if ($relation) {
+            $users = handle_relations($relation, $this->possible_relations, $users);
         }
-
-        if ($search) {
-            $users = $users->where("name", "like", "%" . $search . "%")->orWhere("email", "like", "%" . $search . "%");
-        }
-
-        if ($paginate) return $users->paginate($paginate);
-
+    
         return $users->get();
     }
 
@@ -55,7 +51,6 @@ class UserController extends Controller
             $user = User::create([
                 "username" => $validated["username"],
                 "password" => bcrypt($validated["password"]),
-                "position_id" => $validated["position_id"],
                 "staff_id" => $validated["staff_id"],
             ]);
         }
@@ -68,7 +63,10 @@ class UserController extends Controller
             ],Response::HTTP_BAD_REQUEST);
         }
 
-        return response($user, 201);
+        return response()->json([
+            "message"=>"Data Berhasil dibuat",
+            "data"=>$user
+        ],Response::HTTP_OK);
     }
 
     /**
@@ -77,9 +75,15 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(User $user)
+    public function show(request $request,$id)
     {
-        return $user;
+        $relation = $request->input("relations");
+        $user = new User();
+        if ($relation) {
+            $user = handle_relations($relation, $this->possible_relations, $user);
+        }
+        
+        return $user->findOrFail($id);
     }
 
     /**
@@ -93,15 +97,20 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(),[
             "username" => "string",
-            "position_id" => "integer",
             "staff_id" => "integer",
-            "password" => "string",
             "id" => "integer",
         ]);
-        $validated = $request->validated();
+        $validated = $validator->validated();
         $user = User::findOrfail($request->id);
+        if (!Hash::check($request->input("oldPassword"), $user->password)) {
+            return response()->json(['error' => 'Old password is incorrect'], 500);
+        }        
         try{
-            $user->update($validated);
+            $user->update([
+                "username" => $validated["username"],
+                "password" => bcrypt($request->input("newPassword")),
+                "staff_id" => $validated["staff_id"],
+            ]);
         }
         catch(QueryException $e){
             if ($e->errorInfo[1] === 1062) { 
@@ -112,7 +121,10 @@ class UserController extends Controller
             ],Response::HTTP_BAD_REQUEST);
         }
 
-        return $user;
+        return response()->json([
+            "message"=>"Data Berhasil diupdate",
+            "data"=>$user
+        ],Response::HTTP_OK);
     }
 
     /**
@@ -125,5 +137,45 @@ class UserController extends Controller
     {
         $user->delete();
         return response("", 204);
+    }
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $users = User::whereIn('id', $id)->get();
+        foreach ($users as $user) {
+            $user->delete();
+        }
+        return response()->json([
+            "message"=>"berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+    public function ForgetPassword(Request $request){
+        $user = User::firstWhere("username",$request->input("username"));
+        if(!$user){
+            return response()->json(['error' => 'Username Not Found'], 500);
+        }     
+        if($request->input("newPassword") !== $request->input("confirmPassword")){
+            return response()->json(['error' => 'Your New Password and Confirm Password isn`t same'], 500);
+        }
+        try{
+            $user->update([
+                "username" => $user->username,
+                "password" => bcrypt($request->input("newPassword")),
+                "staff_id" => $user->staff_id,
+            ]);
+        }
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                return response()->json(['error' => 'This Username already exists'], 500);
+            }
+            return response()->json([
+                "error"=>$e
+            ],Response::HTTP_BAD_REQUEST);
+        }
+
+        return response()->json([
+            "message"=>"Data Berhasil diupdate",
+            "data"=>$user
+        ],Response::HTTP_OK);
     }
 }

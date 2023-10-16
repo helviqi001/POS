@@ -112,7 +112,13 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
         console.log(error);
       }
       }
-      console.log(state);
+     
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          // Tombol Enter ditekan, panggil handleClick
+          handleCreate();
+        }
+      }
     return(
         <>
          <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -129,6 +135,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.itemType}
             helperText={state.validationErrors.itemType || ' '}
+            onKeyDown={handleKeyDown}
           />
         </DialogContent>
         <DialogActions>

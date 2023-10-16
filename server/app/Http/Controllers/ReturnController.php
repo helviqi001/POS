@@ -65,7 +65,7 @@ class ReturnController extends Controller
         $validator = Validator::make($request->all(),[
             "idRetur"=>"integer",
             "product_id.*.quantity"=>"required|integer",
-            "returnDate"=>"required|date_format:Y-m-d",
+            "returnDate"=>"required|date_format:Y-m-d H:i",
             "totalSpend"=>"required|integer",
             "product_id.*.coli"=>"required|integer",
             "product_id"=>"required|array",
@@ -147,7 +147,7 @@ class ReturnController extends Controller
         $validator = Validator::make($request->all(),[
             "idRetur"=>"integer",
             "product_id.*.quantity"=>"integer",
-            "returnDate"=>"date_format:Y-m-d",
+            "returnDate"=>"date_format:Y-m-d H:i",
             "totalSpend"=>"integer",
             "product_id.*.coli"=>"integer",
             "product_id"=>"array",
@@ -229,6 +229,36 @@ class ReturnController extends Controller
             "message"=>"berhasil delete data"
         ],Response::HTTP_OK);
     }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $returns = Retur::whereIn('id',$id)->get();
+        try{
+            foreach($returns as $return){
+                $pivotreturn = $return->products;
+                foreach($pivotreturn as $product){
+                    $productModel = Product::findOrFail($product['id']);
+                        $oldQuantity = $return->products()->where('product_id', $product['id'])->first()->pivot->quantity;
+                        $productModel->stock -= $oldQuantity;
+                        $oldColi = $return->products()->where('product_id', $product['id'])->first()->pivot->coli;
+                        $productModel->coli -= $oldColi;
+                        $productModel->save(); 
+                }
+                $return->delete();
+            }
+        }
+        catch(\Exception $e){
+            return response()->json([
+                "message"=>$e
+            ],Response::HTTP_OK);
+        }
+        // $restock->delete();
+        return response()->json([
+            "message"=>"berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+
 
     public function convert_array(array $data)
     {

@@ -1,10 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, get, size } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useContext, useEffect, useState } from 'react';
+import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
@@ -39,8 +39,10 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  Snackbar,
 } from '@mui/material';
 // components
+import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import CreateStaff from '../sections/@dashboard/deposit/createform';
 import EditForm from '../sections/@dashboard/deposit/editForm';
@@ -88,8 +90,18 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
+});
 export default function DepositPage() {
+  const {menu,item} = useParams()
+
+  const setting = JSON.parse(localStorage.getItem('setting'))
+
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+
   const [open, setOpen] = useState(null);
+
   const [openModal, setOpenModal] = useState(false);
 
   const [page, setPage] = useState(0);
@@ -118,10 +130,35 @@ export default function DepositPage() {
   
   const [loading,setLoading] = useState(true);
 
+  const [priv,setPriv] = useState({
+    add:0,
+    edit:0,
+    delete:0,
+    export:0,
+    import:0,
+  })
+
+  const [state2, setState] = useState({
+    openSnack: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"Are you sure want to delete this data ? it will delete everything related with this",
+  });
+  const { vertical, horizontal, openSnack } = state2;
+
+  const handleClick = () => {
+    setState({ ...state2, openSnack: true });
+    setOpen(null);
+  };
+
+  const handleClose = () => {
+    setState({ ...state2, openSnack: false });
+  };
+
 
   const handleEditClick = (event , id)=> {
     setOpen(event.currentTarget)
-    setId(id)
+    setId([id])
   };
 
 
@@ -169,6 +206,18 @@ export default function DepositPage() {
     },
   ];
 
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export, add:privilege.add, edit:privilege.edit, delete:privilege.delete, import:privilege.import })
+     })
+   } 
+
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
     setLoading(true)
@@ -184,6 +233,7 @@ export default function DepositPage() {
           customerName : p.customer.name
         })))
       })
+      Privilage()
       setLoading(false)
     }
     getdata()
@@ -215,9 +265,10 @@ export default function DepositPage() {
 
 
   const handleDelete=async()=>{
-    load(true)
+    const updatedData = productList.filter(item => !id.includes(item.id));
+    setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.delete(`http://localhost:8000/api/deposits/${id}`,{
+    axios.post(`http://localhost:8000/api/delete/deposits`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -225,9 +276,6 @@ export default function DepositPage() {
     }).then(response=>{
       console.log(response);
     })
-    setTimeout(()=>{
-      load(false)
-    },1000)
   }
 
   const style2 = {
@@ -243,32 +291,35 @@ export default function DepositPage() {
     setFilterName(event.target.value);
   };
   
-  
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
-  
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
-  
-  const isNotFound = !filteredUsers.length && !!filterName;
   
   return (
     <>
-      <Helmet>
-        <title> Deposit Page </title>
-      </Helmet>
+      <Helmet
+        title="Deposit Page"
+        link={[
+              {"rel": "icon", 
+               "type": "image/png", 
+               "sizes": '32x32',
+               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+              }
+             ]}
+      />
     
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
             Deposit List
           </Typography>
+          {priv.add === 1 && (
           <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleOpenModal}>
             New Deposit
           </Button>
+          )}
         </Stack>
 
         <Card>
-          <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
+        <ProductListToolbar selected={selected} setId={setId} filterName={filterName} onFilterName={handleFilterByName} handleClick={handleClick} />
           {loading ? (
             <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
           ) : 
@@ -340,15 +391,18 @@ export default function DepositPage() {
           },
         }}
       >
+         {priv.edit === 1 && (
         <MenuItem onClick={handleOpenModalEdit}>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }}/>
           Edit
         </MenuItem>
-
-        <MenuItem sx={{ color: 'error.main' }} onClick={handleDelete}> 
+        )}
+        {priv.delete === 1 && (
+        <MenuItem sx={{ color: 'error.main' }} onClick={handleClick}> 
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>
+        )}
       </Popover>
               {openModal && (
                   <>
@@ -360,15 +414,47 @@ export default function DepositPage() {
                       )}
                   </>
               )}
+      <Snackbar open={openSnack} onClose={handleClose} anchorOrigin={{ vertical , horizontal }} >
+        <Alert severity={'warning'} sx={{ width: '100%' }}>
+        <Box display={'flex'} flexDirection={'column'}>
+          {state2.message}
+          <Button style={{ width:'10%',marginTop:15,alignSelf:'end' }} onClick={()=>handleDelete(id)}>
+            Yes
+          </Button>
+        </Box>
+        </Alert>
+      </Snackbar>
         </>
   );
 }
 
 
 function CustomToolbar() {
+  const {menu,item} = useParams()
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+  const [priv,setPriv] = useState({
+    export:0,
+    import:0,
+  })
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export,import:privilege.import })
+     })
+   } 
+   useEffect(()=>{
+    Privilage()
+  },[])
   return (
     <GridToolbarContainer>
-      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+       {priv.export === 1 && (
+        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      )}
     </GridToolbarContainer>
   );
 }

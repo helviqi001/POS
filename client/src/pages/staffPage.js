@@ -4,7 +4,7 @@ import { sentenceCase } from 'change-case';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
@@ -43,6 +43,7 @@ import {
 } from '@mui/material';
 // components
 import MuiAlert from '@mui/material/Alert';
+import DetailsIcon from '@mui/icons-material/Details';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import CreateStaff from '../sections/@dashboard/staff/createform';
 import EditForm from '../sections/@dashboard/staff/editForm';
@@ -53,8 +54,10 @@ import Scrollbar from '../components/scrollbar';
 // sections
 // import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
+import DetailTransaction from '../sections/@dashboard/staff/detail';
 import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
+import FullImage from './fullImage';
 
 // ----------------------------------------------------------------------
 
@@ -90,9 +93,22 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
+});
+
 export default function StaffPage() {
+  const {menu,item} = useParams()
+
+  const setting = JSON.parse(localStorage.getItem('setting'))
+
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+
   const [open, setOpen] = useState(null);
+  
   const [openModal, setOpenModal] = useState(false);
+
+  const [detail, setDetail] = useState(false);
 
   const [page, setPage] = useState(0);
 
@@ -103,8 +119,6 @@ export default function StaffPage() {
   const [orderBy, setOrderBy] = useState('name');
 
   const [filterName, setFilterName] = useState('');
-
-  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [create,setCreate] = useState(false)
 
@@ -120,9 +134,45 @@ export default function StaffPage() {
   
   const {load} = useContext(OutletContext)
 
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+
   const handleEditClick = (event , id)=> {
     setOpen(event.currentTarget)
     setId(id)
+  };
+
+  const [priv,setPriv] = useState({
+    add:0,
+    edit:0,
+    delete:0,
+    export:0,
+    import:0,
+  })
+
+  const [state2, setState] = useState({
+    openSnack: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"Are you sure want to delete this data ? it will delete everything related with this",
+  });
+  const { vertical, horizontal, openSnack } = state2;
+
+  const handleClick = () => {
+    setState({ ...state2, openSnack: true });
+    setOpen(null);
+  };
+
+  const handleClose = () => {
+    setState({ ...state2, openSnack: false });
+  };
+
+  const openFullscreen = (imageSrc) => {
+    setFullscreenImage(imageSrc);
+    
+  };
+
+  const closeFullscreen = () => {
+    setFullscreenImage(null);
   };
 
   const DATAGRID_COLUMNS = [
@@ -138,6 +188,21 @@ export default function StaffPage() {
       headerAlign: 'center',
       align:'center'
     },
+    { field: 'urlImage', headerName: 'Image', width: 150,headerAlign:'center', renderCell: (params) =>
+    <button
+    onClick={() => openFullscreen(`http://localhost:8000/storage/${params.value}`)}
+    className="image-button"
+    style={{ background:"none",cursor:'pointer' , border:"none"}}
+  >
+    <span className="image-span" aria-hidden="true">
+      <img
+        src={`http://localhost:8000/storage/${params.value}`}
+        alt='pic'
+        style={{ height: "100%" }}
+      />
+    </span>
+    <span className="image-text">View Image</span>
+  </button>},
     { field: 'information', headerName: 'Information',width:150,headerAlign: 'center',align:'center'},
     { field: 'positionName', headerName: 'Position',width:150,headerAlign: 'center',align:'center'},
     {
@@ -160,6 +225,18 @@ export default function StaffPage() {
     },
   ];
 
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export, add:privilege.add, edit:privilege.edit, delete:privilege.delete, import:privilege.import })
+     })
+   } 
+
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
     setLoading(true)
@@ -175,16 +252,20 @@ export default function StaffPage() {
           positionName : p.position.name
         })))
       })
+      Privilage()
       setLoading(false)
     }
     getdata()
   },[])
-  
-  console.log(productList);
 
   const handleCloseMenu = () => {
     setOpen(null);
   };
+
+  const handleOpenModalDetail=()=>{
+    setOpenModal(true)
+    setDetail(true)
+  }
 
   const handleOpenModal=()=>{
     setCreate(true)
@@ -206,9 +287,10 @@ export default function StaffPage() {
 
 
   const handleDelete=async()=>{
-    load(true)
+    const updatedData = productList.filter(item => !id.includes(item.id));
+    setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.delete(`http://localhost:8000/api/staffs/${id}`,{
+    axios.post(`http://localhost:8000/api/delete/staffs`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -216,9 +298,6 @@ export default function StaffPage() {
     }).then(response=>{
       console.log(response);
     })
-    setTimeout(()=>{
-      load(false)
-    },1000)
   }
 
   const style2 = {
@@ -233,51 +312,35 @@ export default function StaffPage() {
     setPage(0);
     setFilterName(event.target.value);
   };
-  
-  
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
-  
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
-  
-  const isNotFound = !filteredUsers.length && !!filterName;
-
-  const handleImport = (files) => {
-  const file = files[0];
-
-  const formData = new FormData();
-  formData.append('excel_file', file);
-
-  // Kirim file ke server menggunakan Axios atau library lainnya
-  axios.post('URL_API', formData)
-    .then((response) => {
-      // Handle respons dari server (misalnya, tampilkan pesan sukses atau error)
-      console.log('Respon dari server:', response.data);
-    })
-    .catch((error) => {
-      // Handle error jika terjadi kesalahan
-      console.error('Kesalahan saat mengimpor data:', error);
-    });
-};
   
   return (
     <>
-      <Helmet>
-        <title> Staff Page </title>
-      </Helmet>
+      <Helmet
+                title="Staff Page"
+                link={[
+                    {"rel": "icon", 
+                    "type": "image/png", 
+                    "sizes": '32x32',
+                    "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+                    }
+                    ]}
+            />
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
             Staff List
           </Typography>
+          {priv.add === 1 && (
           <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleOpenModal}>
             New Staff
           </Button>
+          )}
         </Stack>
 
         <Card>
-          <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
+        <ProductListToolbar selected={selected} setId={setId} filterName={filterName} onFilterName={handleFilterByName} handleClick={handleClick} />
           <Scrollbar>
             {loading ? (
               <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
@@ -350,14 +413,21 @@ export default function StaffPage() {
           },
         }}
       >
+         {priv.edit === 1 && (
         <MenuItem onClick={handleOpenModalEdit}>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }}/>
           Edit
         </MenuItem>
-
-        <MenuItem sx={{ color: 'error.main' }} onClick={handleDelete}> 
+        )}
+        {priv.delete === 1 && (
+        <MenuItem sx={{ color: 'error.main' }} onClick={handleClick}> 
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
+        </MenuItem>
+        )}
+        <MenuItem onClick={handleOpenModalDetail}> 
+          <DetailsIcon sx={{ mr: 2 }} />
+          Detail
         </MenuItem>
       </Popover>
               {openModal && (
@@ -368,14 +438,34 @@ export default function StaffPage() {
                       {edit && (
                           <EditForm id={id} style2={style2} openModal={openModal} handleCloseModal={handleCloseModal} productList={productList} />
                       )}
+                      {detail && (
+                          <DetailTransaction id={id} style2={style2} openModal={openModal} handleCloseModal={handleCloseModal} productList={productList} />
+                      )}
                   </>
               )}
+              {fullscreenImage && (
+                <>
+                 <FullImage fullImage={fullscreenImage} closeFullscreen={closeFullscreen}/>
+                </>
+                )}
+        <Snackbar open={openSnack} onClose={handleClose} anchorOrigin={{ vertical , horizontal }} >
+        <Alert severity={'warning'} sx={{ width: '100%' }}>
+        <Box display={'flex'} flexDirection={'column'}>
+          {state2.message}
+          <Button style={{ width:'10%',marginTop:15,alignSelf:'end' }} onClick={()=>handleDelete(id)}>
+            Yes
+          </Button>
+        </Box>
+        </Alert>
+      </Snackbar>
         </>
   );
 }
 
 
-function CustomToolbar() {
+const CustomToolbar =()=>{
+  const {menu,item} = useParams()
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
   const Alert = forwardRef((props, ref) =>{
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
   });
@@ -384,6 +474,10 @@ function CustomToolbar() {
   const cookies = new Cookies()
   const cookie = cookies.get("Authorization")
   const {load} = useContext(OutletContext)
+  const [priv,setPriv] = useState({
+    export:0,
+    import:0,
+  })
   const [state2, setState] = useState({
     open: false,
     vertical: 'top',
@@ -400,6 +494,18 @@ function CustomToolbar() {
   const handleClosesnack = () => {
     setState({ ...state2, openSnack: false });
   };
+
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export,import:privilege.import })
+     })
+   } 
   const handleImport = (files) => {
     setFile(files)
     const formData = new FormData();
@@ -439,22 +545,18 @@ function CustomToolbar() {
   const handleCLose=()=>{
     setOpen(false)
   }
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-  };
+  useEffect(()=>{
+    Privilage()
+  },[])
   return (
     <>
     <GridToolbarContainer>
-      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
-      <Button onClick={handleOpenModal}>Import</Button>
+      {priv.export === 1 && (
+        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      )}
+      {priv.import === 1 && (
+        <Button onClick={handleOpenModal}>Import</Button>
+      )}
     </GridToolbarContainer>
     {open && (
       <>

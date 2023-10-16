@@ -5,7 +5,7 @@ import { Autocomplete, Badge, Box, Button, Card, CardContent, Dialog, DialogCont
 import { useContext, useEffect, useReducer, useState } from 'react';
 import axios from 'axios';
 import Cookies from 'universal-cookie';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { DatePicker, DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -144,11 +144,14 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
   }
   
   const handleDate=(data)=>{
-    const date = new Date(data.$y, data.$M , data.$D)
+    const date = new Date(data.$y, data.$M , data.$D,data.$H,data.$m,)
+
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-    const formattedDate = `${year}-${month}-${day}`;
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
     dispatch({type:"DATE",payload:formattedDate})
   }
 
@@ -170,7 +173,6 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
     dispatch({type:"RESET_STATE"})
   }
   };
-  console.log(state);
   const handleBack = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
@@ -210,10 +212,10 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
   }, [state, state.formData.total]);
 
   const handleCreate= async() =>{
-   
+   const staff = JSON.parse(localStorage.getItem('userProfile'))
     try {
       await axios.post("http://localhost:8000/api/transactions",{
-        staff_id:state.formData.staff_id,
+        staff_id:staff.staff_id,
         fleet_id:state.formData.fleet_id,
         customer_id:state.formData.customer_id,
         transactionDate:state.formData.transactionDate,
@@ -363,36 +365,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                           }
                       }}
             />
-                    <Autocomplete
-                      id="country-select-demo"
-                      name="customer_id"
-                      sx={{ marginTop:2 }}
-                      disableClearable
-                      options={staff}
-                      getOptionLabel={(option) => option.name}
-                      renderOption={(props, option) => (
-                        <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
-                          {option.name}
-                        </Box>
-                      )}
-                      renderInput={(params) => (
-                        <TextField
-                        {...params}
-                        label="Choose a Staff"
-                        inputProps={{
-                          ...params.inputProps,
-                        }}
-                        error={!!state.validationErrors.staff_id}
-                        helperText={state.validationErrors.staff_id || ' '}
-                        />
-                        )}
-                        onChange={(event,newValue) => {
-                          if (newValue) {
-                            handleChangeForm({ target: { name: 'staff_id', value: newValue.id } });
-                          }
-                        }}
-            />
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
                       <DemoContainer
                         components={[
                           'DatePicker',
@@ -402,7 +375,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                         ]}
                         sx={{ marginTop:2 }}
                       >
-                          <DatePicker label="Trasaction Date" onChange={(data)=>handleDate(data)} value={state.formData.transactionDate} slotProps={{ textField: { helperText:state.validationErrors.transactionDate , error:!!state.validationErrors.transactionDate} }}/>
+                          <DateTimePicker label="Trasaction Date" onChange={(data)=>handleDate(data)} value={state.formData.transactionDate} slotProps={{ textField: { helperText:state.validationErrors.transactionDate , error:!!state.validationErrors.transactionDate} }}/>
                       </DemoContainer>
                     </LocalizationProvider>
                     

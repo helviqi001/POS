@@ -24,9 +24,6 @@ import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
-import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
 import Loading2 from '../../../Loading/loading2';
 import { INITIAL_STATE, SupplierRecuder } from './SupplierReducer';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
@@ -181,6 +178,13 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
 
             getData()
           },[])
+
+          const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+              // Tombol Enter ditekan, panggil handleClick
+              handleCreate();
+            }
+          }
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -207,6 +211,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.name}
             helperText={state.validationErrors.name || ' '}
+            onKeyDown={handleKeyDown}
           />
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DemoContainer
@@ -237,6 +242,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.address}
             helperText={state.validationErrors.address || ' '}
+            onKeyDown={handleKeyDown}
           />
           <TextField
             id="outlined-disabled"
@@ -251,6 +257,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.phone}
             error={!!state.validationErrors.id}
             helperText={state.validationErrors.phone || ' '}
+            onKeyDown={handleKeyDown}
           />
   
           <MuiFileInput 
@@ -260,7 +267,9 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
           value={state.formData.urlImage} 
           onChange={(e)=>handleImage(e)} 
           helperText={"Kosongkan kolom Input Image jika tidak ingin update*"}
-          inputProps={{ accept: '.png, .jpeg ,.jpg' }}/>
+          inputProps={{ accept: '.png, .jpeg ,.jpg' }}
+          onKeyDown={handleKeyDown}
+          />
 
           <TextField
             id="outlined-disabled"
@@ -275,6 +284,8 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.information}
             helperText={state.validationErrors.information || ' '}
+            onKeyDown={handleKeyDown}
+
             />
             </>
            )

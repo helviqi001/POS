@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Debit;
 use App\Models\Delivery;
 use App\Models\Deposit;
+use App\Models\Notification;
 use App\Models\Product;
 use App\Models\Staff;
 use App\Models\Transaction;
@@ -73,7 +74,7 @@ class TransactionController extends Controller
             "paymentStatus"=>"string",
             "itemStatus"=>"string",
             "information"=>"string",
-            "transactionDate"=>"required|date_format:Y-m-d",
+            "transactionDate"=>"required|date_format:Y-m-d H:i",
         ]);
         if($validator->fails()){
             return response()->json([
@@ -152,7 +153,6 @@ class TransactionController extends Controller
                     $idDelivery = "D" .'-'. $randomNumber;
                     $existingProduct = Delivery::where('idDelivery', $idDelivery)->first();
                 } while ($existingProduct);
-
                 $delivery = new Delivery();
                 $delivery->idDelivery = $idDelivery;
                 $delivery->transaction_id = $newValue->id;
@@ -161,6 +161,13 @@ class TransactionController extends Controller
                 $delivery->information = $information;
                 $delivery->save();
             }
+            Notification::create([
+                'title' => "New Transaction!!",
+                'description' => 'your transaction id is ' . $newValue->idTransaction,
+                'avatar' => null,
+                'type' => 'chat_message',
+                'isUnread' => true,
+            ]);
         }
         catch(\Exception $e){
             return $e;
@@ -224,7 +231,7 @@ class TransactionController extends Controller
             "paymentStatus"=>"string",
             "itemStatus"=>"string",
             "information"=>"string",
-            "transactionDate"=>"date_format:Y-m-d",
+            "transactionDate"=>"date_format:Y-m-d H:i",
             "id"=>"integer"
         ]);
         if($validator->fails()){
@@ -286,23 +293,44 @@ class TransactionController extends Controller
                 $productModel->coli += $oldColi;
                 $productModel->save(); 
         }
-        if($transaction->itemStatus === 'delivery'){
-            $delivery = Delivery::firstWhere('transaction_id',$transaction->id);
-            $delivery->delete();
-        }
-        if($transaction->paymentStatus === 'debit'){
-            $debits = Debit::where('transaction_id', $transaction->id)->get();
+        // if($transaction->itemStatus === 'delivery'){
+        //     $delivery = Delivery::firstWhere('transaction_id',$transaction->id);
+        //     $delivery->delete();
+        // }
+        // if($transaction->paymentStatus === 'debit'){
+        //     $debits = Debit::where('transaction_id', $transaction->id)->get();
         
-            // Menghapus setiap entitas Debit
-            foreach ($debits as $debit) {
-                $debit->delete();
-            }
-        }
+        //     // Menghapus setiap entitas Debit
+        //     foreach ($debits as $debit) {
+        //         $debit->delete();
+        //     }
+        // }
         // if($transaction->paymentStatus === 'deposit'){
-        //     $debit = Deposit::firstWhere('transaction_id',$transaction->id);
-        //     $debit->delete();
+        //     $deposit = Deposit::firstWhere('transaction_id',$transaction->id);
+        //     $deposit->delete();
         // }
         $transaction->delete();
+        return response()->json([
+            "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $transactions = Transaction::whereIn('id', $id)->get();
+        foreach ($transactions as $transaction) {
+            $pivottransaction =$transaction->products;
+            foreach($pivottransaction as $product){
+                $productModel = Product::findOrFail($product['id']);
+                $oldQuantity =$transaction->products()->where('product_id', $product['id'])->first()->pivot->quantity;
+                $productModel->stock += $oldQuantity;
+                $oldColi =$transaction->products()->where('product_id', $product['id'])->first()->pivot->coli;
+                $productModel->coli += $oldColi;
+                $productModel->save(); 
+            }
+            $transaction->delete();
+        }
         return response()->json([
             "message"=>"data berhasil di delete"
         ],Response::HTTP_OK);

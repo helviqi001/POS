@@ -24,4 +24,17 @@ class Customer extends Model
     public function debit(){
         return $this->hasMany(Debit::class);
     }
+    public function deposit(){
+        return $this->hasMany(Deposit::class);
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($customer){
+            $customer->debit()->delete();
+            $customer->transaction()->delete();
+            $customer->deposit()->delete();
+        });
+    }
 }

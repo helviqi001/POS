@@ -138,7 +138,14 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
 
             getData()
           },[])
-          console.log(state);
+
+      
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            // Tombol Enter ditekan, panggil handleClick
+            handleCreate();
+        }
+      }
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -165,6 +172,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.unitName}
             helperText={state.validationErrors.unitName || ' '}
+            onKeyDown={handleKeyDown}
           />
             <TextField
             id="outlined-disabled"
@@ -179,6 +187,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.shortname}
             helperText={state.validationErrors.shortname || ' '}
+            onKeyDown={handleKeyDown}
           />
             </>
            )

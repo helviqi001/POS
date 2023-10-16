@@ -66,7 +66,7 @@ class RestockController extends Controller
         $validator = Validator::make($request->all(),[
             "idRestock"=>"integer",
             "product_id.*.quantity"=>"required|integer",
-            "restockDate"=>"required|date_format:Y-m-d",
+            "restockDate"=>"required|date_format:Y-m-d H:i",
             "totalSpend"=>"required|integer",
             "product_id.*.coli"=>"required|integer",
             "product_id"=>"required|array",
@@ -155,7 +155,7 @@ class RestockController extends Controller
         $validator = Validator::make($request->all(),[
             "idRestock"=>"integer",
             "product_id.*.quantity"=>"integer",
-            "restockDate"=>"date_format:Y-m-d",
+            "restockDate"=>"date_format:Y-m-d H:i",
             "totalSpend"=>"integer",
             "product_id.*.coli"=>"integer",
             "product_id"=>"array",
@@ -220,6 +220,35 @@ class RestockController extends Controller
                     $productModel->save(); 
             }
             $restock->delete();
+        }
+        catch(\Exception $e){
+            return response()->json([
+                "message"=>$e
+            ],Response::HTTP_OK);
+        }
+        // $restock->delete();
+        return response()->json([
+            "message"=>"berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $restocks = Restock::whereIn('id',$id)->get();
+        try{
+            foreach($restocks as $restock){
+                $pivotRestock = $restock->products;
+                foreach($pivotRestock as $product){
+                    $productModel = Product::findOrFail($product['id']);
+                        $oldQuantity = $restock->products()->where('product_id', $product['id'])->first()->pivot->quantity;
+                        $productModel->stock -= $oldQuantity;
+                        $oldColi = $restock->products()->where('product_id', $product['id'])->first()->pivot->coli;
+                        $productModel->coli -= $oldColi;
+                        $productModel->save(); 
+                }
+                $restock->delete();
+            }
         }
         catch(\Exception $e){
             return response()->json([

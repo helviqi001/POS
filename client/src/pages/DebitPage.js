@@ -1,10 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, size } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useContext, useEffect, useState } from 'react';
+import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 // @mui
 import {
@@ -16,7 +16,9 @@ import {
   Container,
   Typography,
   Box,
+  Snackbar,
 } from '@mui/material';
+import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem,GridCsvExportOptions, GridToolbar, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
@@ -66,7 +68,16 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
+});
 export default function DebitPage() {
+  const {menu,item} = useParams()
+
+  const setting = JSON.parse(localStorage.getItem('setting'))
+
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+
   const [open, setOpen] = useState(null);
 
   const [openModal, setOpenModal] = useState(false);
@@ -96,10 +107,30 @@ export default function DebitPage() {
   
   const {load} = useContext(OutletContext)
 
-  const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [priv,setPriv] = useState({
+    add:0,
+    edit:0,
+    delete:0,
+    export:0,
+    import:0,
+  })
 
+  const [state2, setState] = useState({
+    openSnack: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"Are you sure want to delete this data ? it will delete everything related with this",
+  });
+  const { vertical, horizontal, openSnack } = state2;
 
+  const handleClick = () => {
+    setState({ ...state2, openSnack: true });
+    setOpen(null);
+  };
 
+  const handleClose = () => {
+    setState({ ...state2, openSnack: false });
+  };
 
   const handleEditClick = (event , id)=> {
     setOpen(event.currentTarget)
@@ -138,6 +169,18 @@ export default function DebitPage() {
     },
   ];
 
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export, add:privilege.add, edit:privilege.edit, delete:privilege.delete, import:privilege.import })
+     })
+   } 
+
   useEffect(()=>{
     const cookie = cookies.get("Authorization")
     setLoading(true)
@@ -154,6 +197,7 @@ export default function DebitPage() {
           iDTransaction:p.transaction.idTransaction
         })));
       })
+      Privilage()
       setLoading(false)
     }
     getdata()
@@ -181,9 +225,10 @@ export default function DebitPage() {
     setEdit(null)
   }
   const handleDelete=async()=>{
-    load(true)
+    const updatedData = productList.filter(item => !id.includes(item.id));
+    setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.delete(`http://localhost:8000/api/debits/${id}`,{
+    axios.post(`http://localhost:8000/api/delete/debits`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -191,9 +236,6 @@ export default function DebitPage() {
     }).then(response=>{
       console.log(response);
     })
-    setTimeout(()=>{
-      load(false)
-    },1000)
   } 
   const style2 = {
     marginTop: 2
@@ -208,9 +250,16 @@ export default function DebitPage() {
   console.log(productList);
   return (
     <>
-      <Helmet>
-        <title> Debit Page </title>
-      </Helmet>
+      <Helmet
+        title="Credit Page"
+        link={[
+              {"rel": "icon", 
+               "type": "image/png", 
+               "sizes": '32x32',
+               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+              }
+             ]}
+      />
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
@@ -220,7 +269,7 @@ export default function DebitPage() {
         </Stack>
 
         <Card>
-          <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+        <ProductListToolbar selected={selected} setId={setId} filterName={filterName} onFilterName={handleFilterByName} handleClick={handleClick} />
           <Scrollbar>
             {loading ? (
               <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
@@ -291,15 +340,18 @@ export default function DebitPage() {
           },
         }}
       >
+        {priv.edit === 1 && (
         <MenuItem onClick={handleOpenModalEdit}>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }}/>
           Edit
         </MenuItem>
-
-        <MenuItem sx={{ color: 'error.main' }} onClick={handleDelete}> 
+        )}
+        {priv.delete === 1 && (
+        <MenuItem sx={{ color: 'error.main' }} onClick={handleClick}> 
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>
+        )}
       </Popover>
               {openModal && (
                   <>
@@ -308,15 +360,47 @@ export default function DebitPage() {
                       )}
                   </>
               )}
+         <Snackbar open={openSnack} onClose={handleClose} anchorOrigin={{ vertical , horizontal }} >
+        <Alert severity={'warning'} sx={{ width: '100%' }}>
+        <Box display={'flex'} flexDirection={'column'}>
+          {state2.message}
+          <Button style={{ width:'10%',marginTop:15,alignSelf:'end' }} onClick={()=>handleDelete()}>
+            Yes
+          </Button>
+        </Box>
+        </Alert>
+      </Snackbar>
         </>
   );
 }
 
 
 function CustomToolbar() {
+  const {menu,item} = useParams()
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+  const [priv,setPriv] = useState({
+    export:0,
+    import:0,
+  })
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export,import:privilege.import })
+     })
+   } 
+   useEffect(()=>{
+    Privilage()
+  },[])
   return (
     <GridToolbarContainer>
-      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+       {priv.export === 1 && (
+        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      )}
     </GridToolbarContainer>
   );
 }

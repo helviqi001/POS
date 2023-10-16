@@ -170,7 +170,13 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
 
             getData()
           },[])
-          console.log(state);
+
+          const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+              // Tombol Enter ditekan, panggil handleClick
+              handleCreate();
+            }
+          } 
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -197,6 +203,7 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.name}
             helperText={state.validationErrors.name || ''}
+            onKeyDown={handleKeyDown}
           />
           <FormControl sx={style2} fullWidth error={!!state.validationErrors.registerDate}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -230,6 +237,7 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.address}
             helperText={state.validationErrors.address || ''}
+            onKeyDown={handleKeyDown}
           />
           <FormControl sx={style2} fullWidth error={!!state.validationErrors.birthDate}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -259,6 +267,7 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.phone}
             helperText={state.validationErrors.phone || ''}
+            onKeyDown={handleKeyDown}
           />
 
           <TextField
@@ -274,6 +283,7 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.information}
             helperText={state.validationErrors.information || ''}
+            onKeyDown={handleKeyDown}
             />
             </>
            )

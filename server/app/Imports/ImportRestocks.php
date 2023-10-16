@@ -33,6 +33,10 @@ class ImportRestocks implements ToModel,WithHeadingRow
         if (!$supplier) {
             throw new \Exception('supplier not found for supplier_id: ' . $row['supplier_id']);
         }
+        $restockdate = $row['restockdate'] ?? $row['restock_date'];
+        if (!$this->isValidDate($restockdate)) {
+            throw new \Exception('Please Restock date use format Year-month-day Hour:minute .');
+        }
         do {
             $randomNumber = rand(01, 9999);
             $idRestock = 'Restock'.'-'. $randomNumber;
@@ -45,7 +49,7 @@ class ImportRestocks implements ToModel,WithHeadingRow
             "supplier_id"=>$row['supplier_id'],
         ]);
         $restock->save();
-
+        
         foreach ($productIds as $index => $productId) {
             $productModel = Product::find($productId);
     
@@ -57,5 +61,11 @@ class ImportRestocks implements ToModel,WithHeadingRow
                 $productModel->coli += $productColi[$index];
                 $productModel->save(); 
         }
+    }
+    private function isValidDate($date)
+    {
+        $format = 'Y-m-d H:i';
+        $dateTimeObj = \DateTime::createFromFormat($format, $date);
+        return $dateTimeObj && $dateTimeObj->format($format) === $date;
     }
 }

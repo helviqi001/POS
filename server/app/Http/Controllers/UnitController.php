@@ -161,6 +161,18 @@ class UnitController extends Controller
         $unit->delete();
         return response("", 204);
     }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $units = Unit::whereIn('id', $id)->get();
+        foreach ($units as $unit) {
+            $unit->delete();
+        }
+        return response()->json([
+            "message"=>"berhasil di delete"
+        ],Response::HTTP_OK);
+    }
     
     public function import(Request $request){
         $file = $request->file('excel_file');

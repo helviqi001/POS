@@ -4,7 +4,7 @@ import { sentenceCase } from 'change-case';
 import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 // @mui
 import {
@@ -81,6 +81,8 @@ const Alert = forwardRef((props, ref) =>{
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
   });
 export default function CreatePosition() {
+  const {menu,item} = useParams()
+
   const [state,dispatch] = useReducer(PositionReducer,INITIAL_STATE)
 
   const [order, setOrder] = useState('asc');
@@ -100,8 +102,6 @@ export default function CreatePosition() {
   const cookie = cookies.get("Authorization")
 
   const [loading,setLoading] = useState(true)
-
-  const [checkedMenus, setCheckedMenus] = useState([]);
 
   const [state2, setState] = useState({
     open: false,
@@ -182,29 +182,28 @@ export default function CreatePosition() {
   ];
 
   const handleCheckboxChange = (menuId, menuType) => {
-  const updatedCheckedMenus = { ...state.formData.menu };
+    const updatedCheckedMenus = { ...state.formData.menu };
 
-  if (!updatedCheckedMenus[menuId]) {
-    updatedCheckedMenus[menuId] = {};
-  }
+    if (!updatedCheckedMenus[menuId]) {
+      updatedCheckedMenus[menuId] = {};
+    }
 
-  // Set nilai field yang sesuai dengan menuType menjadi "1" (dicentang) atau "0" (tidak dicentang)
-  updatedCheckedMenus[menuId][menuType] = 
-  updatedCheckedMenus[menuId][menuType] === "1" ? "0" : "1";
-
-  // Hapus menuId dari objek menu jika semua nilai menuType adalah "0" (tidak ada yang dicentang)
-  if (
-    Object.values(updatedCheckedMenus[menuId]).every(
+    // Set nilai field yang sesuai dengan menuType menjadi "1" (dicentang) atau "0" (tidak dicentang)
+    updatedCheckedMenus[menuId][menuType] = updatedCheckedMenus[menuId][menuType] === "1" ? "0" : "1";
+    if(Object.values(updatedCheckedMenus[menuId]).some(
       (value) => value === "0"
-    )
-  ) {
-    delete updatedCheckedMenus[menuId];
-  }
+    )){
+      delete updatedCheckedMenus[menuId][menuType]
+    }
+    // Hapus menuId dari objek menu jika semua nilai menuType adalah "0" (tidak ada yang dicentang)
+    if (Object.values(updatedCheckedMenus[menuId]).every((value) => value === "0" )){
+      delete updatedCheckedMenus[menuId];
+    }
 
-  // Update state dengan objek menu yang baru
-  dispatch({ type: "CHANGE_CHECKBOX", value: updatedCheckedMenus });
-    };
-    console.log(state.formData);
+    // Update state dengan objek menu yang baru
+    dispatch({ type: "CHANGE_CHECKBOX", value: updatedCheckedMenus });
+  };
+    console.log(state);
 
 //   console.log(state);
   useEffect(()=>{
@@ -216,7 +215,6 @@ export default function CreatePosition() {
                 "Authorization" : `Bearer ${cookie}`
               }
         }).then(response=>{
-            console.log(response.data.data);
             setProduct(response.data.data.map(p=>({
                 ...p,
                 menuGroup:p.menugroup.name
@@ -283,7 +281,7 @@ export default function CreatePosition() {
           load(true)
           setTimeout(()=>{
             load(false)
-            navigate('/dashboard/position')
+            navigate(`/dashboard/position/${menu}/${item}`)
           },1000)
         },1500)
       })

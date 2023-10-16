@@ -1,10 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, get, size } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useContext, useEffect, useReducer, useState } from 'react';
+import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
@@ -39,22 +39,18 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  Snackbar,
 } from '@mui/material';
 // components
+import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
-import CheckIcon from '@mui/icons-material/Check';
-import EditForm from '../sections/@dashboard/delivery/editForm';
-import DoneForm from '../sections/@dashboard/delivery/doneForm';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
-import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
 // import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
-import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
-import { INITIAL_STATE,StaffReducer } from '../sections/@dashboard/delivery/StaffReducer';
 // ----------------------------------------------------------------------
 
 
@@ -88,10 +84,17 @@ function applySortFilter(array, comparator, query) {
   }
   return stabilizedThis.map((el) => el[0]);
 }
-
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
+});
 export default function HistoryDeliveryPage() {
+  const {menu,item} = useParams()
+
+  const setting = JSON.parse(localStorage.getItem('setting'))
+
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+
   const [open, setOpen] = useState(null);
-  const [openModal, setOpenModal] = useState(false);
 
   const [page, setPage] = useState(0);
 
@@ -103,15 +106,9 @@ export default function HistoryDeliveryPage() {
 
   const [filterName, setFilterName] = useState('');
 
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const cookies = new Cookies()
 
   const [productList,setProduct] = useState([])
-
-  const [edit,setEdit] = useState(false)
-
-  const [done,setDone] = useState(false)
 
   const [loading,setLoading] = useState(true)
 
@@ -119,15 +116,36 @@ export default function HistoryDeliveryPage() {
   
   const {load} = useContext(OutletContext)
 
-  const [state,dispatch] = useReducer(StaffReducer,INITIAL_STATE)
-
   const cookie = cookies.get("Authorization")
 
+  const [priv,setPriv] = useState({
+    add:0,
+    edit:0,
+    delete:0,
+    export:0,
+    import:0,
+  })
 
+  const [state2, setState] = useState({
+    openSnack: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"Are you sure want to delete this data ? it will delete everything related with this",
+  });
+  const { vertical, horizontal, openSnack } = state2;
+
+  const handleClick = () => {
+    setState({ ...state2, openSnack: true });
+    setOpen(null);
+  };
+
+  const handleClose = () => {
+    setState({ ...state2, openSnack: false });
+  };
 
   const handleEditClick = (event , id)=> {
     setOpen(event.currentTarget)
-    setId(id)
+    setId([id])
   };
 
   const DATAGRID_COLUMNS = [
@@ -167,6 +185,18 @@ export default function HistoryDeliveryPage() {
     },
   ];
 
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export, add:privilege.add, edit:privilege.edit, delete:privilege.delete, import:privilege.import })
+     })
+   } 
+
   useEffect(()=>{
     setLoading(true)
     const getdata=async()=>{
@@ -185,6 +215,7 @@ export default function HistoryDeliveryPage() {
           noTelp:p.transaction.customer.phone,
         })))
       })
+      Privilage()
       setLoading(false)
     }
     getdata()
@@ -193,28 +224,10 @@ export default function HistoryDeliveryPage() {
     setOpen(null);
   };
 
-  const handleOpenModal=()=>{
-    setEdit(null)
-    setDone(true)
-    setOpenModal(true)
-  }
-  const handleOpenModalEdit=()=>{
-    setEdit(true)
-    setDone(null)
-    setOpenModal(true)
-    setOpen(null);
-  }
-
-  const handleCloseModal=()=>{
-    setOpenModal(false)
-    setDone(false)
-    setEdit(null)
-  }
-
-
   const handleDelete=async()=>{
-    load(true)
-    axios.delete(`http://localhost:8000/api/historydeliveries/${id}`,{
+    const updatedData = productList.filter(item => !id.includes(item.id));
+    setProduct(updatedData);
+    axios.post(`http://localhost:8000/api/delete/historydeliveries`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -222,17 +235,6 @@ export default function HistoryDeliveryPage() {
     }).then(response=>{
       console.log(response);
     })
-    setTimeout(()=>{
-      load(false)
-    },1000)
-  }
-
-  const style2 = {
-    marginTop: 2
-  }
-  const style3 = {
-    overflowX:"scroll",
-    marginTop:2,
   }
 
   const handleFilterByName = (event) => {
@@ -240,19 +242,20 @@ export default function HistoryDeliveryPage() {
     setFilterName(event.target.value);
   };
   
-  
-  
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
-  
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
-  
-  const isNotFound = !filteredUsers.length && !!filterName;
  
   return (
     <>
-      <Helmet>
-        <title> History Delivery Page </title>
-      </Helmet>
+      <Helmet
+        title="History Delivery Page"
+        link={[
+              {"rel": "icon", 
+               "type": "image/png", 
+               "sizes": '32x32',
+               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+              }
+             ]}
+      />
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
@@ -262,8 +265,7 @@ export default function HistoryDeliveryPage() {
         </Stack>
 
         <Card>
-          <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
+        <ProductListToolbar selected={selected} setId={setId} filterName={filterName} onFilterName={handleFilterByName} handleClick={handleClick} />
           <Scrollbar>
             {loading ? (
               <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
@@ -333,20 +335,54 @@ export default function HistoryDeliveryPage() {
           },
         }}
       > 
-        <MenuItem sx={{ color: 'error.main' }} onClick={handleDelete}> 
+         {priv.delete === 1 && (
+        <MenuItem sx={{ color: 'error.main' }} onClick={handleClick}> 
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>
+        )}
       </Popover>
+      <Snackbar open={openSnack} onClose={handleClose} anchorOrigin={{ vertical , horizontal }} >
+        <Alert severity={'warning'} sx={{ width: '100%' }}>
+        <Box display={'flex'} flexDirection={'column'}>
+          {state2.message}
+          <Button style={{ width:'10%',marginTop:15,alignSelf:'end' }} onClick={()=>handleDelete(id)}>
+            Yes
+          </Button>
+        </Box>
+        </Alert>
+      </Snackbar>
         </>
   );
 }
 
 
 function CustomToolbar() {
+  const {menu,item} = useParams()
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+  const [priv,setPriv] = useState({
+    export:0,
+    import:0,
+  })
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export,import:privilege.import })
+     })
+   } 
+   useEffect(()=>{
+    Privilage()
+  },[])
   return (
     <GridToolbarContainer>
-      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+       {priv.export === 1 && (
+        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      )}
     </GridToolbarContainer>
   );
 }

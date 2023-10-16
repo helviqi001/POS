@@ -194,15 +194,16 @@ class PositionController extends Controller
         $validated = $validator->validated();
         
         try{
-            $Position = Position::where('id', $request->id)->with('privilege')->first();
+            $Position = Position::where('id', $request->id)->with('privilage')->first();
         if ($Position) {
-            foreach ($Position->privileges as $keyX => $positionPrivilege) {
+            foreach ($Position->privilage as $keyX => $positionPrivilege) {
                 // set param and default value to update privilege
                 $privilege['view'] = 0;
                 $privilege['add'] = 0;
                 $privilege['edit'] = 0;
                 $privilege['delete'] = 0;
-                $privilege['other'] = 0;
+                $privilege['export'] = 0;
+                $privilege['import'] = 0;
                 if (array_key_exists('menu', $validated)) {
                     foreach ($validated['menu'] as $keyY => $menu) {
                         if ($positionPrivilege['menuitem_id'] == $keyY) {
@@ -218,8 +219,11 @@ class PositionController extends Controller
                             if (array_key_exists('delete', $menu)) {
                                 $privilege['delete'] = 1;
                             }
-                            if (array_key_exists('other', $menu)) {
-                                $privilege['other'] = 1;
+                            if (array_key_exists('export', $menu)) {
+                                $privilege['export'] = 1;
+                            }
+                            if (array_key_exists('import', $menu)) {
+                                $privilege['import'] = 1;
                             }
                         }
                     }
@@ -254,9 +258,26 @@ class PositionController extends Controller
      */
     public function destroy(Position $position)
     {
+        $privilege=Privilage::findOrfail($position->id);
+        $privilege->delete();
         $position->delete();
         return response(null, 204);
     }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $positions = Position::whereIn('id', $id)->get();
+        foreach ($positions as $position) {
+            $privilege=Privilage::findOrfail($position->id);
+            $privilege->delete();
+            $position->delete();
+        }
+        return response()->json([
+            "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+    
     public function import(Request $request){
         $file = $request->file('excel_file');
 

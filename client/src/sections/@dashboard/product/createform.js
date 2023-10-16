@@ -210,7 +210,13 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
         }
         getSupplier()
       },[])
-      console.log(state);
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          // Tombol Enter ditekan, panggil handleClick
+          handleCreate();
+        }
+      }
     return(
         <>
          <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -229,6 +235,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
           name='name'
           error={!!state.validationErrors.name}
           helperText={state.validationErrors.name || ' '}
+          onKeyDown={handleKeyDown}
           />
         <TextField
           disabled
@@ -239,6 +246,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             style2
           }
           fullWidth
+          onKeyDown={handleKeyDown}
           />
         <TextField
           disabled
@@ -249,6 +257,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             style2
           }
           fullWidth
+          onKeyDown={handleKeyDown}
           />
         <Box sx={{ display:"flex" , justifyContent:"space-evenly"}}>
         <FormControl fullWidth sx={style2}>
@@ -260,6 +269,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             onChange={handleChange}
             name='netPrice'
             error={!!state.validationErrors.netPrice}
+            onKeyDown={handleKeyDown}
             />
           <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.netPrice || ' '}</FormHelperText>
         </FormControl>
@@ -273,6 +283,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             onChange={handleChange}
             name='margin'
             error={!!state.validationErrors.margin}
+            onKeyDown={handleKeyDown}
             />
           <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.margin || ' '}</FormHelperText>
         </FormControl>
@@ -288,6 +299,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             onChange={handleChange}
             name='discount'
             error={!!state.validationErrors.discount}
+            onKeyDown={handleKeyDown}
             />
           <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.discount || ' '}</FormHelperText>
         </FormControl>
@@ -301,7 +313,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             onChange={handleChange}
             name='tax'
             error={!!state.validationErrors.tax}
-            
+            onKeyDown={handleKeyDown}
             />
           <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.tax || ' '}</FormHelperText>
 
@@ -315,13 +327,14 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             label="Sell Price"
             value={state.formData.sellingPrice}
             name='sellingPrice'
+            onKeyDown={handleKeyDown}
             />
         </FormControl>
 
         
         <FormControl fullWidth>
         <MuiFileInput sx={style2} label="Input Image"  fullWidth value={state.formData.urlImage} onChange={handleImage} 
-          error={!!state.validationErrors.urlImage}
+          error={!!state.validationErrors.urlImage} onKeyDown={handleKeyDown}
           />
          <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.urlImage || ' '}</FormHelperText>
         </FormControl>
@@ -340,6 +353,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
                 {option.name}
               </Box>
             )}
+            onKeyDown={handleKeyDown}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -371,6 +385,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
                 {option.itemType}
               </Box>
             )}
+            onKeyDown={handleKeyDown}
             renderInput={(params) => (
               <TextField
               {...params}
@@ -401,6 +416,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
                 {option.shortname}
               </Box>
             )}
+            onKeyDown={handleKeyDown}
             renderInput={(params) => (
               <TextField
               {...params}
@@ -430,6 +446,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
           onChange={handleChange}
           error={!!state.validationErrors.information}
           helperText={state.validationErrors.information || ' '}
+          onKeyDown={handleKeyDown}
           />
         </DialogContent>
         <DialogActions>

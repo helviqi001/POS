@@ -20,7 +20,7 @@ class ProductController extends Controller
 {   
 
     // public $possible_fields = ["id", "name", "cost", "price", "stock", "image", "created_at", "updated_at"];
-    public $possible_relations = ["category", "unit", "supplier", "restocks","returns","transaction","deliveries"];
+    public $possible_relations = ["category", "unit", "supplier", "restocks","returns","transactions"];
 
     /**
      * Display a listing of the resource.
@@ -197,9 +197,24 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+
         Storage::delete($product->urlImage);
         $product->delete();
         return response(null, 204);
+    }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $products = Product::whereIn('id', $id)->get();
+        foreach ($products as $product) {
+            Storage::delete($product->urlImage);
+            
+            $product->delete();
+        }
+         return response()->json([
+            "message"=>"berhasil di delete"
+        ],Response::HTTP_OK);
     }
 
     public function import(Request $request){

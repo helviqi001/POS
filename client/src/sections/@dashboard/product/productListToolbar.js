@@ -1,8 +1,13 @@
 import PropTypes from 'prop-types';
+import { forwardRef, useContext, useState } from 'react';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
-import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
+import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Snackbar, Box, Button } from '@mui/material';
 // component
+import MuiAlert from '@mui/material/Alert';
+import axios from 'axios';
+import Cookies from 'universal-cookie';
+import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import Iconify from '../../../components/iconify';
 
 // ----------------------------------------------------------------------
@@ -38,19 +43,28 @@ ProductListToolbar.propTypes = {
   onFilterName: PropTypes.func,
 };
 
-export default function ProductListToolbar({ numSelected, filterName, onFilterName }) {
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
+});
+export default function ProductListToolbar({selected,setId, filterName, onFilterName,handleClick }) {
+  const handle=()=>{
+    handleClick()
+    setId(selected)
+  }
   return (
+    <>
+    
     <StyledRoot
       sx={{
-        ...(numSelected > 0 && {
+        ...(selected.length > 0 && {
           color: 'primary.main',
           bgcolor: 'primary.lighter',
         }),
       }}
     >
-      {numSelected > 0 ? (
+      {selected.length > 0 ? (
         <Typography component="div" variant="subtitle1">
-          {numSelected} selected
+          {selected.length} selected
         </Typography>
       ) : (
         <StyledSearch
@@ -65,9 +79,9 @@ export default function ProductListToolbar({ numSelected, filterName, onFilterNa
         />
       )}
 
-      {numSelected > 0 ? (
+      {selected.length > 0 ? (
         <Tooltip title="Delete">
-          <IconButton>
+          <IconButton onClick={handle}>
             <Iconify icon="eva:trash-2-fill" />
           </IconButton>
         </Tooltip>
@@ -75,5 +89,7 @@ export default function ProductListToolbar({ numSelected, filterName, onFilterNa
         <></>
       )}
     </StyledRoot>
+ 
+    </>
   );
 }

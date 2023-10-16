@@ -162,6 +162,16 @@ class CategoryController extends Controller
         return response(null, 204);
     }
 
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $categories = Category::whereIn('id', $id)->get();
+        foreach ($categories as $category) {
+            $category->delete();
+        }
+        return response(null, 204);
+    }
+
     public function import(Request $request){
         $file = $request->file('excel_file');
 

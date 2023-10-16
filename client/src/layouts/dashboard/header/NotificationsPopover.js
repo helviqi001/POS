@@ -2,7 +2,9 @@ import PropTypes from 'prop-types';
 import { set, sub } from 'date-fns';
 import { noCase } from 'change-case';
 import { faker } from '@faker-js/faker';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Cookies from 'universal-cookie';
+import axios from 'axios';
 // @mui
 import {
   Box,
@@ -36,7 +38,7 @@ const NOTIFICATIONS = [
     avatar: null,
     type: 'order_placed',
     createdAt: set(new Date(), { hours: 10, minutes: 30 }),
-    isUnRead: false,
+    isUnRead: true,
   },
   {
     id: faker.datatype.uuid(),
@@ -77,9 +79,15 @@ const NOTIFICATIONS = [
 ];
 
 export default function NotificationsPopover() {
-  const [notifications, setNotifications] = useState(NOTIFICATIONS);
+  const cookies = new Cookies()
 
-  const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
+  const cookie = cookies.get("Authorization")
+
+  const [notifications, setNotifications] = useState([]);
+
+  const [loading,setLoading] = useState(true)
+
+  const totalUnRead =  notifications.filter(item => item.isUnread === 1).length;
 
   const [open, setOpen] = useState(null);
 
@@ -91,23 +99,48 @@ export default function NotificationsPopover() {
     setOpen(null);
   };
 
-  const handleMarkAllAsRead = () => {
-    setNotifications(
-      notifications.map((notification) => ({
-        ...notification,
-        isUnRead: false,
-      }))
-    );
-  };
-
-  return (
+  useEffect(()=>{
+    setLoading(true)
+    const getdata=async()=>{
+      await axios.get("http://localhost:8000/api/notifications",{
+        headers:{
+          "Content-Type" : "aplication/json",
+          "Authorization" : `Bearer ${cookie}`
+        }
+      }).then(response=>{
+        setNotifications(response.data.data)
+      })
+      setLoading(false)
+    }
+    getdata()
+  },[])
+  
+  const handleMarkAllAsRead = async() => {
+    const updatedNotifications = notifications.map(notification => {
+      if (notification.isUnread === 1) {
+        return { ...notification, isUnread: 0 };
+      }
+      return notification;
+    });
+    setNotifications(updatedNotifications);
+    const id = notifications.filter(notification=>notification.isUnread === 1).map((notification) =>(notification.id))
+    await axios.post("http://localhost:8000/api/update/notifications",{id},{
+      headers:{
+        "Content-Type" : "aplication/json",
+        "Authorization" : `Bearer ${cookie}`
+      }
+    })
+    };
+    
+    return (
     <>
       <IconButton color={open ? 'primary' : 'default'} onClick={handleOpen} sx={{ width: 40, height: 40 }}>
         <Badge badgeContent={totalUnRead} color="error">
           <Iconify icon="eva:bell-fill" />
         </Badge>
       </IconButton>
-
+      {loading === false && (
+        <>   
       <Popover
         open={Boolean(open)}
         anchorEl={open}
@@ -150,7 +183,7 @@ export default function NotificationsPopover() {
               </ListSubheader>
             }
           >
-            {notifications.slice(0, 2).map((notification) => (
+            {notifications.filter(notification=>notification.isUnread === 1).map((notification) => (
               <NotificationItem key={notification.id} notification={notification} />
             ))}
           </List>
@@ -159,11 +192,11 @@ export default function NotificationsPopover() {
             disablePadding
             subheader={
               <ListSubheader disableSticky sx={{ py: 1, px: 2.5, typography: 'overline' }}>
-                Before that
+               Already Read
               </ListSubheader>
             }
           >
-            {notifications.slice(2, 5).map((notification) => (
+            {notifications.filter(notification=>notification.isUnread === 0).map((notification) => (
               <NotificationItem key={notification.id} notification={notification} />
             ))}
           </List>
@@ -177,23 +210,11 @@ export default function NotificationsPopover() {
           </Button>
         </Box>
       </Popover>
+        </>
+      )}
     </>
   );
 }
-
-// ----------------------------------------------------------------------
-
-NotificationItem.propTypes = {
-  notification: PropTypes.shape({
-    createdAt: PropTypes.instanceOf(Date),
-    id: PropTypes.string,
-    isUnRead: PropTypes.bool,
-    title: PropTypes.string,
-    description: PropTypes.string,
-    type: PropTypes.string,
-    avatar: PropTypes.any,
-  }),
-};
 
 function NotificationItem({ notification }) {
   const { avatar, title } = renderContent(notification);
@@ -225,7 +246,7 @@ function NotificationItem({ notification }) {
             }}
           >
             <Iconify icon="eva:clock-outline" sx={{ mr: 0.5, width: 16, height: 16 }} />
-            {fToNow(notification.createdAt)}
+            {fToNow(notification.created_at)}
           </Typography>
         }
       />
@@ -237,12 +258,14 @@ function NotificationItem({ notification }) {
 
 function renderContent(notification) {
   const title = (
+    <>
     <Typography variant="subtitle2">
       {notification.title}
-      <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
-        &nbsp; {noCase(notification.description)}
-      </Typography>
     </Typography>
+      <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
+        {notification.description}
+      </Typography>
+    </>
   );
 
   if (notification.type === 'order_placed') {
@@ -266,6 +289,18 @@ function renderContent(notification) {
   if (notification.type === 'chat_message') {
     return {
       avatar: <img alt={notification.title} src="/assets/icons/ic_notification_chat.svg" />,
+      title,
+    };
+  }
+  if (notification.type === 'birthday') {
+    return {
+      avatar: <img alt={notification.title} src="/assets/icons/birthday-cake-svgrepo-com.svg" />,
+      title,
+    };
+  }
+  if (notification.type === 'credit') {
+    return {
+      avatar: <img alt={notification.title} src="/assets/icons/credit-card-card-svgrepo-com.svg" />,
       title,
     };
   }

@@ -4,6 +4,8 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import reportWebVitals from './reportWebVitals';
+import 'react-date-range/dist/styles.css'; 
+import 'react-date-range/dist/theme/default.css';
 
 // ----------------------------------------------------------------------
 

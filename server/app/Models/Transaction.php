@@ -34,12 +34,26 @@ class Transaction extends Model
     }
 
     public function deposit(){
-        return $this->hasMany(Deposit::class);
+        return $this->hasOne(Deposit::class);
+    }
+    public function delivery(){
+        return $this->hasOne(Delivery::class);
     }
     public function debit(){
         return $this->hasMany(Debit::class);
     }
     public function invoice(){
         return $this->hasMany(Invoice::class);
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($transaction){
+            $transaction->deposit()->delete();
+            $transaction->delivery()->delete();
+            $transaction->debit()->delete();
+            $transaction->invoice()->delete();
+        });
     }
 }

@@ -25,4 +25,12 @@ class Deposit extends Model
     public function transaction(){
         return $this->belongsTo(Transaction::class);
     }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($deposit){
+            $deposit->transaction()->delete();
+        });
+    }
 }

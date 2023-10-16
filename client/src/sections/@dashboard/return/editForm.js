@@ -2,7 +2,7 @@
 import { useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 // @mui
 import {
   Card,
@@ -61,14 +61,14 @@ const TABLE_HEAD2 = [
 
 
 export default function EditReturn() {
+  const {menu,item} = useParams()
+
   const location = useLocation();
   
   const id = location.state?.id
 
   const [totalSpend, setTotalState] = useState(0);
-
-  const [create,setCreate] = useState(false)
-
+  
   const cookies = new Cookies()
 
   const [productList,setProduct] = useState([])
@@ -204,7 +204,7 @@ export default function EditReturn() {
       console.log(response);
     })
     await load(false)
-    navigate("/dashboard/return")
+    navigate(`/dashboard/return/${menu}/${item}`)
   }
   }
   console.log(newProduct);
@@ -213,6 +213,12 @@ export default function EditReturn() {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      // Tombol Enter ditekan, panggil handleClick
+      handleCreate();
+    }
+  }
   return (
     <>
       <Container>
@@ -254,6 +260,7 @@ export default function EditReturn() {
                           defaultValue={p.pivot.quantity}
                           key={p.id}
                           error={validationErrors[`quantity-${p.id}`]}
+                          onKeyDown={handleKeyDown}
                         />
                         <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`quantity-${p.id}`]}</FormHelperText>
                       </FormControl>
@@ -269,6 +276,7 @@ export default function EditReturn() {
                           defaultValue={p.pivot.coli}
                           key={p.id}
                           error={validationErrors[`coli-${id}`]}
+                          onKeyDown={handleKeyDown}
                         />
                          <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`coli-${p.id}`]}</FormHelperText>
                       </FormControl>

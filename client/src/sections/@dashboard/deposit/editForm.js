@@ -186,6 +186,13 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             getData()
           },[])
           console.log(state);
+
+          const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+              // Tombol Enter ditekan, panggil handleClick
+              handleCreate();
+            }
+          }
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -206,6 +213,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
           disableClearable
           options={customer}
           autoHighlight
+          onKeyDown={handleKeyDown}
           getOptionLabel={(option) => option.name}
           defaultValue={state.formData && state.formData.customer}
           isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -258,6 +266,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
                 name='ammount'
                 defaultValue={state.formData.ammount}
                 key={state.formData.id}
+                onKeyDown={handleKeyDown}
                 />
               <FormHelperText>{state.validationErrors.ammount || ' '}</FormHelperText>
         </FormControl>
@@ -271,6 +280,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             helperText={state.validationErrors.information || ' '}
             defaultValue={state.formData.information}
             key={state.formData.id}
+            onKeyDown={handleKeyDown}
             />
             </>
            )

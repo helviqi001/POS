@@ -225,4 +225,23 @@ class DepositController extends Controller
             "message"=>"data berhasil di delete"
         ],Response::HTTP_OK);
     }
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $deposits = Deposit::whereIn('id', $id)->get();
+        foreach ($deposits as $deposit) {
+            $ammountToSubtract = $deposit->ammount;
+            $deposit->delete();
+            // Ambil data-data setelah hapus
+            $sameCustomerDeposits = Deposit::where('customer_id', $deposit->customer_id)->where('id', '>', $deposit->id)->get();
+            // Kurangi total data setelah hapus dengan nilai ammount yang dihapus
+            foreach ($sameCustomerDeposits as $sameCustomerDeposit) {
+                $sameCustomerDeposit->total -= $ammountToSubtract;
+                $sameCustomerDeposit->save();
+            }
+        }
+        return response()->json([
+            "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
 }

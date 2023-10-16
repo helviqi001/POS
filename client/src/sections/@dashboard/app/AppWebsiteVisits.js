@@ -19,14 +19,18 @@ export default function AppWebsiteVisits({ title, subheader, chartLabels, chartD
     plotOptions: { bar: { columnWidth: '16%' } },
     fill: { type: chartData.map((i) => i.fill) },
     labels: chartLabels,
-    xaxis: { type: 'datetime' },
+    xaxis: { type: 'date' },
     tooltip: {
       shared: true,
       intersect: false,
       y: {
         formatter: (y) => {
           if (typeof y !== 'undefined') {
-            return `${y.toFixed(0)} visits`;
+            return new Intl.NumberFormat('id-ID', {
+              style: 'currency',
+              currency: 'IDR',
+              minimumFractionDigits: 0,
+            }).format(y);
           }
           return y;
         },

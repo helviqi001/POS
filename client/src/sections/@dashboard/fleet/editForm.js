@@ -168,7 +168,12 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             setStaff(response.data.staff)
           })
           }
-          console.log(state);
+          const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+              // Tombol Enter ditekan, panggil handleClick
+              handleCreate();
+            }
+          }
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -189,6 +194,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             disableClearable
             options={position}
             autoHighlight
+            onKeyDown={handleKeyDown}
             getOptionLabel={(option) => option.name}
             renderOption={(props, option) => (
               <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
@@ -219,6 +225,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             options={staff}
             autoHighlight
             getOptionLabel={(option) => option.name}
+            onKeyDown={handleKeyDown}
             defaultValue={state.formData && state.formData.staff}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             renderOption={(props, option) => (
@@ -255,6 +262,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             onChange={handleChange}
             error={!!state.validationErrors.plateNumber}
             helperText={state.validationErrors.plateNumber || ' '}
+            onKeyDown={handleKeyDown}
           />
           
           <TextField
@@ -269,6 +277,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             onChange={handleChange}
             error={!!state.validationErrors.informations}
             helperText={state.validationErrors.informations || ' '}
+            onKeyDown={handleKeyDown}
             />
             </>
            )

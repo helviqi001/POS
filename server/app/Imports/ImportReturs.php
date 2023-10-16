@@ -33,14 +33,19 @@ class ImportReturs implements ToModel,WithHeadingRow
         if (!$supplier) {
             throw new \Exception('supplier not found for supplier_id: ' . $row['supplier_id']);
         }
+        $returndate = $row['returndate'] ?? $row['return_date'];
+        if (!$this->isValidDate($returndate)) {
+            throw new \Exception('Please Return date use format Year-month-day Hour:minute .');
+        }
         do {
             $randomNumber = rand(01, 9999);
             $idRetur = 'Return'.'-'. $randomNumber;
             $existingProduct = Retur::where('idRetur', $idRetur)->first();
         } while ($existingProduct);
+        $returnDate = date('Y-m-d H:i', strtotime($row['registerdate'] ?? $row['register_date']));
         $restock =new Retur([
             "idRetur"=>$idRetur,
-            "returnDate"=>$row['returndate'] ?? $row['return_date'],
+            "returnDate"=>$returnDate,
             "totalSpend"=>$totalSpend,
             "supplier_id"=>$row['supplier_id'],
         ]);
@@ -58,5 +63,11 @@ class ImportReturs implements ToModel,WithHeadingRow
                 $productModel->save(); 
         }
         
+    }
+    private function isValidDate($date)
+    {
+        $format = 'Y-m-d H:i';
+        $dateTimeObj = \DateTime::createFromFormat($format, $date);
+        return $dateTimeObj && $dateTimeObj->format($format) === $date;
     }
 }

@@ -150,4 +150,16 @@ class DebitController extends Controller
             "message"=>"data berhasil di delete"
         ],Response::HTTP_OK);
     }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $debits = Debit::whereIn('id', $id)->get();
+        foreach ($debits as $debit) {
+            $debit->delete();
+        }
+        return response()->json([
+            "message"=>"berhasil di delete"
+        ],Response::HTTP_OK);
+    }
 }

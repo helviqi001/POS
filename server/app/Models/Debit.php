@@ -24,4 +24,12 @@ class Debit extends Model
     public function transaction(){
         return $this->belongsTo(Transaction::class);
     }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($debit){
+            $debit->transaction()->delete();
+        });
+    }
 }

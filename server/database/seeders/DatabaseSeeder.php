@@ -10,6 +10,7 @@ use App\Models\Position;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Sale;
+use App\Models\Setting;
 use App\Models\Staff;
 use App\Models\Supplier;
 use App\Models\Unit;
@@ -46,12 +47,20 @@ class DatabaseSeeder extends Seeder
             [
                 "username"=>"superAdmin",
                 "password"=>bcrypt("super123"),
-                "position_id"=>1,
                 "staff_id"=>1,
+            ],
+        ];
+        $setting = [ 
+            [
+                
+            ],
+            [
+               
             ],
         ];
         Position::insert($dataPosition);
         Staff::insert($dataStaff);
         User::insert($data);
+        Setting::insert($setting);
     }
 }

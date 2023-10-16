@@ -1,10 +1,14 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 // @mui
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
 // mocks_
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'universal-cookie';
+import axios from 'axios';
 import AuthContext from '../../../Auth';
 import account from '../../../_mock/account';
+import { OutletContext } from '../OutletProvider';
 
 // ----------------------------------------------------------------------
 
@@ -12,33 +16,58 @@ const MENU_OPTIONS = [
   {
     label: 'Home',
     icon: 'eva:home-fill',
+    path: '/dashboard/app',
   },
   {
     label: 'Profile',
     icon: 'eva:person-fill',
+    path: '/dashboard/profile',
   },
-  {
-    label: 'Settings',
-    icon: 'eva:settings-2-fill',
-  },
+  // {
+  //   label: 'Settings',
+  //   icon: 'eva:settings-2-fill',
+  // },
 ];
 
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
+  const navigate = useNavigate()
+  const Profile = JSON.parse(localStorage.getItem('userProfile'))
+  const cookies = new Cookies()
+  const cookie = cookies.get("Authorization");
   const [open, setOpen] = useState(null);
-  const {logout} = useContext(AuthContext)
+  const [profile, setProfile] = useState(null);
+  const {Logout} = useContext(AuthContext)
+  const [loading,setLoading] = useState(true)
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
   };
 
-  const handleClose = () => {
+  const handleClose = (path) => {
     setOpen(null);
+    navigate(path)
+    console.log(path);
   };
-
+  useEffect(()=>{
+    setLoading(true)
+    const getData=async()=>{
+      await axios.get(`http://localhost:8000/api/staffs/${Profile.staff_id}?relations=position`,{
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${cookie}`
+        }
+      }).then(response=>{
+        setProfile(response.data)
+        setLoading(false)
+      })
+    }
+    getData()
+  },[])
   return (
     <>
+      <>
       <IconButton
         onClick={handleOpen}
         sx={{
@@ -56,9 +85,12 @@ export default function AccountPopover() {
           }),
         }}
       >
-        <Avatar src="#" alt="photoURL" />
+        {loading === true ? (
+          <Avatar src={`http://localhost:8000/storage/`} alt="photoURL" />
+        ):(
+          <Avatar src={`http://localhost:8000/storage/${profile.urlImage}`} alt="photoURL" />
+        )}
       </IconButton>
-
       <Popover
         open={Boolean(open)}
         anchorEl={open}
@@ -78,20 +110,22 @@ export default function AccountPopover() {
           },
         }}
       >
-        <Box sx={{ my: 1.5, px: 2.5 }}>
-          <Typography variant="subtitle2" noWrap>
-            {account.displayName}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {account.email}
-          </Typography>
-        </Box>
+        {loading === false && (
+          <Box sx={{ my: 1.5, px: 2.5 }}>
+            <Typography variant="subtitle2" noWrap>
+              {profile.name}
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
+              {Profile.username}
+            </Typography>
+          </Box>
+        )}
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Stack sx={{ p: 1 }}>
           {MENU_OPTIONS.map((option) => (
-            <MenuItem key={option.label} onClick={handleClose}>
+            <MenuItem key={option.label} onClick={()=>handleClose(option.path)}>
               {option.label}
             </MenuItem>
           ))}
@@ -99,10 +133,11 @@ export default function AccountPopover() {
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        <MenuItem onClick={logout} sx={{ m: 1 }}>
+        <MenuItem onClick={Logout} sx={{ m: 1 }}>
           Logout
         </MenuItem>
       </Popover>
+      </>
     </>
   );
 }

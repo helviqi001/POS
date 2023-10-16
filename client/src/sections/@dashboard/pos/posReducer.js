@@ -13,7 +13,6 @@ export const INITIAL_STATE = {
       informationDelivery:"",
       customer_id:0,
       fleet_id:0,
-      staff_id:0,
       total:0,
     },
     validationErrors:{}

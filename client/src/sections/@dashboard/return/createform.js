@@ -4,7 +4,7 @@ import { sentenceCase } from 'change-case';
 import { useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 // @mui
 import {
@@ -111,6 +111,8 @@ function applySortFilter(array, comparator, query) {
 }
 
 export default function CreateReturn() {
+  const {menu,item} = useParams()
+
   const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
@@ -134,8 +136,6 @@ export default function CreateReturn() {
   const [id,setId] = useState([])
 
   const [state,dispatch] = useReducer(ReturnReducer,SUPPLIER_STATE)
-
-  const {load} = useContext(OutletContext) 
 
   const navigate = useNavigate()
   const [validationErrors, setValidationErrors] = useState({});
@@ -348,7 +348,7 @@ export default function CreateReturn() {
     }).then(response=>{
       console.log(response);
     })
-    navigate("/dashboard/return")
+    navigate(`/dashboard/return/${menu}/${item}`)
   }
   }
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
@@ -361,8 +361,12 @@ export default function CreateReturn() {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
-  
-  console.log(id);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      // Tombol Enter ditekan, panggil handleClick
+      handleCreate();
+    }
+  }
   return (
     <>
       <Container>
@@ -382,7 +386,7 @@ export default function CreateReturn() {
           </Select>
         </FormControl>
         <Card>
-          <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          {/* <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} /> */}
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
@@ -531,6 +535,7 @@ export default function CreateReturn() {
                             name={`quantity-${id}`}
                             onChange={handleChange}
                             error={!!validationErrors[`quantity-${id}`]}
+                            onKeyDown={handleKeyDown}
                           />
                           <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`quantity-${id}`]}</FormHelperText>
                         </FormControl>
@@ -544,6 +549,7 @@ export default function CreateReturn() {
                             name={`colii-${id}`}
                             onChange={handleChange}
                             error={!!validationErrors[`colii-${id}`]}
+                            onKeyDown={handleKeyDown}
                           />
                           <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`colii-${id}`]}</FormHelperText>
                         </FormControl>

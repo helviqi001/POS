@@ -27,9 +27,6 @@ import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
-import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
 import Loading2 from '../../../Loading/loading2';
 import { INITIAL_STATE, StaffReducer } from './StaffReducer';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
@@ -60,6 +57,9 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
     const handleClose = () => {
       setState({ ...state2, open: false });
     };
+    const handleImage=(data)=>{
+      dispatch({type:"IMAGE_INPUT",payload: data})
+    }
     const handleChangeValidation=(formData)=>{
       const errors = {};
       
@@ -137,6 +137,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
       formData.append("phone",state.formData.phone)
       formData.append("position_id",state.formData.position_id)
       formData.append("information",state.formData.information)
+      formData.append("urlImage",state.formData.urlImage)
       formData.append("id",id)
       try {
         await axios.post("http://localhost:8000/api/update/staffs",formData,{
@@ -186,7 +187,12 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
 
             getData()
           },[])
-          console.log(state);
+          const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+              // Tombol Enter ditekan, panggil handleClick
+              handleCreate();
+            }
+          }
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -213,6 +219,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.name}
             helperText={state.validationErrors.name || ' '}
+            onKeyDown={handleKeyDown}
           />
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DemoContainer
@@ -232,6 +239,13 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             </DemoContainer>
           </LocalizationProvider>
 
+        <FormControl fullWidth>
+          <MuiFileInput sx={style2} label="Input Image"  fullWidth value={state.formData.urlImage} onChange={handleImage} 
+            error={!!state.validationErrors.urlImage} onKeyDown={handleKeyDown}
+            />
+          <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.urlImage || ' '}</FormHelperText>
+        </FormControl>
+
           <TextField
             id="outlined-disabled"
             label="Address"
@@ -244,6 +258,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.address}
             helperText={state.validationErrors.address || ' '}
+            onKeyDown={handleKeyDown}
           />
           <TextField
             id="outlined-disabled"
@@ -257,6 +272,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.phone}
             helperText={state.validationErrors.phone || ' '}
+            onKeyDown={handleKeyDown}
           />
   
           <TextField
@@ -272,6 +288,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             key={state.formData.id}
             error={!!state.validationErrors.information}
             helperText={state.validationErrors.information || ' '}
+            onKeyDown={handleKeyDown}
             />
 
             <Autocomplete
@@ -283,6 +300,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             autoHighlight
             getOptionLabel={(option) => option.name}
             defaultValue={state.formData && state.formData.position}
+            onKeyDown={handleKeyDown}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             renderOption={(props, option) => (
               <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>

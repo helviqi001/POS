@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { useParams } from 'react-router-dom';
 import { useEffect, useReducer, useState } from 'react';
 // @mui
 import { Box, Button, Container, Dialog, DialogContent, Stack, Typography } from '@mui/material';
@@ -12,14 +13,29 @@ import PRODUCTS from '../_mock/products';
 // ----------------------------------------------------------------------
 
 export default function PosPage() {
+  const {menu,item} = useParams()
+
+  const setting = JSON.parse(localStorage.getItem('setting'))
+
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+
   const [openFilter, setOpenFilter] = useState(false);
 
   const [openModal, setOpenModal] = useState(false);
-
+  
   const [loading, setLoading] = useState(true);
-
+  
   const [productList , setProduct] = useState([])
-  const { state, dispatch } = usePos();
+  
+  const { dispatch } = usePos();
+  
+  const cookies = new Cookies()
+
+  const cookie = cookies.get("Authorization");
+
+  const [priv,setPriv] = useState({
+    add:0,
+  })
 
   const handleOpenFilter = () => {
     setOpenFilter(true);
@@ -37,9 +53,19 @@ export default function PosPage() {
     setOpenModal(false);
     
   };
-  const cookies = new Cookies()
 
-  const cookie = cookies.get("Authorization");
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export, add:privilege.add, edit:privilege.edit, delete:privilege.delete, import:privilege.import })
+     })
+   } 
+
   useEffect(()=>{
     setLoading(true)
     const getData=async()=>{
@@ -67,15 +93,23 @@ export default function PosPage() {
         // Set productList dengan data produk yang sudah diperbarui
         setProduct(serverProductList)
       })
+      Privilage()
       setLoading(false)
     }
     getData()
   },[])
   return (
     <>
-      <Helmet>
-        <title> Point Of Sale Page </title>
-      </Helmet>
+       <Helmet
+        title="Point Of Sale Page"
+        link={[
+              {"rel": "icon", 
+               "type": "image/png", 
+               "sizes": '32x32',
+               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+              }
+             ]}
+      />
 
       <Container>
         <Typography variant="h4" sx={{ mb: 5 }}>
@@ -89,15 +123,17 @@ export default function PosPage() {
               onOpenFilter={handleOpenFilter}
               onCloseFilter={handleCloseFilter}
             />
-            <ProductSort />
+            {/* <ProductSort /> */}
           </Stack>
         </Stack>
         {loading  ? (
               <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
         ):(
-          <ProductList products={productList} />
+          <ProductList products={productList} add={priv.add}/>
         )}
-        <ProductCartWidget openModal={openModal} handleCloseModal={handleCloseModal} handleOpenModal={handleOpenModal}/>
+        {priv.add === 1 && (
+          <ProductCartWidget openModal={openModal} handleCloseModal={handleCloseModal} handleOpenModal={handleOpenModal}/>
+        )}
       </Container>
     </>
   );

@@ -4,7 +4,7 @@ import { sentenceCase } from 'change-case';
 import { useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 // @mui
 import {
@@ -111,6 +111,8 @@ function applySortFilter(array, comparator, query) {
 }
 
 export default function CreateRestock() {
+  const {menu,item} = useParams()
+
   const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
@@ -352,7 +354,7 @@ export default function CreateRestock() {
         console.log(response);
       })
       await load(false)
-      navigate("/dashboard/restock")
+      navigate(`/dashboard/restock/${menu}/${item}`)
     }
   }
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
@@ -366,7 +368,12 @@ export default function CreateRestock() {
     maximumFractionDigits: 0
   });
 
-  console.log(state);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      // Tombol Enter ditekan, panggil handleClick
+      handleCreate();
+    }
+  }
   return (
     <>
       <Container>
@@ -386,7 +393,7 @@ export default function CreateRestock() {
           </Select>
         </FormControl>
         <Card>
-          <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          {/* <ProductListToolbar selected={selected} filterName={filterName} onFilterName={handleFilterByName} /> */}
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
@@ -534,6 +541,7 @@ export default function CreateRestock() {
                             startAdornment={<InputAdornment position="start">Pcs</InputAdornment>}
                             name={`quantity-${id}`}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             error={!!validationErrors[`quantity-${id}`]}
                           />
                           <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`quantity-${id}`]}</FormHelperText>
@@ -547,6 +555,7 @@ export default function CreateRestock() {
                             startAdornment={<InputAdornment position="start">Coli</InputAdornment>}
                             name={`colii-${id}`}
                             onChange={handleChange}
+                            onKeyDown={handleKeyDown}
                             error={!!validationErrors[`colii-${id}`]}
                           />
                           <FormHelperText sx={{ color:"#f44336" }}>{validationErrors[`colii-${id}`]}</FormHelperText>

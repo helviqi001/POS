@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string("paymentStatus");
             $table->string("itemStatus");
             $table->string("information");
-            $table->date("transactionDate");
+            $table->dateTime("transactionDate");
             $table->foreignId("staff_id")->constrained("staffs")->onDelete("cascade");
             $table->foreignId("customer_id")->constrained("customers")->onDelete("cascade");
             $table->timestamps();

@@ -106,6 +106,7 @@ const DoneForm = ({ id,style2 , openModal , handleCloseModal})=>{
             Authorization: `Bearer ${cookie}`
           }
         }).then(response=>{
+          console.log(response);
           axios.delete(`http://localhost:8000/api/deliveries/${id}`,{
           headers:{
             "Content-Type" : "aplication/json",

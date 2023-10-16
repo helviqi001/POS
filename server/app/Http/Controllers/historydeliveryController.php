@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\historydelivery;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -75,6 +76,14 @@ class historydeliveryController extends Controller
         $validated = $validator->validated();
         try{
             $newValue= historydelivery::create($validated);
+           $delivery =  historydelivery::with('transaction')->where('id', $newValue->id)->firstOrFail();
+            Notification::create([
+                'title' => "Your Pakcage is Delivered!!",
+                'description' => 'your transaction id is ' . $delivery->transaction->idTransaction,
+                'avatar' => null,
+                'type' => 'order_placed',
+                'isUnread' => true,
+            ]);
         }
         catch(\Exception $e){
             return $e;
@@ -164,6 +173,17 @@ class historydeliveryController extends Controller
     public function destroy(historydelivery $historydelivery)
     {
         $historydelivery->delete();
+        return response()->json([
+            "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $historydeliveries = historydelivery::whereIn('id', $id)->get();
+        foreach ($historydeliveries as $historydelivery) {
+            $historydelivery->delete();
+        }
         return response()->json([
             "message"=>"data berhasil di delete"
         ],Response::HTTP_OK);

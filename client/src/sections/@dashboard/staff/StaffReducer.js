@@ -5,7 +5,22 @@ export const  INITIAL_STATE = {
         address:"",
         phone:0,
         position_id:0,
-        information:""
+        information:"",
+        urlImage:"",
+    },
+    validationErrors:{}
+}
+export const  INITIAL_STATE2 = {
+    formData:{
+        name:"",
+        registerDate:"",
+        address:"",
+        phone:0,
+        position_id:0,
+        information:"",
+        urlImage:"",
+        oldPassword: "",
+        newPassword: "",
     },
     validationErrors:{}
 }

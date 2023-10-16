@@ -148,7 +148,12 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
         setStaff(response.data.staff)
       })
       }
-      console.log(state);
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          // Tombol Enter ditekan, panggil handleClick
+          handleCreate();
+        }
+      }
     return(
         <>
          <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -161,6 +166,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             disableClearable
             options={position}
             autoHighlight
+            onKeyDown={handleKeyDown}
             getOptionLabel={(option) => option.name}
             renderOption={(props, option) => (
               <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
@@ -190,6 +196,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             disableClearable
             options={staff}
             autoHighlight
+            onKeyDown={handleKeyDown}
             getOptionLabel={(option) => option.name}
             renderOption={(props, option) => (
               <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
@@ -222,6 +229,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             fullWidth
             name='plateNumber'
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
             error={!!state.validationErrors.plateNumber}
             helperText={state.validationErrors.plateNumber || ' '}
           />
@@ -235,6 +243,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             fullWidth
             name='informations'
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
             error={!!state.validationErrors.informations}
             helperText={state.validationErrors.informations || ' '}
             />

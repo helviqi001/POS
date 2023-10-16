@@ -38,6 +38,7 @@ class ImportStaffs implements ToModel, WithHeadingRow
             "name"=>$row['name'],
             "phone"=>$row['phone'],
             "address"=>$row['address'],
+            "urlImage"=>"null",
             "registerDate"=>$row['registerdate'] ?? $row['register_date'],
             "information"=>$row['information'],
             "position_id"=>$row['position_id'],

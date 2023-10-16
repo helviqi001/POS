@@ -158,6 +158,13 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
         }
       }
       }
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          // Tombol Enter ditekan, panggil handleClick
+          handleCreate();
+        }
+      }
     return(
         <>
          <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -174,6 +181,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.name}
             helperText={state.validationErrors.name}
+            onKeyDown={handleKeyDown}
           />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer
@@ -205,6 +213,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.address}
             helperText={state.validationErrors.address}
+            onKeyDown={handleKeyDown}
           />
           <TextField
             id="outlined-disabled"
@@ -217,6 +226,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.phone}
             helperText={state.validationErrors.phone}
+            onKeyDown={handleKeyDown}
           />
   
           <MuiFileInput 
@@ -226,7 +236,8 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
             value={state.formData.urlImage} 
             onChange={handleImage}  
             error={!!state.validationErrors.urlImage}
-            helperText={state.validationErrors.urlImage}/>
+            helperText={state.validationErrors.urlImage}
+            onKeyDown={handleKeyDown}/>
 
           <TextField
             id="outlined-disabled"
@@ -239,6 +250,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.information}
             helperText={state.validationErrors.information}
+            onKeyDown={handleKeyDown}
             />
         </DialogContent>
         <DialogActions>

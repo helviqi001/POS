@@ -12,6 +12,7 @@ class Staff extends Model
     protected $fillable = [
         "id_staff",
         "name",
+        "urlImage",
         "registerDate",
         "address",
         "phone",
@@ -20,7 +21,7 @@ class Staff extends Model
     ];
 
     public function fleets(){
-        return $this->belongsToMany(Fleet::class);
+        return $this->hasMany(Fleet::class);
     }
     public function transaction(){
         return $this->hasMany(Transaction::class);
@@ -31,5 +32,16 @@ class Staff extends Model
     }
     public function user(){
         return $this->hasOne(User::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($staff){
+            $staff->fleets()->delete();
+            $staff->user()->delete();
+            $staff->transaction()->delete();
+        });
     }
 }

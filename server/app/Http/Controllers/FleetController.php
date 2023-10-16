@@ -182,6 +182,18 @@ class FleetController extends Controller
             "message"=>"data berhasil di delete"
         ],Response::HTTP_OK);
     }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $fleets = Fleet::whereIn('id', $id)->get();
+        foreach ($fleets as $fleet) {
+            $fleet->delete();
+        }
+        return response()->json([
+            "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
     public function import(Request $request){
         $file = $request->file('excel_file');
 

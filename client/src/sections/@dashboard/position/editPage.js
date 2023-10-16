@@ -4,7 +4,7 @@ import { sentenceCase } from 'change-case';
 import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 // @mui
 import {
@@ -81,6 +81,7 @@ const Alert = forwardRef((props, ref) =>{
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
   });
 export default function EditPosition() {
+  const {menu,item} = useParams()
 
   const location = useLocation()
 
@@ -129,7 +130,6 @@ export default function EditPosition() {
   }
 
   const DATAGRID_COLUMNS = [
-    { field: `id`, headerName: 'id', width: 350 , headerAlign: 'center', align:'center'},
     { field: `menuGroup`, headerName: 'Menu', width: 350 , headerAlign: 'center', align:'center',
     renderCell: (params) => (
        <Typography>{`${params.row.menuGroup}/${params.row.name}`}</Typography>
@@ -187,6 +187,9 @@ export default function EditPosition() {
       updatedCheckedMenus[menuId] = {};
     }
     updatedCheckedMenus[menuId][menuType] = updatedCheckedMenus[menuId][menuType] === "1" ? "0" : "1";
+    if(Object.values(updatedCheckedMenus[menuId]).some((value) => value === "0")){
+      delete updatedCheckedMenus[menuId][menuType]
+    }
     if (Object.values(updatedCheckedMenus[menuId]).every((value) => value === "0")) {
       delete updatedCheckedMenus[menuId];
     }
@@ -195,26 +198,36 @@ export default function EditPosition() {
   };
 
   const checkAndHandleInitialCheckboxValues = (DataPriv) => {
+    const updatedCheckedMenus = { ...state.formData.menu };
+
     DataPriv.forEach((item) => {
       if (item.view === true) {
-        handleCheckboxChange(item.id, 'view');
+        updatedCheckedMenus[item.id] = updatedCheckedMenus[item.id] || {};
+        updatedCheckedMenus[item.id].view = '1';
       }
       if (item.add === true) {
-        handleCheckboxChange(item.id, 'add');
+        updatedCheckedMenus[item.id] = updatedCheckedMenus[item.id] || {};
+        updatedCheckedMenus[item.id].add = '1';
       }
       if (item.edit === true) {
-        handleCheckboxChange(item.id, 'edit');
+        updatedCheckedMenus[item.id] = updatedCheckedMenus[item.id] || {};
+        updatedCheckedMenus[item.id].edit = '1';
       }
       if (item.delete === true) {
-        handleCheckboxChange(item.id, 'delete');
+        updatedCheckedMenus[item.id] = updatedCheckedMenus[item.id] || {};
+        updatedCheckedMenus[item.id].delete = '1';
       }
       if (item.export === true) {
-        handleCheckboxChange(item.id, 'export');
+        updatedCheckedMenus[item.id] = updatedCheckedMenus[item.id] || {};
+        updatedCheckedMenus[item.id].export = '1';
       }
       if (item.import === true) {
-        handleCheckboxChange(item.id, 'import');
+        updatedCheckedMenus[item.id] = updatedCheckedMenus[item.id] || {};
+        updatedCheckedMenus[item.id].import= '1';
       }
     });
+  
+    dispatch({ type: "CHANGE_CHECKBOX", value: updatedCheckedMenus });  
   };
 
   useEffect(()=>{
@@ -226,6 +239,7 @@ export default function EditPosition() {
                 "Authorization" : `Bearer ${cookie}`
               }
         }).then(response=>{
+          dispatch({type:"UPDATE",value:response.data})
             const privilage = response.data.privilage
             const DataPriv = privilage.map(p=>({
                 ...p,
@@ -246,7 +260,6 @@ export default function EditPosition() {
     }
     getData()
   },[])
-  console.log(productList);
   console.log(state);
  
   const handleValidation = (formData) => {
@@ -285,6 +298,7 @@ export default function EditPosition() {
     }
     const formData = new FormData()
     formData.append("name",state.formData.name)
+    formData.append("id",paramName)
     if (state.formData.menu && Object.keys(state.formData.menu).length > 0) {
         // Jika ada data dalam array menu, tambahkan data tersebut langsung ke formData
         Object.keys(state.formData.menu).forEach((menuId) => {
@@ -294,7 +308,7 @@ export default function EditPosition() {
         });
       }
     try {
-      await axios.post("http://localhost:8000/api/positions",formData,{
+      await axios.post("http://localhost:8000/api/update/positions",formData,{
         headers:{
           Authorization: `Bearer ${cookie}`
         }
@@ -305,7 +319,7 @@ export default function EditPosition() {
           load(true)
           setTimeout(()=>{
             load(false)
-            navigate('/dashboard/position')
+            navigate(`/dashboard/position/${menu}/${item}`)
           },1000)
         },1500)
       })
@@ -330,6 +344,7 @@ export default function EditPosition() {
             id="outlined-disabled"
             label="Position"
             fullWidth
+            defaultValue={state.formData.name}
             name='name'
             onChange={handleChange}
             error={!!state.validationErrors.name}

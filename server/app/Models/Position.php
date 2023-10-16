@@ -19,4 +19,13 @@ class Position extends Model
     {
         return $this->hasMany(privilage::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($position){
+            $position->staff()->delete();
+        });
+    }
 }

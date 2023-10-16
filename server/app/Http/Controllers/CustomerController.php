@@ -12,7 +12,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
-    public $possible_relations = ["transaction"];
+    public $possible_relations = ["transaction.products","transaction.staff"];
 
     /**
      * Display a listing of the resource.
@@ -177,6 +177,18 @@ class CustomerController extends Controller
         $customer->delete();
         return response()->json([
             "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $Customers = Customer::whereIn('id', $id)->get();
+        foreach ($Customers as $customer) {
+            $customer->delete();
+        }
+        return response()->json([
+            "message"=>"berhasil di delete"
         ],Response::HTTP_OK);
     }
 

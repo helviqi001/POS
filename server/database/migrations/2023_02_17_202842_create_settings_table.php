@@ -15,9 +15,8 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->string("currency");
-            $table->string("company_name");
-            $table->string("vat");
+            $table->string("urlImage")->nullable();
+            $table->string("urlIcon")->nullable();
             $table->timestamps();
         });
     }

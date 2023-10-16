@@ -4,7 +4,7 @@ import { sentenceCase } from 'change-case';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
@@ -90,8 +90,19 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
+});
 export default function FleetPage() {
+  const {menu,item} = useParams()
+
+  const setting = JSON.parse(localStorage.getItem('setting'))
+
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+
   const [open, setOpen] = useState(null);
+
   const [openModal, setOpenModal] = useState(false);
 
   const [page, setPage] = useState(0);
@@ -103,9 +114,7 @@ export default function FleetPage() {
   const [orderBy, setOrderBy] = useState('name');
 
   const [filterName, setFilterName] = useState('');
-
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
+  
   const [create,setCreate] = useState(false)
 
   const cookies = new Cookies()
@@ -120,9 +129,34 @@ export default function FleetPage() {
   
   const {load} = useContext(OutletContext)
 
+  const [priv,setPriv] = useState({
+    add:0,
+    edit:0,
+    delete:0,
+    export:0,
+    import:0,
+  })
+
+  const [state2, setState] = useState({
+    openSnack: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"Are you sure want to delete this data ? it will delete everything related with this",
+  });
+  const { vertical, horizontal, openSnack } = state2;
+
+  const handleClick = () => {
+    setState({ ...state2, openSnack: true });
+    setOpen(null);
+  };
+
+  const handleClose = () => {
+    setState({ ...state2, openSnack: false });
+  };
+
   const handleEditClick = (event , id)=> {
     setOpen(event.currentTarget)
-    setId(id)
+    setId([id])
   };
 
   const DATAGRID_COLUMNS = [
@@ -156,6 +190,18 @@ export default function FleetPage() {
       },
     },
   ];
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export, add:privilege.add, edit:privilege.edit, delete:privilege.delete, import:privilege.import })
+     })
+   } 
+
 
   useEffect(()=>{
     setLoading(true)
@@ -172,6 +218,7 @@ export default function FleetPage() {
           name : p.staff.name
         })))
       })
+      Privilage()
       setLoading(false)
     }
     getdata()
@@ -203,9 +250,10 @@ export default function FleetPage() {
 
 
   const handleDelete=async()=>{
-    load(true)
+    const updatedData = productList.filter(item => !id.includes(item.id));
+    setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.delete(`http://localhost:8000/api/fleets/${id}`,{
+    axios.post(`http://localhost:8000/api/delete/fleets`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -213,17 +261,10 @@ export default function FleetPage() {
     }).then(response=>{
       console.log(response);
     })
-    setTimeout(()=>{
-      load(false)
-    },1000)
   }
 
   const style2 = {
     marginTop: 2
-  }
-  const style3 = {
-    overflowX:"scroll",
-    marginTop:2,
   }
 
   const handleFilterByName = (event) => {
@@ -231,32 +272,35 @@ export default function FleetPage() {
     setFilterName(event.target.value);
   };
   
-  
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
-  
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
-  
-  const isNotFound = !filteredUsers.length && !!filterName;
   
   return (
     <>
-      <Helmet>
-        <title> Fleet Page </title>
-      </Helmet>
+      <Helmet
+        title="Fleet Page"
+        link={[
+              {"rel": "icon", 
+               "type": "image/png", 
+               "sizes": '32x32',
+               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+              }
+             ]}
+      />
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
             Fleet List
           </Typography>
+          {priv.add === 1 && (
           <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={handleOpenModal}>
             New Fleet
           </Button>
+          )}
         </Stack>
 
         <Card>
-          <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
+        <ProductListToolbar selected={selected} setId={setId} filterName={filterName} onFilterName={handleFilterByName} handleClick={handleClick} />
           <Scrollbar>
             {loading ? (
               <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
@@ -329,15 +373,18 @@ export default function FleetPage() {
           },
         }}
       >
+      {priv.edit === 1 && (
         <MenuItem onClick={handleOpenModalEdit}>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }}/>
           Edit
         </MenuItem>
-
-        <MenuItem sx={{ color: 'error.main' }} onClick={handleDelete}> 
+        )}
+        {priv.delete === 1 && (
+        <MenuItem sx={{ color: 'error.main' }} onClick={handleClick}> 
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>
+        )}
       </Popover>
               {openModal && (
                   <>
@@ -349,12 +396,24 @@ export default function FleetPage() {
                       )}
                   </>
               )}
+        <Snackbar open={openSnack} onClose={handleClose} anchorOrigin={{ vertical , horizontal }} >
+        <Alert severity={'warning'} sx={{ width: '100%' }}>
+        <Box display={'flex'} flexDirection={'column'}>
+          {state2.message}
+          <Button style={{ width:'10%',marginTop:15,alignSelf:'end' }} onClick={()=>handleDelete(id)}>
+            Yes
+          </Button>
+        </Box>
+        </Alert>
+      </Snackbar>
         </>
   );
 }
 
 
-function CustomToolbar() {
+const CustomToolbar =()=>{
+  const {menu,item} = useParams()
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
   const Alert = forwardRef((props, ref) =>{
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
   });
@@ -363,6 +422,10 @@ function CustomToolbar() {
   const cookies = new Cookies()
   const cookie = cookies.get("Authorization")
   const {load} = useContext(OutletContext)
+  const [priv,setPriv] = useState({
+    export:0,
+    import:0,
+  })
   const [state2, setState] = useState({
     open: false,
     vertical: 'top',
@@ -379,6 +442,18 @@ function CustomToolbar() {
   const handleClosesnack = () => {
     setState({ ...state2, openSnack: false });
   };
+
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export,import:privilege.import })
+     })
+   } 
   const handleImport = (files) => {
     setFile(files)
     const formData = new FormData();
@@ -409,7 +484,6 @@ function CustomToolbar() {
             handleClick(error.response.data.error.errorInfo[2],'error')
           }
         }
-        console.log(error);
       });
   };
   const handleOpenModal=()=>{
@@ -418,22 +492,18 @@ function CustomToolbar() {
   const handleCLose=()=>{
     setOpen(false)
   }
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-  };
+  useEffect(()=>{
+    Privilage()
+  },[])
   return (
     <>
     <GridToolbarContainer>
-      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
-      <Button onClick={handleOpenModal}>Import</Button>
+      {priv.export === 1 && (
+        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      )}
+      {priv.import === 1 && (
+        <Button onClick={handleOpenModal}>Import</Button>
+      )}
     </GridToolbarContainer>
     {open && (
       <>
@@ -462,5 +532,4 @@ function CustomToolbar() {
     </>
     
   );
-
 }

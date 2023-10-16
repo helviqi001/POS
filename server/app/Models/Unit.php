@@ -18,4 +18,12 @@ class Unit extends Model
     {
         return $this->hasMany(Product::class);
     }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($unit){
+            $unit->products()->delete();
+        });
+    }
 }

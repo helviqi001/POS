@@ -19,7 +19,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class SupplierController extends Controller
 {
-    public $possible_relations = ["restock","product","retur","product.category","product.unit"];
+    public $possible_relations = ["restock","product","retur","product.category","product.unit","restock.products"];
 
     /**
      * Display a listing of the resource.
@@ -178,6 +178,18 @@ class SupplierController extends Controller
         ],Response::HTTP_NO_CONTENT);
     }
 
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $suppliers = Supplier::whereIn('id', $id)->get();
+        foreach ($suppliers as $supplier) {
+            Storage::delete($supplier->urlImage);
+            $supplier->delete();
+        }
+        return response()->json([
+            "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
     public function import(Request $request){
         $file = $request->file('excel_file');
 

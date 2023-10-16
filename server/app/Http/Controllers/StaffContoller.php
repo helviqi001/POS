@@ -8,12 +8,14 @@ use App\Models\Staff;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\File;
 use Maatwebsite\Excel\Facades\Excel;
 
 class StaffContoller extends Controller
 {
-    public $possible_relations = ["fleets", "transaction","position"];
+    public $possible_relations = ["fleets",'transaction',"transaction.customer","position","transaction.products"];
     /**
      * Display a listing of the resource.
      *
@@ -67,6 +69,7 @@ class StaffContoller extends Controller
             "registerDate"=>"required|date_format:Y-m-d",
             "name"=>"required|string",
             "address"=>"required|string",
+            "urlImage"=>["required",File::image()],
             "phone"=>"required|string",
             "information"=>"required|string",
             "position_id"=>"required|integer"
@@ -85,6 +88,7 @@ class StaffContoller extends Controller
         } while ($existingProduct);
         $validated = $validator->validated();
         $validated['id_staff'] = $idStaff;
+        $validated["urlImage"] = $request->file("urlImage")->store("staff_image");
         try{
             $newValue= Staff::create($validated);
         }
@@ -149,17 +153,21 @@ class StaffContoller extends Controller
             "address"=>"string",
             "phone"=>"string",
             "information"=>"string",
-            
         ]);
         if($validator->fails()){
             return response()->json([
-                "message"=>"error nih"
+                "message"=>$validator->errors()
             ],Response::HTTP_BAD_REQUEST);
         }
         $validated = $validator->validated();
-
+        $staff = Staff::findOrfail($request->id);
+        if ($request->hasFile('urlImage')) {
+            if($staff->urlImage){
+                Storage::delete($staff->urlImage);
+            }
+            $validated["urlImage"] = $request->file("urlImage")->store("staff_image");
+        } 
         try{
-            $staff = Staff::findOrfail($request->id);
             $staff->update($validated);
         }
         catch(QueryException $e){
@@ -186,6 +194,19 @@ class StaffContoller extends Controller
     public function destroy(Staff $staff)
     {
         $staff->delete();
+        return response()->json([
+            "message"=>"data berhasil di delete"
+        ],Response::HTTP_OK);
+    }
+
+    public function MultipleDelete(Request $request)
+    {
+        $id = $request->input('id');
+        $staffs = Staff::whereIn('id', $id)->get();
+        foreach ($staffs as $staff) {
+            Storage::delete($staff->urlImage);
+            $staff->delete();
+        }
         return response()->json([
             "message"=>"data berhasil di delete"
         ],Response::HTTP_OK);

@@ -52,7 +52,9 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
   const handleClick = (message,variant) => {
     setState({ ...state2, open: true , message,variant });
   };
-
+  const handleImage=(data)=>{
+    dispatch({type:"IMAGE_INPUT",payload: data})
+  }
   const handleClose = () => {
     setState({ ...state2, open: false });
   };
@@ -128,6 +130,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
       formData.append("phone",state.formData.phone)
       formData.append("position_id",state.formData.position_id)
       formData.append("information",state.formData.information)
+      formData.append("urlImage",state.formData.urlImage)
       try {
         await axios.post("http://localhost:8000/api/staffs",formData,{
           headers:{
@@ -164,6 +167,12 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
         }
         getData()
       },[])
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          // Tombol Enter ditekan, panggil handleClick
+          handleCreate();
+        }
+      }
       console.log(state);
     return(
         <>
@@ -181,6 +190,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.name}
             helperText={state.validationErrors.name || ' '}
+            onKeyDown={handleKeyDown}
           />
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DemoContainer
@@ -198,6 +208,13 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
                 slotProps={{ textField: { helperText:state.validationErrors.registerDate , error:!!state.validationErrors.registerDate} }}/>
             </DemoContainer>
           </LocalizationProvider>
+            
+        <FormControl fullWidth>
+          <MuiFileInput sx={style2} label="Input Image"  fullWidth value={state.formData.urlImage} onChange={handleImage} 
+            error={!!state.validationErrors.urlImage} onKeyDown={handleKeyDown}
+            />
+         <FormHelperText sx={{ color:"#f44336" }}>{state.validationErrors.urlImage || ' '}</FormHelperText>
+        </FormControl>
 
           <TextField
             id="outlined-disabled"
@@ -210,6 +227,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.address}
             helperText={state.validationErrors.address || ' '}
+            onKeyDown={handleKeyDown}
           />
           <TextField
             id="outlined-disabled"
@@ -222,6 +240,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.phone}
             helperText={state.validationErrors.phone || ' '}
+            onKeyDown={handleKeyDown}
             />
 
           <TextField
@@ -235,6 +254,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.information}
             helperText={state.validationErrors.information || ' '}
+            onKeyDown={handleKeyDown}
             />
           <Autocomplete
             id="country-select-demo"
@@ -244,6 +264,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             options={position}
             autoHighlight
             getOptionLabel={(option) => option.name}
+            onKeyDown={handleKeyDown}
             renderOption={(props, option) => (
               <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
                 {option.name}

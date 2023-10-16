@@ -1,10 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, get, size } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useContext, useEffect, useReducer, useState } from 'react';
+import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
@@ -39,9 +39,11 @@ import {
   DialogActions,
   Select,
   DialogTitle,
+  Snackbar,
 } from '@mui/material';
 // components
-import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import MuiAlert from '@mui/material/Alert';
+import { DataGrid, GridActionsCellItem, GridFilterPanel, GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton } from '@mui/x-data-grid';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import DoneForm from '../sections/@dashboard/delivery/doneForm';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
@@ -88,10 +90,19 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+const Alert = forwardRef((props, ref) =>{
+  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
+});
 export default function TransactionPage() {
+  const {menu,item} = useParams()
+
+  const setting = JSON.parse(localStorage.getItem('setting'))
+
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+
   const navigate = useNavigate()
+
   const [open, setOpen] = useState(null);
-  const [openModal, setOpenModal] = useState(false);
 
   const [page, setPage] = useState(0);
 
@@ -103,8 +114,6 @@ export default function TransactionPage() {
 
   const [filterName, setFilterName] = useState('');
 
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const cookies = new Cookies()
 
   const [productList,setProduct] = useState([])
@@ -115,16 +124,38 @@ export default function TransactionPage() {
   
   const {load} = useContext(OutletContext)
 
-  const [state,dispatch] = useReducer(StaffReducer,INITIAL_STATE)
-
   const cookie = cookies.get("Authorization")
 
+  const [priv,setPriv] = useState({
+    add:0,
+    edit:0,
+    delete:0,
+    export:0,
+    import:0,
+  })
+
+  const [state2, setState] = useState({
+    openSnack: false,
+    vertical: 'top',
+    horizontal: 'center',
+    message:"Are you sure want to delete this data ? it will delete everything related with this",
+  });
+  const { vertical, horizontal, openSnack } = state2;
+
+  const handleClick = () => {
+    setState({ ...state2, openSnack: true });
+    setOpen(null);
+  };
+
+  const handleClose = () => {
+    setState({ ...state2, openSnack: false });
+  };
 
 
   const handleEditClick = (event , id)=> {
     setOpen(event.currentTarget)
     const rowId = id.split('-')[0]
-    setId(rowId)
+    setId([rowId])
   };
 
   const DATAGRID_COLUMNS = [
@@ -169,6 +200,18 @@ export default function TransactionPage() {
     },
   ];
 
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export, add:privilege.add, edit:privilege.edit, delete:privilege.delete, import:privilege.import })
+     })
+   }
+
   const getProcessedData = (data) => {
     const processedData = [];
     
@@ -205,6 +248,7 @@ export default function TransactionPage() {
         const ProcessedData = getProcessedData(response.data.data)
         setProduct(ProcessedData)
       })
+      Privilage()
       setLoading(false)
     }
     getdata()
@@ -214,7 +258,7 @@ export default function TransactionPage() {
   };
 
   const handleOpenModal=async()=>{
-    axios.post(`http://localhost:8000/api/invoices/`,{transactionId:id},{
+    axios.post(`http://localhost:8000/api/invoices/`,{transactionId:id[0]},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -225,12 +269,10 @@ export default function TransactionPage() {
     })
   }
 
-  console.log(id);
-
-
   const handleDelete=async()=>{
-    load(true)
-    axios.delete(`http://localhost:8000/api/transactions/${id}`,{
+    const updatedData = productList.filter(item => !id.includes(item.id));
+    setProduct(updatedData);
+    axios.post(`http://localhost:8000/api/delete/transactions/`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -238,17 +280,6 @@ export default function TransactionPage() {
     }).then(response=>{
       console.log(response);
     })
-    setTimeout(()=>{
-      load(false)
-    },1000)
-  }
-
-  const style2 = {
-    marginTop: 2
-  }
-  const style3 = {
-    overflowX:"scroll",
-    marginTop:2,
   }
 
   const handleFilterByName = (event) => {
@@ -256,21 +287,20 @@ export default function TransactionPage() {
     setFilterName(event.target.value);
   };
   
-  
-  
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
-  
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
-  
-  const isNotFound = !filteredUsers.length && !!filterName;
-  console.log(filteredUsers);
  
   return (
     <>
-      <Helmet>
-        <title> History Transaction Page </title>
-      </Helmet>
-
+      <Helmet
+                title="History Transaction Page"
+                link={[
+                    {"rel": "icon", 
+                    "type": "image/png", 
+                    "sizes": '32x32',
+                    "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+                    }
+                    ]}
+            />
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
@@ -279,8 +309,7 @@ export default function TransactionPage() {
         </Stack>
 
         <Card>
-          <ProductListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
+        <ProductListToolbar selected={selected} setId={setId} filterName={filterName} onFilterName={handleFilterByName} handleClick={handleClick} />
           <Scrollbar>
           {loading ? (
               <Typography textAlign={'center'} variant='subtitle2' marginBottom={5}>.....Loading</Typography>
@@ -352,24 +381,59 @@ export default function TransactionPage() {
           },
         }}
       >
-        <MenuItem sx={{ color: 'error.main' }} onClick={handleDelete}> 
+        {priv.delete === 1 && (
+        <MenuItem sx={{ color: 'error.main' }} onClick={handleClick}> 
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>
+        )}
         <MenuItem onClick={handleOpenModal}> 
           <ReceiptOutlinedIcon sx={{ mr: 2 }}/>
           Invoice
         </MenuItem>
       </Popover>
+
+      <Snackbar open={openSnack} onClose={handleClose} anchorOrigin={{ vertical , horizontal }} >
+        <Alert severity={'warning'} sx={{ width: '100%' }}>
+        <Box display={'flex'} flexDirection={'column'}>
+          {state2.message}
+          <Button style={{ width:'10%',marginTop:15,alignSelf:'end' }} onClick={()=>handleDelete(id)}>
+            Yes
+          </Button>
+        </Box>
+        </Alert>
+      </Snackbar>
         </>
   );
 }
 
 
 function CustomToolbar() {
+  const {menu,item} = useParams()
+  const Privilages = JSON.parse(localStorage.getItem('privilage'))
+  const [priv,setPriv] = useState({
+    export:0,
+    import:0,
+  })
+  const Privilage = ()=>{
+    let menuItem = []
+    const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
+    menuGroup.forEach(e => {
+       menuItem = e.menuitem.filter((i)=>i.id === Number(item))
+   });
+     menuItem.forEach(e=>{
+       const privilege = e.privilege
+       setPriv({ ...priv, export:privilege.export,import:privilege.import })
+     })
+   } 
+   useEffect(()=>{
+    Privilage()
+  },[])
   return (
     <GridToolbarContainer>
-      <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+       {priv.export === 1 && (
+        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+      )}
     </GridToolbarContainer>
   );
 }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string("name")->unique();
             $table->date("registerDate");
             $table->string("address");
+            $table->string("urlImage")->nullable();
             $table->string("phone");
             $table->foreignId("position_id")->constrained("positions")->onDelete("cascade");
             $table->string("information");

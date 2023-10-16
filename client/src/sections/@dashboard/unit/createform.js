@@ -107,6 +107,13 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
         console.log(error);
       }
       }
+      
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          // Tombol Enter ditekan, panggil handleClick
+          handleCreate();
+        }
+      }
     return(
         <>
          <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -123,6 +130,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.unitName}
             helperText={state.validationErrors.unitName || ' '}
+            onKeyDown={handleKeyDown}
           />
             <TextField
             id="outlined-disabled"
@@ -135,6 +143,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
             onChange={handleChange}
             error={!!state.validationErrors.shortname}
             helperText={state.validationErrors.shortname || ' '}
+            onKeyDown={handleKeyDown}
           />
         </DialogContent>
         <DialogActions>

@@ -10,8 +10,7 @@ class Setting extends Model
     use HasFactory;
 
     protected $fillable = [
-        "currency",
-        "company_name",
-        "image"
+        "urlImage",
+        "urlIcon",
     ];
 }

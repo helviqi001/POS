@@ -22,38 +22,25 @@ export default function NavSection({load, ...other }) {
   const [openedDropdown, setOpenedDropdown] = useState('');
   // const [navConfig, setNavConfig] = useState([]);
   const navConfig = NavConfig()
-  const handleOpen = (title) => {
-    setOpenedDropdown(title);
-  };
-
-  const handleClose = () => {
-    setOpenedDropdown('');
-  };
   return (
     <Box {...other}>
       <List disablePadding sx={{ p: 1 }}>
         {navConfig.map((item) => (
+          <>  
           <NavItem
-            handleOpen={handleOpen}
-            handleClose={handleClose}
             item={item}
             currentItem={openedDropdown}
             key={item.id}
           />
+          </>
         ))}
       </List>
     </Box>
   );
 }
 
-// ----------------------------------------------------------------------
-
-NavItem.propTypes = {
-  item: PropTypes.object,
-};
-
-function NavItem({ item, handleOpen, handleClose, currentItem, ...props}) {
-  const { name, path, icon, info, menuitem } = item;
+function NavItem({ item,...props}) {
+  const { id,name, path, icon, info, menuitem } = item;
   const [checked, setChecked] = React.useState(false);
 
   const handleChange = () => {
@@ -78,11 +65,10 @@ function NavItem({ item, handleOpen, handleClose, currentItem, ...props}) {
       </StyledNavItem>
       <Collapse in={checked} timeout={'auto'} unmountOnExit>
         <>
-
            {menuitem.map((p)=>(
               <StyledNavItem
               component={RouterLink}
-              to={p.url}
+              to={`${p.url}/${id}/${p.id}`}
               sx={{
                 '&.active': {
                   color: 'text.primary',

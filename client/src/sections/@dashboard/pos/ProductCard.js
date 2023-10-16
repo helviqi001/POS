@@ -27,7 +27,7 @@ ShopProductCard.propTypes = {
   product: PropTypes.object,
 };
 
-export default function ShopProductCard({ product}) {
+export default function ShopProductCard({ product, add}) {
   const { state,dispatch} = usePos()
   const {id,idProduk,name,stock,urlImage, sellingPrice, discount } = product;
   const isInCart= state.product.some((item) => item.id === id)
@@ -111,16 +111,18 @@ const handleRemoveFromCart = () => {
               IDR {formattedNumber}
           </Typography>
             )}
-            {stock >0 ? (
-             <IconButton
-             size="large"
-             color="inherit"
-             onClick={isInCart ? handleRemoveFromCart : handleAddToCart}
-           >
-             {isInCart ? <RemoveIcon /> : <AddIcon />}
-           </IconButton>
-            ) : (
-              <Typography fontSize={12} height={0}>Tidak Tesedia</Typography>
+            {add === 1 && (
+              stock >0 ? (
+               <IconButton
+               size="large"
+               color="inherit"
+               onClick={isInCart ? handleRemoveFromCart : handleAddToCart}
+             >
+               {isInCart ? <RemoveIcon /> : <AddIcon />}
+             </IconButton>
+              ) : (
+                <Typography fontSize={12} height={0}>Tidak Tesedia</Typography>
+              )
             )}
         </Stack>
       </Stack>
