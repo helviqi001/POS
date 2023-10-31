@@ -2,29 +2,20 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Cookies from 'universal-cookie';
 import { Helmet } from 'react-helmet-async';
-import { faker } from '@faker-js/faker';
 // @mui
 import { useTheme } from '@mui/material/styles';
 import { Grid, Container, Typography, Button, Popover } from '@mui/material';
 import { DateRangePicker } from 'react-date-range';
-import { addDays, toDate } from 'date-fns';
-// components
-import Iconify from '../components/iconify';
 // sections
 import {
-  AppTasks,
-  AppNewsUpdate,
-  AppOrderTimeline,
-  AppCurrentVisits,
   AppWebsiteVisits,
-  AppTrafficBySite,
   AppWidgetSummary,
-  AppCurrentSubject,
   AppConversionRates,
 } from '../sections/@dashboard/app';
 // ----------------------------------------------------------------------
 
 export default function DashboardAppPage() {
+  const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
   const cookies = new Cookies()
   const setting = JSON.parse(localStorage.getItem('setting'))
   const cookie = cookies.get("Authorization")
@@ -101,7 +92,7 @@ export default function DashboardAppPage() {
     const Data = async () => {
       setOpen(false)
       setLoading(true)
-      await axios.post("http://localhost:8000/api/dashboard", {
+      await axios.post(`${apiEndpoint}api/dashboard`, {
         startDate: state2.startDate, // Misalnya, Anda hanya ingin mengambil data dari elemen pertama state2
         endDate: state2.endDate,
         flag:state2.flag
@@ -136,7 +127,7 @@ export default function DashboardAppPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />
@@ -197,7 +188,7 @@ export default function DashboardAppPage() {
             />
           </Grid>
 
-          <Grid item xs={12} md={6} lg={4}>
+          {/* <Grid item xs={12} md={6} lg={4}>
             <AppCurrentVisits
               title="Current Visits"
               chartData={[
@@ -213,9 +204,9 @@ export default function DashboardAppPage() {
                 theme.palette.error.main,
               ]}
             />
-          </Grid>
+          </Grid> */}
 
-          <Grid item xs={12} md={6} lg={8}>
+          <Grid item xs={12} md={6} lg={12}>
             <Button onClick={()=>setAllTime(true)}>All Time</Button>
             <AppConversionRates
               title="Top 10 Products"

@@ -9,6 +9,7 @@ import { ProductSort, ProductList, ProductCartWidget, ProductFilterSidebar } fro
 // mock
 import PRODUCTS from '../_mock/products';
 // ----------------------------------------------------------------------
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function SalesPage() {
   const [openFilter, setOpenFilter] = useState(false);
@@ -30,7 +31,7 @@ export default function SalesPage() {
   const cookie = cookies.get("Authorization");
   useEffect(()=>{
     const getData=async()=>{
-      axios.get("http://localhost:8000/api/products?relations=category,unit,supplier",{
+      axios.get(`${apiEndpoint}api/products?relations=category,unit,supplier`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`

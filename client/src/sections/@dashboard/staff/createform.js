@@ -3,16 +3,11 @@ import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
   FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   Autocomplete,
   Box,
@@ -31,9 +26,11 @@ import { INITIAL_STATE, StaffReducer } from './StaffReducer';
 
 
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
   const [position , setPosition] = useState([])
   const {load} = useContext(OutletContext)
@@ -132,7 +129,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
       formData.append("information",state.formData.information)
       formData.append("urlImage",state.formData.urlImage)
       try {
-        await axios.post("http://localhost:8000/api/staffs",formData,{
+        await axios.post(`${apiEndpoint}api/staffs`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -156,7 +153,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
 
       useEffect(()=>{
         const getData= () =>{
-          axios.get("http://localhost:8000/api/positions",{
+          axios.get(`${apiEndpoint}api/positions`,{
         headers:{
               "Content-Type" : "aplication/json",
               "Authorization" : `Bearer ${cookie}`

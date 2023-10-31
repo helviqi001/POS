@@ -121,6 +121,7 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/customers',[CustomerController::class,'import']);
         Route::post('/restocks',[RestockController::class,'import']);
         Route::post('/returs',[ReturnController::class,'import']);
+        Route::post('/users',[UserController::class,'import']);
         
     });
     Route::prefix("delete")->group(function(){

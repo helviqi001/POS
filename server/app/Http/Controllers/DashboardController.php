@@ -44,7 +44,7 @@ class DashboardController extends Controller
 
         $product = Product::count();
 
-        $income = Transaction::whereBetween('transactionDate',[$startDay,$endDate])->sum('total');
+        $income = Transaction::whereBetween('transactionDate',[$startDay,$endDate])->sum('total');      
 
         $expense = Restock::whereBetween('restockDate',[$startDay,$endDate])->sum('totalSpend');
 

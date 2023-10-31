@@ -1,31 +1,19 @@
-import { MuiFileInput } from 'mui-file-input';
 import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   Autocomplete,
   Box,
-  FormHelperText,
   Snackbar,
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
 import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
-import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import { INITIAL_STATE, StaffReducer } from './StaffReducer';
 
@@ -34,6 +22,9 @@ import { INITIAL_STATE, StaffReducer } from './StaffReducer';
 const Alert = forwardRef((props, ref) =>{
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
   const [position , setPosition] = useState([])
   const [staff , setStaff] = useState([])
@@ -84,9 +75,6 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
         dispatch(
           {type:"CHANGE_INPUT" , payload:{name:e.target.name , value:e.target.value}},
         )
-        const formdata = { name:e.target.name , value:e.target.value }; // Clone the formData to avoid modifying the original state
-
-     
     }
     const handleCreate= async() =>{
       const formdata = { ...state.formData }; // Clone the formData to avoid modifying the original state
@@ -101,7 +89,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
       formData.append("plateNumber",state.formData.plateNumber)
       formData.append("informations",state.formData.informations)
       try {
-        await axios.post("http://localhost:8000/api/fleets",formData,{
+        await axios.post(`${apiEndpoint}api/fleets`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -125,7 +113,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
 
       useEffect(()=>{
         const getData= () =>{
-          axios.get("http://localhost:8000/api/positions",{
+          axios.get(`${apiEndpoint}api/positions`,{
         headers:{
               "Content-Type" : "aplication/json",
               "Authorization" : `Bearer ${cookie}`
@@ -138,7 +126,7 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
       },[])
       const handlePosition = async(e)=>{
         const positionId = e.target.value
-        await axios.get(`http://localhost:8000/api/positions/${positionId}?relations=staff`,{
+        await axios.get(`${apiEndpoint}api/positions/${positionId}?relations=staff`,{
         headers:{
           "Content-Type":"aplication/json",
           Authorization: `Bearer ${cookie}`

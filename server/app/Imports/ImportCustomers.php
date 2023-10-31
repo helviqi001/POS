@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Customer;
+use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -31,14 +32,28 @@ class ImportCustomers implements ToModel,WithHeadingRow
         }
         $registerDate = date('Y-m-d', strtotime($row['registerdate'] ?? $row['register_date']));
         $birthDate = date('Y-m-d', strtotime($row['birthdate'] ?? $row['birth_date']));
-        return new Customer([
-            "name"=>$row['name'],
-            "registerDate"=>$registerDate,
-            "birthDate"=>$birthDate,
-            "address"=>$row['address'],
-            "phone"=>$row['phone'],
-            "information"=>$row['phone'],
-        ]);
+        try{
+            Customer::create([
+                "name"=>$row['name'],
+                "registerDate"=>$registerDate,
+                "birthDate"=>$birthDate,
+                "address"=>$row['address'],
+                "phone"=>$row['phone'],
+                "information"=>$row['phone'],
+            ]);
+        }
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                $errorMessage = $e->getMessage(); // Get the error message
+                $positionName = null;
+        
+                // Extract the position name from the error message if it exists
+                if (preg_match('/\'(.*?)\'/', $errorMessage, $matches)) {
+                    $positionName = $matches[1];
+                }
+                throw new \Exception('The Customer Name "' . $positionName . '" already exists');
+            }
+        }
     }
     private function isValidDate($date)
     {

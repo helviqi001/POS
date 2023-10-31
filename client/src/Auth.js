@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom"
 
 const AuthContext = createContext()
 export const AuthContextProvider = ({children})=>{
+    const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
     const [forget,setForget] = useState(false)
     const cookies = new Cookies()
     const navigate = useNavigate()
@@ -32,15 +33,16 @@ export const AuthContextProvider = ({children})=>{
         }
         return JSON.parse(userProfile)
     })
+    console.log(apiEndpoint);
     const login = async(paylod)=>{
-            await axios.get("http://localhost:8000/sanctum/csrf-cookie")
+            await axios.get(`${apiEndpoint}sanctum/csrf-cookie`)
             try{
-                await axios.post("http://localhost:8000/api/auth", paylod, {withCredentials:true}).then(response=>{
+                await axios.post(`${apiEndpoint}api/auth`, paylod, {withCredentials:true}).then(response=>{
                     localStorage.setItem("privilage",JSON.stringify(response.data.privilage))
                     localStorage.setItem("setting",JSON.stringify(response.data.setting))
                     cookies.set("Authorization",response.data.token)
                     const cookie = cookies.get("Authorization")
-                    axios.get("http://localhost:8000/api/profile",{
+                    axios.get(`${apiEndpoint}api/profile`,{
                         headers: {
                             "Content-Type" : "aplication/json",
                             "Authorization" : `Bearer ${cookie}`
@@ -61,7 +63,7 @@ export const AuthContextProvider = ({children})=>{
 
     const Reset = async(paylod)=>{
             try{
-                await axios.post("http://localhost:8000/api/forgotPassword", paylod, {withCredentials:true}).then(response=>{
+                await axios.post(`${apiEndpoint}api/forgotPassword`, paylod, {withCredentials:true}).then(response=>{
                     handleClick(response.data.message,'success')
                     setTimeout(()=>{
                          setForget(false)
@@ -74,8 +76,8 @@ export const AuthContextProvider = ({children})=>{
     }
 
     const Logout = async()=>{
-        const cookie = cookies.get("Authorization")
-        await axios.post("http://localhost:8000/api/logout",{},{
+        const cookie = cookies.get(`Authorization`)
+        await axios.post(`${apiEndpoint}api/logout`,{},{
             headers: {
                 "Content-Type" : "aplication/json",
                 "Authorization" : `Bearer ${cookie}`

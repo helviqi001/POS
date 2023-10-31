@@ -1,30 +1,26 @@
-import { MuiFileInput } from 'mui-file-input';
 import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   Snackbar,
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
-import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
+import { forwardRef, useContext, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import { INITIAL_STATE, UnitRecuder } from './UnitReducer';
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
     
     const {load} = useContext(OutletContext)
@@ -86,7 +82,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
       formData.append("unitName",state.formData.unitName)
       formData.append("shortname",state.formData.shortname)
       try {
-        await axios.post("http://localhost:8000/api/units",formData,{
+        await axios.post(`${apiEndpoint}api/units`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -110,7 +106,6 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
       
       const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-          // Tombol Enter ditekan, panggil handleClick
           handleCreate();
         }
       }

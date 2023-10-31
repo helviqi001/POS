@@ -1,11 +1,11 @@
-import html2canvas from "html2canvas"
-import {jsPDF as JsPDF} from "jspdf"
 import 'bootstrap/dist/css/bootstrap.css';
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Cookies from "universal-cookie";
 import Loading from '../Loading/loading';
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function InvoicePage(){
   const location = useLocation();
@@ -21,7 +21,7 @@ export default function InvoicePage(){
   useEffect(()=>{
     setLoading(true)
     const GetData =async()=>{
-       await axios.get(`http://localhost:8000/api/transactions/${paramName.transaction_id}?relations=staff,customer,products`,{
+       await axios.get(`${apiEndpoint}api/transactions/${paramName.transaction_id}?relations=staff,customer,products`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`

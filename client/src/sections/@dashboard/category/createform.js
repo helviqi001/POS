@@ -1,35 +1,27 @@
-import { MuiFileInput } from 'mui-file-input';
 import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   Snackbar,
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
-import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
+import { forwardRef, useContext, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
-import dayjs from 'dayjs';
-import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import { CategoryRecuder, INITIAL_STATE } from './CategoryReducer';
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
+
 const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
   
   const {load} = useContext(OutletContext)
@@ -91,7 +83,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
       const formData = new FormData()
       formData.append("itemType",state.formData.itemType)
       try {
-        await axios.post("http://localhost:8000/api/categories",formData,{
+        await axios.post(`${apiEndpoint}api/categories`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }

@@ -1,14 +1,13 @@
 import PropTypes from 'prop-types';
 // @mui
-import { Box, Card, Link, Typography, Stack, IconButton } from '@mui/material';
-import { useReducer, useState } from 'react';
+import { Box, Card, Typography, Stack, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
 // utils
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 // components
 import Label from '../../../components/label';
-import { PosReducer,INITIAL_STATE, usePos } from './posReducer';
+import {  usePos } from './posReducer';
 
 
 // ----------------------------------------------------------------------
@@ -26,6 +25,9 @@ const StyledProductImg = styled('img')({
 ShopProductCard.propTypes = {
   product: PropTypes.object,
 };
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 
 export default function ShopProductCard({ product, add}) {
   const { state,dispatch} = usePos()
@@ -67,7 +69,7 @@ const handleRemoveFromCart = () => {
            Sale {discount}%
           </Label>
         )}
-        <StyledProductImg alt={name} src={`http://localhost:8000/storage/${urlImage}`} />
+        <StyledProductImg alt={name} src={`${apiEndpoint}storage/${urlImage}`} />
       </Box>
 
       <Stack spacing={5} sx={{p:3}}>

@@ -27,11 +27,9 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import MuiAlert from '@mui/material/Alert';
 import CreateProduct from '../sections/@dashboard/product/createform';
 import EditForm from '../sections/@dashboard/product/editForm';
-import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
-import Label from '../components/label';
+import { ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
 import FullImage from './fullImage';
 
@@ -71,9 +69,12 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function ProductPage() {
 
   const {menu,item} = useParams()
@@ -179,13 +180,13 @@ export default function ProductPage() {
     },
     { field: 'urlImage', headerName: 'Image', width: 150,headerAlign:'center', renderCell: (params) =>
     <button
-    onClick={() => openFullscreen(`http://localhost:8000/storage/${params.value}`)}
+    onClick={() => openFullscreen(`${apiEndpoint}storage/${params.value}`)}
     className="image-button"
     style={{ background:"none",cursor:'pointer' , border:"none"}}
   >
     <span className="image-span" aria-hidden="true">
       <img
-        src={`http://localhost:8000/storage/${params.value}`}
+        src={`${apiEndpoint}storage/${params.value}`}
         alt='pic'
         style={{ height: "100%" }}
       />
@@ -234,7 +235,7 @@ export default function ProductPage() {
     const cookie = cookies.get("Authorization")
     setLoading(true)
     const getdata=async()=>{
-      await axios.get("http://localhost:8000/api/products?relations=category,unit,supplier,restocks",{
+      await axios.get(`${apiEndpoint}api/products?relations=category,unit,supplier,restocks`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -278,7 +279,7 @@ export default function ProductPage() {
     const updatedData = productList.filter(item => !id.includes(item.id));
     setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.post(`http://localhost:8000/api/delete/products`,{id},{
+    axios.post(`${apiEndpoint}api/delete/products`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -305,7 +306,7 @@ export default function ProductPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />
@@ -489,7 +490,7 @@ const CustomToolbar =()=>{
     formData.append('excel_file', files);
   
     // Kirim file ke server menggunakan Axios atau library lainnya
-    axios.post('http://localhost:8000/api/import/products', formData,{
+    axios.post(`${apiEndpoint}api/import/products`, formData,{
       headers:{
         'Authorization':`Bearer ${cookie}`
       }

@@ -1,22 +1,14 @@
-import { MuiFileInput } from 'mui-file-input';
 import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   Autocomplete,
   Box,
-  FormHelperText,
   Snackbar,
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
@@ -26,9 +18,11 @@ import Loading2 from '../../../Loading/loading2';
 import { INITIAL_STATE, StaffReducer } from './StaffReducer';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
 
     const [loading, setLoading] = useState(true);
@@ -121,7 +115,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
       formData.append("password",state.formData.password)
       formData.append("id",id)
       try {
-        await axios.post("http://localhost:8000/api/update/users",formData,{
+        await axios.post(`${apiEndpoint}api/update/users`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -146,7 +140,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
       useEffect(()=>{
         setLoading(true)
         const getData= async()=>{
-          await axios.get(`http://localhost:8000/api/users/${id}?relations=staff`,{
+          await axios.get(`${apiEndpoint}api/users/${id}?relations=staff`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -155,7 +149,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
                 {type:"UPDATE" , payload: response.data}
                 )
               })
-          await axios.get("http://localhost:8000/api/staffs",{
+          await axios.get(`${apiEndpoint}api/staffs`,{
                 headers:{
                       "Content-Type" : "aplication/json",
                       "Authorization" : `Bearer ${cookie}`
@@ -167,7 +161,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             }
 
             getData()
-          },[])
+          },[id,cookie])
           const handleKeyDown = (e) => {
             if (e.key === 'Enter') {
               // Tombol Enter ditekan, panggil handleClick

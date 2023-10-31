@@ -1,15 +1,13 @@
-import { Helmet } from 'react-helmet-async';
-import { forwardRef, useContext, useState } from 'react';
+import { forwardRef, useContext, useEffect} from 'react';
 // @mui
 import { styled } from '@mui/material/styles';
-import { Link, Container, Typography, Divider, Stack, Button, Snackbar, Fab } from '@mui/material';
+import { Container, Typography, Snackbar, Fab } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
 // hooks
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import useResponsive from '../hooks/useResponsive';
 // components
 import Logo from '../components/logo';
-import Iconify from '../components/iconify';
 // sections
 import { LoginForm } from '../sections/auth/login';
 import AuthContext from '../Auth';
@@ -44,25 +42,27 @@ const StyledContent = styled('div')(({ theme }) => ({
 }));
 
 // ----------------------------------------------------------------------
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+
 export default function LoginPage() {
+  // const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
   const mdUp = useResponsive('up', 'md');
-  const setting = JSON.parse(localStorage.getItem('setting'))
+  // const setting = JSON.parse(localStorage.getItem('setting'))
   const { vertical, horizontal, open , message ,variant,handleClose,forget,setForget} = useContext(AuthContext) 
+  useEffect(()=>{
+    document.title = 'Login Page';
+
+    // Set the favicon
+    // const favicon = document.querySelector("link[rel*='icon']") || document.createElement('link');
+    // favicon.type = 'image/x-icon';
+    // favicon.rel = 'shortcut icon';
+    // favicon.href = `${apiEndpoint}storage/${setting[1].urlIcon}`; // Replace with your desired icon URL
+    // document.querySelector('head').appendChild(favicon);
+  },[])
   return (
     <>
-     <Helmet
-        title="Login Page"
-        link={[
-              {"rel": "icon", 
-               "type": "image/png", 
-               "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
-              }
-             ]}
-      />
 
       <StyledRoot>
         <Logo
@@ -108,7 +108,7 @@ export default function LoginPage() {
                   OR
                 </Typography>
               </Divider> */}
-                <LoginForm setForget={setForget}/>
+                <LoginForm/>
               </>
             ):(
               <>

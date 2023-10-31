@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\Position;
 use App\Models\Staff;
+use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -33,16 +34,30 @@ class ImportStaffs implements ToModel, WithHeadingRow
             $idStaff = $positionName .'-'. $randomNumber;
             $existingProduct = Staff::where('id_staff', $idStaff)->first();
         } while ($existingProduct);
-        return new Staff([
-            "id_staff"=>$idStaff,
-            "name"=>$row['name'],
-            "phone"=>$row['phone'],
-            "address"=>$row['address'],
-            "urlImage"=>"null",
-            "registerDate"=>$row['registerdate'] ?? $row['register_date'],
-            "information"=>$row['information'],
-            "position_id"=>$row['position_id'],
-        ]);
+        try{
+            Staff::create([
+                "id_staff"=>$idStaff,
+                "name"=>$row['name'],
+                "phone"=>$row['phone'],
+                "address"=>$row['address'],
+                "urlImage"=>"null",
+                "registerDate"=>$row['registerdate'] ?? $row['register_date'],
+                "information"=>$row['information'],
+                "position_id"=>$row['position_id'],
+                ]);
+        }
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                $errorMessage = $e->getMessage(); // Get the error message
+                $positionName = null;
+        
+                // Extract the position name from the error message if it exists
+                if (preg_match('/\'(.*?)\'/', $errorMessage, $matches)) {
+                    $positionName = $matches[1];
+                }
+                throw new \Exception('The Staff Name "' . $positionName . '" already exists');
+            }
+        }
     }
     private function isValidDate($date)
     {

@@ -1,45 +1,30 @@
-import { MuiFileInput } from 'mui-file-input';
 import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
-  DialogTitle,
-  Autocomplete,
-  Box,
-  FormHelperText,
   Snackbar,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-  FormLabel,
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
 import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
 import dayjs from 'dayjs';
-import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers';
-import Loading2 from '../../../Loading/loading2';
 import { INITIAL_STATE, StaffReducer } from './StaffReducer';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import 'dayjs/locale/en-gb';
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
-const DoneForm = ({ id,style2 , openModal , handleCloseModal})=>{
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
+const DoneForm = ( {id, openModal , handleCloseModal})=>{
     const {load} = useContext(OutletContext)
     const [state,dispatch] = useReducer(StaffReducer,INITIAL_STATE)
     const cookies = new Cookies
@@ -101,13 +86,13 @@ const DoneForm = ({ id,style2 , openModal , handleCloseModal})=>{
       formData.append("status","Done")
       formData.append("information",state.formData.information)
       try {
-        await axios.post("http://localhost:8000/api/historydeliveries",formData,{
+        await axios.post(`${apiEndpoint}api/historydeliveries`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
         }).then(response=>{
           console.log(response);
-          axios.delete(`http://localhost:8000/api/deliveries/${id}`,{
+          axios.delete(`${apiEndpoint}api/deliveries/${id}`,{
           headers:{
             "Content-Type" : "aplication/json",
             "Authorization" : `Bearer ${cookie}`
@@ -135,7 +120,7 @@ const DoneForm = ({ id,style2 , openModal , handleCloseModal})=>{
 
       useEffect(()=>{
         const getData= async()=>{
-          await axios.get(`http://localhost:8000/api/deliveries/${id}?relations=fleet,fleet.staff,transaction,transaction.customer`,{
+          await axios.get(`${apiEndpoint}api/deliveries/${id}?relations=fleet,fleet.staff,transaction,transaction.customer`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -147,7 +132,7 @@ const DoneForm = ({ id,style2 , openModal , handleCloseModal})=>{
             }
 
             getData()
-          },[])
+          },[id,cookie])
 
         const handleDate=(fieldname,data)=>{
           const date = new Date(data.$y, data.$M , data.$D,data.$H,data.$m,)

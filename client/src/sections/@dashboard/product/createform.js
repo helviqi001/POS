@@ -3,7 +3,6 @@ import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
   FormControl,
   InputLabel,
@@ -12,7 +11,6 @@ import {
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   FormHelperText,
   Box,
@@ -28,6 +26,8 @@ import { INITIAL_STATE, ProductRecuder } from './productReducer';
 const Alert = forwardRef((props, ref) =>{
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function CreateProduct({ style2 , openModal , handleCloseModal }){
   
@@ -157,7 +157,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
       formData.append("coli",0)
       formData.append("information",state.formData.information)
       try {
-        await axios.post("http://localhost:8000/api/products",formData,{
+        await axios.post(`${apiEndpoint}api/products`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -181,7 +181,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
 
       useEffect(()=>{
         const getSupplier= async()=>{
-          axios.get("http://localhost:8000/api/suppliers",{
+          axios.get(`${apiEndpoint}api/suppliers`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -190,7 +190,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             setSupplier(response.data)
           })
 
-          axios.get("http://localhost:8000/api/units",{
+          axios.get(`${apiEndpoint}api/units`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -199,7 +199,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             setUnit(response.data)
           })
 
-          axios.get("http://localhost:8000/api/categories",{
+          axios.get(`${apiEndpoint}api/categories`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -209,7 +209,7 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
           })
         }
         getSupplier()
-      },[])
+      },[cookie])
 
       const handleKeyDown = (e) => {
         if (e.key === 'Enter') {

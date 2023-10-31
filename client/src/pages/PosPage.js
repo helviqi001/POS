@@ -1,16 +1,16 @@
 import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
-import { Box, Button, Container, Dialog, DialogContent, Stack, Typography } from '@mui/material';
+import { Container, Stack, Typography } from '@mui/material';
 // components
 import axios from 'axios';
 import Cookies from 'universal-cookie';
-import { PosReducer,INITIAL_STATE, usePos } from '../sections/@dashboard/pos/posReducer';
-import { ProductSort, ProductList, ProductCartWidget, ProductFilterSidebar } from '../sections/@dashboard/pos';
-// mock
-import PRODUCTS from '../_mock/products';
+import {  usePos } from '../sections/@dashboard/pos/posReducer';
+import { ProductList, ProductCartWidget, ProductFilterSidebar } from '../sections/@dashboard/pos';
 // ----------------------------------------------------------------------
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function PosPage() {
   const {menu,item} = useParams()
@@ -69,7 +69,7 @@ export default function PosPage() {
   useEffect(()=>{
     setLoading(true)
     const getData=async()=>{
-     await axios.get("http://localhost:8000/api/products?relations=category,unit,supplier",{
+     await axios.get(`${apiEndpoint}api/products?relations=category,unit,supplier`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -106,7 +106,7 @@ export default function PosPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />

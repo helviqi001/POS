@@ -4,41 +4,22 @@ import { sentenceCase } from 'change-case';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
+import {  useParams } from 'react-router-dom';
 import { MuiFileInput } from 'mui-file-input';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // @mui
 import {
   Card,
-  Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
   Popover,
-  Checkbox,
-  TableRow,
   MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
   Snackbar,
 } from '@mui/material';
 // components
@@ -46,14 +27,9 @@ import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import CreateStaff from '../sections/@dashboard/fleet/createform';
 import EditForm from '../sections/@dashboard/fleet/editForm';
-import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
-import Label from '../components/label';
+import {ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-// sections
-// import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
 
 // ----------------------------------------------------------------------
@@ -91,9 +67,12 @@ function applySortFilter(array, comparator, query) {
 }
 
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function FleetPage() {
   const {menu,item} = useParams()
 
@@ -127,8 +106,6 @@ export default function FleetPage() {
 
   const [id,setId] = useState()
   
-  const {load} = useContext(OutletContext)
-
   const [priv,setPriv] = useState({
     add:0,
     edit:0,
@@ -207,7 +184,7 @@ export default function FleetPage() {
     setLoading(true)
     const cookie = cookies.get("Authorization")
     const getdata=async()=>{
-     await axios.get("http://localhost:8000/api/fleets?relations=staff,delivery",{
+     await axios.get(`${apiEndpoint}api/fleets?relations=staff,delivery`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -253,7 +230,7 @@ export default function FleetPage() {
     const updatedData = productList.filter(item => !id.includes(item.id));
     setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.post(`http://localhost:8000/api/delete/fleets`,{id},{
+    axios.post(`${apiEndpoint}api/delete/fleets`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -282,7 +259,7 @@ export default function FleetPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />
@@ -460,7 +437,7 @@ const CustomToolbar =()=>{
     formData.append('excel_file', files);
   
     // Kirim file ke server menggunakan Axios atau library lainnya
-    axios.post('http://localhost:8000/api/import/fleets', formData,{
+    axios.post(`${apiEndpoint}api/import/fleets`, formData,{
       headers:{
         'Authorization':`Bearer ${cookie}`
       }

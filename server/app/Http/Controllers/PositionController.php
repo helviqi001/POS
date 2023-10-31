@@ -26,8 +26,6 @@ class PositionController extends Controller
      */
     public function index(Request $request)
     {
-        $paginate = $request->input("paginate");
-        $search = $request->input("search");
         $relations = $request->input("relations");
         // $fields = $request->input("fields");
 
@@ -36,16 +34,6 @@ class PositionController extends Controller
         if ($relations) {
             $Position = handle_relations($relations, $this->possible_relations, $Position);
         }
-
-        // if ($fields) {
-        //     $products = handle_fields($fields, $this->possible_fields, $products);
-        // }
-
-        if ($search) {
-            $Position = $Position->where("id", $search)->orWhere("name", "like", "%$search%");
-        }
-
-        if ($paginate) return $Position->paginate($paginate);
 
         return response()->json([
             "data"=>$Position->get()

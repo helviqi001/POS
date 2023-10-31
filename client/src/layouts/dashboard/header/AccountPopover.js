@@ -30,6 +30,7 @@ const MENU_OPTIONS = [
 ];
 
 // ----------------------------------------------------------------------
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function AccountPopover() {
   const navigate = useNavigate()
@@ -53,7 +54,7 @@ export default function AccountPopover() {
   useEffect(()=>{
     setLoading(true)
     const getData=async()=>{
-      await axios.get(`http://localhost:8000/api/staffs/${Profile.staff_id}?relations=position`,{
+      await axios.get(`${apiEndpoint}api/staffs/${Profile.staff_id}?relations=position`,{
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${cookie}`
@@ -86,9 +87,9 @@ export default function AccountPopover() {
         }}
       >
         {loading === true ? (
-          <Avatar src={`http://localhost:8000/storage/`} alt="photoURL" />
+          <Avatar src={`${apiEndpoint}storage/`} alt="photoURL" />
         ):(
-          <Avatar src={`http://localhost:8000/storage/${profile.urlImage}`} alt="photoURL" />
+          <Avatar src={`${apiEndpoint}storage/${profile.urlImage}`} alt="photoURL" />
         )}
       </IconButton>
       <Popover

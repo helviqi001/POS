@@ -1,5 +1,5 @@
 import { LoadingButton } from "@mui/lab";
-import { Checkbox, IconButton, InputAdornment, Stack, TextField } from "@mui/material";
+import { IconButton, InputAdornment, Stack, TextField } from "@mui/material";
 import { useContext, useState } from "react";
 import Iconify from "../../../components/iconify";
 import AuthContext from "../../../Auth";

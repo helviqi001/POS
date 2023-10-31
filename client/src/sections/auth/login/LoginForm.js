@@ -1,7 +1,6 @@
 import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 // @mui
-import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox, Button } from '@mui/material';
+import { Stack, IconButton, InputAdornment, TextField, Checkbox, Button } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/iconify';
@@ -9,9 +8,8 @@ import AuthContext from '../../../Auth';
 
 // ----------------------------------------------------------------------
 
-export default function LoginForm({setForget}) {
-  const navigate = useNavigate();
-  const {login} = useContext(AuthContext);
+export default function LoginForm() {
+  const {login,setForget} = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
   const [valueEmail, setEmail] = useState("");
   const [valuePassword, setPassword] = useState("");

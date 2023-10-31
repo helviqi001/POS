@@ -36,6 +36,8 @@ Nav.propTypes = {
   onCloseNav: PropTypes.func,
 };
 
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function Nav({ openNav, onCloseNav, load}) {
   
   const Profile = JSON.parse(localStorage.getItem('userProfile'))
@@ -60,7 +62,7 @@ export default function Nav({ openNav, onCloseNav, load}) {
   useEffect(()=>{
     setLoading(true)
     const getData=async()=>{
-      await axios.get(`http://localhost:8000/api/staffs/${Profile.staff_id}?relations=position`,{
+      await axios.get(`${apiEndpoint}api/staffs/${Profile.staff_id}?relations=position`,{
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${cookie}`
@@ -82,9 +84,9 @@ export default function Nav({ openNav, onCloseNav, load}) {
       >
           <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
         {loading ? (
-          <img src={`http://localhost:8000/storage/`} alt='' style={{ height:"100%",width:"125px" }}/> 
+          <img src={`${apiEndpoint}storage/`} alt='' style={{ height:"100%",width:"125px" }}/> 
         ):(
-          <img src={`http://localhost:8000/storage/${setting[0].urlImage}`} alt='' style={{ height:"100%",width:"125px" }}/>   
+          <img src={`${apiEndpoint}storage/${setting[0].urlImage}`} alt='' style={{ height:"100%",width:"125px" }}/>   
         )}
           </Box>
 
@@ -94,7 +96,7 @@ export default function Nav({ openNav, onCloseNav, load}) {
                 <>
                 {loading === false && (
                   <>
-                <Avatar src={`http://localhost:8000/storage/${profile.urlImage}`} alt="photoURL"  sx={{ width: 50, height: 50  }}/>
+                <Avatar src={`${apiEndpoint}storage/${profile.urlImage}`} alt="photoURL"  sx={{ width: 50, height: 50  }}/>
 
                 <Box sx={{ ml: 2 }}>
                   <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>

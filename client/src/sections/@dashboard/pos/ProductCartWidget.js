@@ -1,18 +1,16 @@
 // @mui
 import { styled } from '@mui/material/styles';
-import { Autocomplete, Badge, Box, Button, Card, CardContent, Dialog, DialogContent, Drawer, FormControl, FormControlLabel, FormHelperText, FormLabel, IconButton, InputAdornment, Paper, Radio, RadioGroup, Stack, Step, StepButton, StepLabel, Stepper, TextField, Typography } from '@mui/material';
+import { Autocomplete, Badge, Box, Button, Card, CardContent, Drawer, FormControl, FormControlLabel, FormHelperText, FormLabel, IconButton, InputAdornment, Paper, Radio, RadioGroup, Stack, Step, StepLabel, Stepper, TextField, Typography } from '@mui/material';
 // component
-import { useContext, useEffect, useReducer, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Cookies from 'universal-cookie';
-import { DatePicker, DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import {  DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {usePos } from './posReducer';
 import Iconify from '../../../components/iconify';
 import Scrollbar from '../../../components/scrollbar';
-import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 
 
 // ----------------------------------------------------------------------
@@ -50,6 +48,9 @@ const StyledProductImg = styled('img')({
   height: 250,
   objectFit: 'cover',
 });
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function CartWidget({openModal,handleCloseModal,handleOpenModal}) {
   const {state,dispatch} = usePos()
   const [activeStep, setActiveStep] = useState(0);
@@ -67,7 +68,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
 
   useEffect(()=>{
     const mapping=async()=> {
-    axios.get("http://localhost:8000/api/customers",{
+    axios.get(`${apiEndpoint}api/customers`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -75,7 +76,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
           }).then(response=>{
             setCustomer(response.data.data)
           })
-    axios.get("http://localhost:8000/api/staffs",{
+    axios.get(`${apiEndpoint}api/staffs`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -83,7 +84,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
           }).then(response=>{
             setStaff(response.data.data)
           })
-    axios.get("http://localhost:8000/api/fleets?relations=staff",{
+    axios.get(`${apiEndpoint}api/fleets?relations=staff`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -214,7 +215,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
   const handleCreate= async() =>{
    const staff = JSON.parse(localStorage.getItem('userProfile'))
     try {
-      await axios.post("http://localhost:8000/api/transactions",{
+      await axios.post(`${apiEndpoint}api/transactions`,{
         staff_id:staff.staff_id,
         fleet_id:state.formData.fleet_id,
         customer_id:state.formData.customer_id,
@@ -239,7 +240,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
     }
     }
       const dataDepositCustomer=async(id)=>{
-        await axios.post(`http://localhost:8000/api/getLatest/deposits?relations=customer`,{id},{
+        await axios.post(`${apiEndpoint}api/getLatest/deposits?relations=customer`,{id},{
           headers:{
             "Content-Type" : "aplication/json",
             "Authorization" : `Bearer ${cookie}`
@@ -290,7 +291,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
               return (
                 <>
                 <Card sx={{ display:"flex" , marginBottom:5 }}>
-                <StyledProductImg alt={name} src={`http://localhost:8000/storage/${urlImage}`}/>
+                <StyledProductImg alt={name} src={`${apiEndpoint}storage/${urlImage}`}/>
                 <CardContent sx={{ width:"100%" , display:'flex' , justifyContent:'space-between' , flexDirection:'column'}}>
                   <Box  sx={{ flex: '1 0 auto', display:'flex' , justifyContent:'space-between'}}>
                   <Box>

@@ -1,18 +1,10 @@
-import { MuiFileInput } from 'mui-file-input';
 import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   Table,
   TableContainer,
@@ -22,12 +14,12 @@ import {
   Paper,
   TableBody,
 } from '@mui/material';
-import { useContext, useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
-import Typography from '@mui/material/Typography';
 import Loading2 from '../../../Loading/loading2';
 import { SUPPLIER_STATE, ReturnReducer } from './ReturnReducer';
 
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 const DetailReturn= ({ id , openModal , handleCloseModal})=>{
 
@@ -40,7 +32,7 @@ const DetailReturn= ({ id , openModal , handleCloseModal})=>{
       useEffect(()=>{
         setLoading(true)
         const getData= async()=>{
-          await axios.get(`http://localhost:8000/api/returns/${id}?relations=products`,{
+          await axios.get(`${apiEndpoint}api/returns/${id}?relations=products`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -53,7 +45,7 @@ const DetailReturn= ({ id , openModal , handleCloseModal})=>{
             }
 
             getData()
-          },[])
+          },[id,cookie])
           console.log(state);
     return(
       <> 

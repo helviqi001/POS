@@ -1,95 +1,36 @@
-import { Helmet } from 'react-helmet-async';
 import { filter, size } from 'lodash';
-import { sentenceCase } from 'change-case';
 import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MuiFileInput } from 'mui-file-input';
 // @mui
 import {
   Card,
-  Table,
-  Stack,
-  Paper,
-  Avatar,
   Button,
-  Popover,
   Checkbox,
-  TableRow,
-  MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
   TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
-  FormHelperText,
   Snackbar,
 } from '@mui/material';
 // components
 import MuiAlert from '@mui/material/Alert';
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
+import { DataGrid} from '@mui/x-data-grid';
 import Scrollbar from '../../../components/scrollbar';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import { INITIAL_STATE, PositionReducer } from './PositionReducer';
 
-// ----------------------------------------------------------------------
-
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
-  }
-  return stabilizedThis.map((el) => el[0]);
-}
 const Alert = forwardRef((props, ref) =>{
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
   });
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function CreatePosition() {
   const {menu,item} = useParams()
 
   const [state,dispatch] = useReducer(PositionReducer,INITIAL_STATE)
-
-  const [order, setOrder] = useState('asc');
-
-  const [orderBy, setOrderBy] = useState('name');
-
-  const [filterName, setFilterName] = useState('');
 
   const cookies = new Cookies()
 
@@ -209,7 +150,7 @@ export default function CreatePosition() {
   useEffect(()=>{
     setLoading(true)
     const getData=async()=>{
-        await axios.get("http://localhost:8000/api/menuitems?relations=menugroup",{
+        await axios.get(`${apiEndpoint}api/menuitems?relations=menugroup`,{
             headers:{
                 "Content-Type" : "aplication/json",
                 "Authorization" : `Bearer ${cookie}`
@@ -270,7 +211,7 @@ export default function CreatePosition() {
         });
       }
     try {
-      await axios.post("http://localhost:8000/api/positions",formData,{
+      await axios.post(`${apiEndpoint}api/positions`,formData,{
         headers:{
           Authorization: `Bearer ${cookie}`
         }
@@ -293,9 +234,6 @@ export default function CreatePosition() {
     }
     }
   
-  const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
-  
-  const isNotFound = !filteredUsers.length && !!filterName;
   return (
     <>
       <Container>
@@ -314,10 +252,10 @@ export default function CreatePosition() {
             />
             <Card>
                   <Scrollbar>
-                    {filteredUsers.length === 0 ? (
+                    {productList.length === 0 ? (
                     <Box sx={{ height:150 }}>
                         <DataGrid
-                        rows={filteredUsers}
+                        rows={productList}
                         columns={DATAGRID_COLUMNS}
                         initialState={{
                             pagination: {
@@ -331,7 +269,7 @@ export default function CreatePosition() {
                 ) :(
                     <Box sx={{ height:"auto" }}>
                         <DataGrid
-                        rows={filteredUsers}
+                        rows={productList}
                         columns={DATAGRID_COLUMNS}
                         initialState={{
                             pagination: {

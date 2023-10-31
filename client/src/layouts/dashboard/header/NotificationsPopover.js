@@ -77,6 +77,7 @@ const NOTIFICATIONS = [
     isUnRead: false,
   },
 ];
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function NotificationsPopover() {
   const cookies = new Cookies()
@@ -102,7 +103,7 @@ export default function NotificationsPopover() {
   useEffect(()=>{
     setLoading(true)
     const getdata=async()=>{
-      await axios.get("http://localhost:8000/api/notifications",{
+      await axios.get(`${apiEndpoint}api/notifications`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -124,7 +125,7 @@ export default function NotificationsPopover() {
     });
     setNotifications(updatedNotifications);
     const id = notifications.filter(notification=>notification.isUnread === 1).map((notification) =>(notification.id))
-    await axios.post("http://localhost:8000/api/update/notifications",{id},{
+    await axios.post(`${apiEndpoint}api/update/notifications`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`

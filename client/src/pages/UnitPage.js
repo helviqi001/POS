@@ -11,34 +11,15 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 // @mui
 import {
   Card,
-  Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
   Popover,
-  Checkbox,
-  TableRow,
   MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
   Snackbar,
 } from '@mui/material';
 // components
@@ -46,14 +27,9 @@ import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import CreateSupplier from '../sections/@dashboard/unit/createform';
 import EditForm from '../sections/@dashboard/unit/editForm';
-import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
-import Label from '../components/label';
+import {ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-// sections
-// import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
 
 // ----------------------------------------------------------------------
@@ -88,9 +64,11 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function UnitPage() {
   const {menu,item} = useParams()
@@ -113,8 +91,6 @@ export default function UnitPage() {
 
   const [filterName, setFilterName] = useState('');
 
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const [create,setCreate] = useState(false)
 
   const cookies = new Cookies()
@@ -126,8 +102,6 @@ export default function UnitPage() {
   const [loading,setLoading] = useState(true)
 
   const [id,setId] = useState()
-  
-  const {load} = useContext(OutletContext)
 
   const [priv,setPriv] = useState({
     add:0,
@@ -170,7 +144,7 @@ export default function UnitPage() {
     const cookie = cookies.get("Authorization")
     setLoading(true)
     const getdata=async()=>{
-     await axios.get("http://localhost:8000/api/units",{
+     await axios.get(`${apiEndpoint}api/units`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -240,7 +214,7 @@ export default function UnitPage() {
     const updatedData = productList.filter(item => !id.includes(item.id));
     setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.post(`http://localhost:8000/api/delete/units`,{id},{
+    axios.post(`${apiEndpoint}api/delete/units`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -268,7 +242,7 @@ export default function UnitPage() {
                     {"rel": "icon", 
                     "type": "image/png", 
                     "sizes": '32x32',
-                    "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+                    "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
                     }
                     ]}
             />
@@ -447,7 +421,7 @@ const CustomToolbar =()=>{
     formData.append('excel_file', files);
   
     // Kirim file ke server menggunakan Axios atau library lainnya
-    axios.post('http://localhost:8000/api/import/units', formData,{
+    axios.post(`${apiEndpoint}api/import/units`, formData,{
       headers:{
         'Authorization':`Bearer ${cookie}`
       }

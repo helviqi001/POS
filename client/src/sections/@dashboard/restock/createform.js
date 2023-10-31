@@ -1,20 +1,14 @@
-import { Helmet } from 'react-helmet-async';
-import { filter, size } from 'lodash';
-import { sentenceCase } from 'change-case';
+import { filter} from 'lodash';
 import { useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MuiFileInput } from 'mui-file-input';
 // @mui
 import {
   Card,
   Table,
-  Stack,
   Paper,
-  Avatar,
   Button,
-  Popover,
   Checkbox,
   TableRow,
   MenuItem,
@@ -25,18 +19,12 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
-  Modal,
   Box,
-  TextField,
   FormControl,
   InputLabel,
   OutlinedInput,
   InputAdornment,
-  Dialog,
-  DialogContent,
-  DialogActions,
   Select,
-  DialogTitle,
   FormHelperText,
 } from '@mui/material';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -46,9 +34,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { ProductListHead, ProductListToolbar } from '../product';
-import Label from '../../../components/label';
-import Iconify from '../../../components/iconify';
+import { ProductListHead } from '../product';
 import Scrollbar from '../../../components/scrollbar';
 // sections
 // import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
@@ -110,6 +96,8 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function CreateRestock() {
   const {menu,item} = useParams()
 
@@ -162,7 +150,7 @@ export default function CreateRestock() {
 
   useEffect(()=>{
     const getdata=async()=>{
-      axios.get("http://localhost:8000/api/suppliers",{
+      axios.get(`${apiEndpoint}api/suppliers`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -172,7 +160,7 @@ export default function CreateRestock() {
       })
     }
     getdata()
-  },[])
+  },[cookie])
   const handleDate=(data)=>{
     const date = new Date(data.$y, data.$M , data.$D)
 
@@ -318,7 +306,7 @@ export default function CreateRestock() {
     dispatch(
       {type:"CHANGE_INPUT" , payload:{name:e.target.name ,value:e.target.value}}
       );
-     await axios.get(`http://localhost:8000/api/suppliers/${supplierId}?relations=product,product.category,product.unit`,{
+     await axios.get(`${apiEndpoint}api/suppliers/${supplierId}?relations=product,product.category,product.unit`,{
         headers:{
           "Content-Type":"aplication/json",
           Authorization: `Bearer ${cookie}`
@@ -345,7 +333,7 @@ export default function CreateRestock() {
     setValidationErrors(validationErrors);
     if (Object.keys(validationErrors).length === 0) {
       load(true)
-      await axios.post("http://localhost:8000/api/restocks",{id,supplier_id:state.id , restockDate:state.restockDate , totalSpend , product_id:id.map(p=>({id:p.id,quantity:p.quantity,coli:p.colii}))},{
+      await axios.post(`${apiEndpoint}api/restocks`,{id,supplier_id:state.id , restockDate:state.restockDate , totalSpend , product_id:id.map(p=>({id:p.id,quantity:p.quantity,coli:p.colii}))},{
         headers : {
           "Content-Type" : 'application/json',
           Authorization: `Bearer ${cookie}`
@@ -430,7 +418,7 @@ export default function CreateRestock() {
                         <TableCell align="center">{category.itemType}</TableCell>
 
                         <TableCell align="center">
-                          <img src={`http://localhost:8000/storage/${urlImage}`} alt=''/>
+                          <img src={`${apiEndpoint}storage/${urlImage}`} alt=''/>
                         </TableCell>
 
 

@@ -1,6 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { filter, size } from 'lodash';
-import { sentenceCase } from 'change-case';
+import { filter} from 'lodash';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
@@ -11,41 +10,21 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 // @mui
 import {
   Card,
-  Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
   Popover,
-  Checkbox,
-  TableRow,
   MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
   Snackbar,
-  SnackbarContent,
 } from '@mui/material';
 // components
 import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
-import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
+import { ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
@@ -81,9 +60,10 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+    <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
+));
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function PositionPage() {
   const {menu,item} = useParams()
@@ -113,8 +93,6 @@ export default function PositionPage() {
   const [loading,setLoading] = useState(true)
 
   const [id,setId] = useState()
-  
-  const {load} = useContext(OutletContext)
 
   const [priv,setPriv] = useState({
     add:0,
@@ -181,7 +159,7 @@ export default function PositionPage() {
     setLoading(true)
     const cookie = cookies.get("Authorization")
     const getdata=async()=>{
-     await axios.get("http://localhost:8000/api/positions",{
+     await axios.get(`${apiEndpoint}api/positions`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -215,7 +193,7 @@ export default function PositionPage() {
     const updatedData = productList.filter(item => !id.includes(item.id));
     setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.post(`http://localhost:8000/api/delete/positions`,{id},{
+    axios.post(`${apiEndpoint}api/delete/positions`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -239,7 +217,7 @@ export default function PositionPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />
@@ -408,7 +386,7 @@ const CustomToolbar =()=>{
     formData.append('excel_file', files);
   
     // Kirim file ke server menggunakan Axios atau library lainnya
-    axios.post('http://localhost:8000/api/import/positions', formData,{
+    axios.post(`${apiEndpoint}api/import/positions`, formData,{
       headers:{
         'Authorization':`Bearer ${cookie}`
       }
@@ -424,6 +402,7 @@ const CustomToolbar =()=>{
         },1500)
       })
       .catch((error) => {
+        console.log(error);
         if (error.response.status === 500 ) {
           if(error.response.data.message){
             handleClick(error.response.data.message,'error')

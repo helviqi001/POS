@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Unit;
+use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -38,21 +39,35 @@ class ImportProducts implements ToModel,WithHeadingRow
             $existingProduct = Product::where('idProduk', $idProduk)->first();
         } while ($existingProduct);
         $sellingPrice = $row['netprice']?? $row['net_price'] + ($row['netprice']?? $row['net_price'] * ($row['margin'] / 100))  + ($row['netprice']?? $row['net_price']*($row['tax']/100));
-        return new Product([
-            "idProduk"=>$idProduk,
-            "name"=>$row['name'],
-            "urlImage"=>"null",
-            "stock"=>$row['stock'],
-            "margin"=>$row['margin'],
-            "tax"=>$row['tax'],
-            "sellingPrice"=>$sellingPrice,
-            "discount"=>$row['discount'],
-            "netPrice"=>$row['netprice']?? $row['net_price'],
-            "coli"=>$row['coli'],
-            "information"=>$row['information'],
-            "unit_id"=>$row['unit_id'],
-            "supplier_id"=>$row['supplier_id'],
-            "category_id"=>$row['category_id'],
-        ]);
+        try{
+            Product::create([
+                "idProduk"=>$idProduk,
+                "name"=>$row['name'],
+                "urlImage"=>"null",
+                "stock"=>$row['stock'],
+                "margin"=>$row['margin'],
+                "tax"=>$row['tax'],
+                "sellingPrice"=>$sellingPrice,
+                "discount"=>$row['discount'],
+                "netPrice"=>$row['netprice']?? $row['net_price'],
+                "coli"=>$row['coli'],
+                "information"=>$row['information'],
+                "unit_id"=>$row['unit_id'],
+                "supplier_id"=>$row['supplier_id'],
+                "category_id"=>$row['category_id'],
+                ]);
+        }
+        catch(QueryException $e){
+            if ($e->errorInfo[1] === 1062) { 
+                $errorMessage = $e->getMessage(); // Get the error message
+                $positionName = null;
+        
+                // Extract the position name from the error message if it exists
+                if (preg_match('/\'(.*?)\'/', $errorMessage, $matches)) {
+                    $positionName = $matches[1];
+                }
+                throw new \Exception('The Product Name "' . $positionName . '" already exists');
+            }
+        }
     }
 }

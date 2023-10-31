@@ -27,7 +27,7 @@ class ImportFleets implements ToModel,WithHeadingRow
         } while ($existingProduct);
         return new Fleet([
             "idFleet"=>$idFleet,
-            "staff_id"=>$row['staff_id'],
+            "staff_id"=>$row['staff_id']??$row['staffid'],
             "plateNumber"=>$row['platenumber'] ?? $row['plate_number'],
             "informations"=>$row['information'] ?? $row['informations'],
         ]);

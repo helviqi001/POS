@@ -1,44 +1,21 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, get, size } from 'lodash';
-import { sentenceCase } from 'change-case';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import { MuiFileInput } from 'mui-file-input';
+import { useParams } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // @mui
 import {
   Card,
-  Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
   Popover,
-  Checkbox,
-  TableRow,
   MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
   Snackbar,
 } from '@mui/material';
 // components
@@ -46,14 +23,9 @@ import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import CreateStaff from '../sections/@dashboard/deposit/createform';
 import EditForm from '../sections/@dashboard/deposit/editForm';
-import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
-import Label from '../components/label';
+import {ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-// sections
-// import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
 
 // ----------------------------------------------------------------------
@@ -90,9 +62,10 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+   <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
+));
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 export default function DepositPage() {
   const {menu,item} = useParams()
 
@@ -101,6 +74,8 @@ export default function DepositPage() {
   const Privilages = JSON.parse(localStorage.getItem('privilage'))
 
   const [open, setOpen] = useState(null);
+  
+  const [status, setStatus] = useState('');
 
   const [openModal, setOpenModal] = useState(false);
 
@@ -114,8 +89,6 @@ export default function DepositPage() {
 
   const [filterName, setFilterName] = useState('');
 
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const [create,setCreate] = useState(false)
 
   const cookies = new Cookies()
@@ -125,7 +98,7 @@ export default function DepositPage() {
   const [edit,setEdit] = useState(false)
 
   const [id,setId] = useState()
-  
+
   const {load} = useContext(OutletContext)
   
   const [loading,setLoading] = useState(true);
@@ -142,12 +115,13 @@ export default function DepositPage() {
     openSnack: false,
     vertical: 'top',
     horizontal: 'center',
-    message:"Are you sure want to delete this data ? it will delete everything related with this",
+    message:"",
+    status:""
   });
   const { vertical, horizontal, openSnack } = state2;
 
-  const handleClick = () => {
-    setState({ ...state2, openSnack: true });
+  const handleClick = (status,message) => {
+    setState({ ...state2, openSnack: true ,status,message});
     setOpen(null);
   };
 
@@ -156,9 +130,10 @@ export default function DepositPage() {
   };
 
 
-  const handleEditClick = (event , id)=> {
+  const handleEditClick = (event , id,status)=> {
     setOpen(event.currentTarget)
     setId([id])
+    setStatus(status)
   };
 
 
@@ -192,13 +167,15 @@ export default function DepositPage() {
       headerName: 'Actions',
       width: 100,
       cellClassName: 'actions',
-      getActions: ({ id }) => {
+      getActions: (params) => {
+        const { id, status } = params.row;
+  
         return [
           <GridActionsCellItem
             icon={<MoreVertIcon />}
             label="3Dots"
             className="textPrimary"
-            onClick={(e)=>handleEditClick(e,id)}
+            onClick={(e) => handleEditClick(e, id, status)}
             color="inherit"
           />,
         ];
@@ -222,7 +199,7 @@ export default function DepositPage() {
     const cookie = cookies.get("Authorization")
     setLoading(true)
     const getdata=async()=>{
-      await axios.get("http://localhost:8000/api/deposits?relations=customer",{
+      await axios.get(`${apiEndpoint}api/deposits?relations=customer`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -265,17 +242,25 @@ export default function DepositPage() {
 
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    handleClose()
     const cookie = cookies.get("Authorization")
-    axios.post(`http://localhost:8000/api/delete/deposits`,{id},{
-      headers:{
-        "Content-Type" : "aplication/json",
-        "Authorization" : `Bearer ${cookie}`
+    load(true)
+    try{
+      await axios.post(`${apiEndpoint}api/delete/deposits`,{id},{
+        headers:{
+          "Content-Type" : "aplication/json",
+          "Authorization" : `Bearer ${cookie}`
+        }
+      }).then(response=>{
+        load(false)
+      })
+
+    }catch(error){
+      if (error.response.status === 500) {
+        load(false)
+        handleClick('b',error.response.data.message)
       }
-    }).then(response=>{
-      console.log(response);
-    })
+    }
   }
 
   const style2 = {
@@ -301,7 +286,7 @@ export default function DepositPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />
@@ -391,6 +376,9 @@ export default function DepositPage() {
           },
         }}
       >
+
+        {status === 'Deposit' ?(
+          <>
          {priv.edit === 1 && (
         <MenuItem onClick={handleOpenModalEdit}>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }}/>
@@ -398,10 +386,14 @@ export default function DepositPage() {
         </MenuItem>
         )}
         {priv.delete === 1 && (
-        <MenuItem sx={{ color: 'error.main' }} onClick={handleClick}> 
-          <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Delete
-        </MenuItem>
+            <MenuItem sx={{ color: 'error.main' }} onClick={()=>handleClick("a","Are you sure want to delete this data ? it will delete everything related with this")}> 
+              <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
+              Delete
+            </MenuItem>
+          )}
+          </>
+        ) : (
+            <Typography>No Action</Typography>
         )}
       </Popover>
               {openModal && (
@@ -418,8 +410,8 @@ export default function DepositPage() {
         <Alert severity={'warning'} sx={{ width: '100%' }}>
         <Box display={'flex'} flexDirection={'column'}>
           {state2.message}
-          <Button style={{ width:'10%',marginTop:15,alignSelf:'end' }} onClick={()=>handleDelete(id)}>
-            Yes
+          <Button style={{ width:'10%',marginTop:15,alignSelf:'end' }} onClick={state2.status === 'a' ? ()=>handleDelete(id) : ()=>handleClose()}>
+            Ok
           </Button>
         </Box>
         </Alert>

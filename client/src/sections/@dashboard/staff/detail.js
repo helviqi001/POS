@@ -3,32 +3,18 @@ import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
-  Table,
-  TableContainer,
-  TableHead,
-  TableCell,
-  TableRow,
-  Paper,
-  TableBody,
   Box,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { useContext, useEffect, useReducer, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Cookies from 'universal-cookie';
-import Typography from '@mui/material/Typography';
 import Loading2 from '../../../Loading/loading2';
 
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 const DetailTransaction = ({ id , openModal , handleCloseModal})=>{
 
@@ -74,7 +60,7 @@ const DetailTransaction = ({ id , openModal , handleCloseModal})=>{
       useEffect(()=>{
         setLoading(true)
         const getData= async()=>{
-          await axios.get(`http://localhost:8000/api/staffs/${id}?relations=transaction.customer,transaction.products`,{
+          await axios.get(`${apiEndpoint}api/staffs/${id}?relations=transaction.customer,transaction.products`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`

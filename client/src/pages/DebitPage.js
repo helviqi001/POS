@@ -1,11 +1,9 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, size } from 'lodash';
-import { sentenceCase } from 'change-case';
 import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import { MuiFileInput } from 'mui-file-input';
+import { useParams } from 'react-router-dom';
 // @mui
 import {
   Card,
@@ -24,13 +22,9 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // components
 import EditForm from '../sections/@dashboard/debit/editForm';
-import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
-import Label from '../components/label';
+import { ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-import USERLIST from '../_mock/user';
-import { OutletContext } from '../layouts/dashboard/OutletProvider';
-import FullImage from './fullImage';
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
@@ -68,9 +62,12 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function DebitPage() {
   const {menu,item} = useParams()
 
@@ -104,8 +101,6 @@ export default function DebitPage() {
   const [loading,setLoading] = useState(true)
 
   const [id,setId] = useState()
-  
-  const {load} = useContext(OutletContext)
 
   const [priv,setPriv] = useState({
     add:0,
@@ -185,7 +180,7 @@ export default function DebitPage() {
     const cookie = cookies.get("Authorization")
     setLoading(true)
     const getdata=async()=>{
-      await axios.get("http://localhost:8000/api/debits?relations=customer,transaction",{
+      await axios.get(`${apiEndpoint}api/debits?relations=customer,transaction`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -228,7 +223,7 @@ export default function DebitPage() {
     const updatedData = productList.filter(item => !id.includes(item.id));
     setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.post(`http://localhost:8000/api/delete/debits`,{id},{
+    axios.post(`${apiEndpoint}api/delete/debits`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -246,8 +241,6 @@ export default function DebitPage() {
   };
 
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
-  
-  console.log(productList);
   return (
     <>
       <Helmet
@@ -256,7 +249,7 @@ export default function DebitPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />

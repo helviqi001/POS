@@ -7,33 +7,17 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   Card,
   Table,
-  Stack,
-  Paper,
-  Avatar,
   Button,
-  Popover,
-  Checkbox,
   TableRow,
-  MenuItem,
   TableBody,
   TableCell,
   Container,
   Typography,
-  IconButton,
   TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
   FormControl,
-  InputLabel,
   OutlinedInput,
   InputAdornment,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
   FormHelperText,
 } from '@mui/material';
 // components
@@ -59,6 +43,7 @@ const TABLE_HEAD2 = [
 
 // ----------------------------------------------------------------------
 
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function EditRestock() {
   const {menu,item} = useParams()
@@ -68,8 +53,6 @@ export default function EditRestock() {
   const id = location.state?.id
 
   const [totalSpend, setTotalState] = useState(0);
-
-  const [create,setCreate] = useState(false)
 
   const cookies = new Cookies()
 
@@ -104,7 +87,7 @@ export default function EditRestock() {
 
   useEffect(()=>{
     const getdata=async()=>{
-      await axios.get(`http://localhost:8000/api/restocks/${id}?relations=products`,{
+      await axios.get(`${apiEndpoint}api/restocks/${id}?relations=products`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -198,7 +181,7 @@ export default function EditRestock() {
     setValidationErrors(validationErrors);
     if (Object.keys(validationErrors).length === 0) {
       load(true)
-      await axios.post("http://localhost:8000/api/update/restocks",{id,supplier_id:state.supplier_id , restockDate:state.restockDate , totalSpend , product_id:newProduct.map(p=>({id:p.id,quantity:p.quantity,coli:p.coli}))},{
+      await axios.post(`${apiEndpoint}api/update/restocks`,{id,supplier_id:state.supplier_id , restockDate:state.restockDate , totalSpend , product_id:newProduct.map(p=>({id:p.id,quantity:p.quantity,coli:p.coli}))},{
         headers : {
           "Content-Type" : 'application/json',
           Authorization: `Bearer ${cookie}`

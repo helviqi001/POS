@@ -1,21 +1,13 @@
-import { MuiFileInput } from 'mui-file-input';
+
 import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
-  TextField,
   FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
-  Autocomplete,
-  Box,
   FormHelperText,
   Snackbar,
   FormControlLabel,
@@ -27,7 +19,7 @@ import MuiAlert from '@mui/material/Alert';
 import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
 import dayjs from 'dayjs';
-import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
+import { DemoContainer} from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers';
@@ -36,16 +28,16 @@ import { INITIAL_STATE, StaffReducer } from './StaffReducer';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import 'dayjs/locale/en-gb';
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
-const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
+const Alert = forwardRef((props, ref) =>(
+   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
+const EditForm = ( {id, openModal , handleCloseModal})=>{
 
     const [loading, setLoading] = useState(true);
     const {load} = useContext(OutletContext)
     const [state,dispatch] = useReducer(StaffReducer,INITIAL_STATE)
-    const [position , setPosition] = useState([])
-    const [staff , setStaff] = useState([])
     const cookies = new Cookies
     const [state2, setState] = useState({
       open: false,
@@ -109,7 +101,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
       formData.append("information",state.formData.information)
       formData.append("id",id)
       try {
-        await axios.post("http://localhost:8000/api/update/deliveries",formData,{
+        await axios.post(`${apiEndpoint}api/update/deliveries`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -128,14 +120,13 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
         if (error.response.status === 500 ) {
           handleClick(error.response.data.error,'error')
         }
-        console.log(error);
       }
       }
 
       useEffect(()=>{
         setLoading(true)
         const getData= async()=>{
-          await axios.get(`http://localhost:8000/api/deliveries/${id}?relations=fleet,fleet.staff,transaction,transaction.customer`,{
+          await axios.get(`${apiEndpoint}api/deliveries/${id}?relations=fleet,fleet.staff,transaction,transaction.customer`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -148,7 +139,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             }
 
             getData()
-          },[])
+          },[id,cookie])
 
           const handleRadioButton = (name,value) =>{
             dispatch(
@@ -167,11 +158,10 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
           const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
           dispatch({type:"DATE_INPUT",payload: {name:fieldname , value:formattedDate}})
         }
-          console.log(state);
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
-          <DialogTitle align='center'>Update Staff Form</DialogTitle>
+          <DialogTitle align='center'>Update Delivery Status Form</DialogTitle>
           <DialogContent>
       
           {loading ? <div style={{ height:500 , width:400 }}>

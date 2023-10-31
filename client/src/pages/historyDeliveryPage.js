@@ -1,56 +1,29 @@
 import { Helmet } from 'react-helmet-async';
-import { filter, get, size } from 'lodash';
-import { sentenceCase } from 'change-case';
-import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
+import { filter} from 'lodash';
+import { forwardRef, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import { MuiFileInput } from 'mui-file-input';
+import { useParams } from 'react-router-dom';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // @mui
 import {
   Card,
-  Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
   Popover,
-  Checkbox,
-  TableRow,
   MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
   Snackbar,
 } from '@mui/material';
 // components
 import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
-import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
+import { ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-// sections
-// import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-import { OutletContext } from '../layouts/dashboard/OutletProvider';
 // ----------------------------------------------------------------------
 
 
@@ -84,9 +57,12 @@ function applySortFilter(array, comparator, query) {
   }
   return stabilizedThis.map((el) => el[0]);
 }
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function HistoryDeliveryPage() {
   const {menu,item} = useParams()
 
@@ -113,8 +89,6 @@ export default function HistoryDeliveryPage() {
   const [loading,setLoading] = useState(true)
 
   const [id,setId] = useState()
-  
-  const {load} = useContext(OutletContext)
 
   const cookie = cookies.get("Authorization")
 
@@ -200,7 +174,7 @@ export default function HistoryDeliveryPage() {
   useEffect(()=>{
     setLoading(true)
     const getdata=async()=>{
-    await axios.get("http://localhost:8000/api/historydeliveries?relations=fleet,fleet.staff,transaction,transaction.customer",{
+    await axios.get(`${apiEndpoint}api/historydeliveries?relations=fleet,fleet.staff,transaction,transaction.customer`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -227,7 +201,7 @@ export default function HistoryDeliveryPage() {
   const handleDelete=async()=>{
     const updatedData = productList.filter(item => !id.includes(item.id));
     setProduct(updatedData);
-    axios.post(`http://localhost:8000/api/delete/historydeliveries`,{id},{
+    axios.post(`${apiEndpoint}api/delete/historydeliveries`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -252,7 +226,7 @@ export default function HistoryDeliveryPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />

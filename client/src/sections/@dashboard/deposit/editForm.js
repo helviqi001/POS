@@ -37,6 +37,9 @@ import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 const Alert = forwardRef((props, ref) =>{
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
 
     const [loading, setLoading] = useState(true);
@@ -138,7 +141,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
       formData.append("information",state.formData.information)
       formData.append("id",id)
       try {
-        await axios.post("http://localhost:8000/api/update/deposits",formData,{
+        await axios.post(`${apiEndpoint}api/update/deposits`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -150,20 +153,19 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
               load(false)
               handleCloseModal()
             },1000)
-          },1500)
+          },1500)    
         })
       } catch (error) {
         if (error.response.status === 500 ) {
-          handleClick(error.response.data.error,'error')
+            handleClick(error.response.data.error,'error')
         }
-        console.log(error);
       }
       }
 
       useEffect(()=>{
         setLoading(true)
         const getData= async()=>{
-          await axios.get(`http://localhost:8000/api/deposits/${id}?relations=customer`,{
+          await axios.get(`${apiEndpoint}api/deposits/${id}?relations=customer`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -172,7 +174,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
                 {type:"UPDATE" , payload: response.data}
                 )
               })
-          await axios.get("http://localhost:8000/api/customers",{
+          await axios.get(`${apiEndpoint}api/customers`,{
                 headers:{
                       "Content-Type" : "aplication/json",
                       "Authorization" : `Bearer ${cookie}`
@@ -184,9 +186,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             }
 
             getData()
-          },[])
-          console.log(state);
-
+          },[id,cookie])
           const handleKeyDown = (e) => {
             if (e.key === 'Enter') {
               // Tombol Enter ditekan, panggil handleClick

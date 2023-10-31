@@ -3,16 +3,10 @@ import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   Snackbar,
 } from '@mui/material';
@@ -20,7 +14,7 @@ import MuiAlert from '@mui/material/Alert';
 import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
 import dayjs from 'dayjs';
-import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -30,9 +24,11 @@ import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 
 
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
 
@@ -140,7 +136,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
       formData.append("information",state.formData.information)
       formData.append("id",id)
       try {
-        await axios.post("http://localhost:8000/api/update/suppliers",formData,{
+        await axios.post(`${apiEndpoint}api/update/suppliers`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -164,7 +160,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
       useEffect(()=>{
         setLoading(true)
         const getData= async()=>{
-          await axios.get(`http://localhost:8000/api/suppliers/${id}`,{
+          await axios.get(`${apiEndpoint}api/suppliers/${id}`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -177,7 +173,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             }
 
             getData()
-          },[])
+          },[id,cookie])
 
           const handleKeyDown = (e) => {
             if (e.key === 'Enter') {

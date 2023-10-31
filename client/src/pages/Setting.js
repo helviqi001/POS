@@ -8,6 +8,9 @@ import { styled } from '@mui/material/styles';
 import { OutletContext } from "../layouts/dashboard/OutletProvider";
 import Iconify from '../components/iconify';
 
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function SettingPage(){
     const cookies = new Cookies
     const {menu,item} = useParams()
@@ -45,7 +48,7 @@ export default function SettingPage(){
             const formData = new FormData()
             formData.append("urlImage",image)
             formData.append("id",setting[0].id)
-            await axios.post("http://localhost:8000/api/update/settings",formData,{
+            await axios.post(`${apiEndpoint}api/update/settings`,formData,{
                 headers:{
                     Authorization: `Bearer ${cookie}`
                   }
@@ -58,7 +61,7 @@ export default function SettingPage(){
             const formData = new FormData()
             formData.append("urlIcon",image)
             formData.append("id",setting[1].id)
-            await axios.post("http://localhost:8000/api/update/settings",formData,{
+            await axios.post(`${apiEndpoint}api/update/settings`,formData,{
                 headers:{
                     Authorization: `Bearer ${cookie}`
                   }
@@ -77,14 +80,14 @@ export default function SettingPage(){
                     {"rel": "icon", 
                     "type": "image/png", 
                     "sizes": '63x32',
-                    "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+                    "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
                     }
                     ]}
             />
             <Grid container justifyContent={"flex-start"}>
                 <Grid item sm={12} md={6} lg={4}>
                     <Card sx={{ maxWidth:360 }}>
-                        <img src={`http://localhost:8000/storage/${setting[0].urlImage}`} alt="Logo" style={{ padding:10 }}/>
+                        <img src={`${apiEndpoint}storage/${setting[0].urlImage}`} alt="Logo" style={{ padding:10 }}/>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">
                             Logo Header
@@ -109,10 +112,10 @@ export default function SettingPage(){
                 </Grid>
                 <Grid item sm={12} md={6} lg={4}>
                     <Card sx={{ maxWidth:360 }}>
-                        <img src={`http://localhost:8000/storage/${setting[1].urlIcon}`} alt="Logo" style={{ padding:10, margin:'auto'}}/>
+                        <img src={`${apiEndpoint}storage/${setting[1].urlIcon}`} alt="Logo" style={{ padding:10, margin:'auto'}}/>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">
-                            Icon Url
+                            Icon Url {'(1:1)'}
                         </Typography>
                         <Typography gutterBottom variant="subtitle2" component="div">
                             setelah melakukan Perubahan mohon untuk Login ulang

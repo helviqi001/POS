@@ -6,12 +6,14 @@ import { useState,useEffect, useContext, forwardRef, useReducer } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Cookies from "universal-cookie"
 import { INITIAL_STATE2,StaffReducer } from '../sections/@dashboard/staff/StaffReducer';
-import Iconify from '../components/iconify';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+    <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function ProfilePage(){
   const [state,dispatch] = useReducer(StaffReducer,INITIAL_STATE2)
     const Profile = JSON.parse(localStorage.getItem('userProfile'))
@@ -54,7 +56,7 @@ export default function ProfilePage(){
     useEffect(()=>{
         setLoading(true)
         const getData=async()=>{
-          await axios.get(`http://localhost:8000/api/staffs/${Profile.staff_id}?relations=position`,{
+          await axios.get(`${apiEndpoint}api/staffs/${Profile.staff_id}?relations=position`,{
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${cookie}`
@@ -164,13 +166,13 @@ export default function ProfilePage(){
         formData2.append("id",Profile.id)
         try {
           if(state.formData.oldPassword !== ""){
-            await axios.post("http://localhost:8000/api/update/users",formData2,{
+            await axios.post(`${apiEndpoint}api/update/users`,formData2,{
               headers:{
                 Authorization: `Bearer ${cookie}`
               }
             })
           }
-          await axios.post("http://localhost:8000/api/update/staffs",formData1,{
+          await axios.post(`${apiEndpoint}api/update/staffs`,formData1,{
             headers:{
               Authorization: `Bearer ${cookie}`
             }
@@ -206,7 +208,7 @@ export default function ProfilePage(){
                     {"rel": "icon", 
                     "type": "image/png", 
                     "sizes": '32x32',
-                    "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+                    "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
                     }
                     ]}
             />
@@ -223,7 +225,7 @@ export default function ProfilePage(){
                         {imagePreview ? (
                           <StyledImage src={imagePreview} alt='' />
                         ) : (
-                          <StyledImage src={`http://localhost:8000/storage/${state.formData.urlImage}`} alt='' />
+                          <StyledImage src={`${apiEndpoint}storage/${state.formData.urlImage}`} alt='' />
                         )}
                             <VisuallyHiddenInput type="file"  accept="image/*" onChange={handleFileChange}/>
                         </Button>
@@ -276,7 +278,7 @@ export default function ProfilePage(){
                             name='username'
                             sx={{ marginBottom:1 }}
                             onChange={handleChange}
-                            defaultValue={state.formData.username}
+                            defaultValue={Profile.username}
                             key={4}
                             error={!!state.validationErrors.username}
                             helperText={state.validationErrors.username || ' '}

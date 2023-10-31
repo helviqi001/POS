@@ -10,34 +10,15 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 // @mui
 import {
   Card,
-  Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
   Popover,
-  Checkbox,
-  TableRow,
   MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
   Snackbar,
 } from '@mui/material';
 // components
@@ -47,7 +28,6 @@ import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport 
 import CreateCustomer from '../sections/@dashboard/customer/createform';
 import EditCustomer from '../sections/@dashboard/customer/editForm';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
-import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
@@ -89,9 +69,12 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function CustomerPage() {
   const {menu,item} = useParams()
 
@@ -200,7 +183,7 @@ export default function CustomerPage() {
     const cookie = cookies.get("Authorization")
     setLoading(true)
     const getdata=async()=>{
-     await axios.get("http://localhost:8000/api/customers?",{
+     await axios.get(`${apiEndpoint}api/customers?`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -250,7 +233,7 @@ export default function CustomerPage() {
     const updatedData = productList.filter(item => !id.includes(item.id));
     setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.post(`http://localhost:8000/api/delete/customers`,{id},{
+    axios.post(`${apiEndpoint}api/delete/customers`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -290,7 +273,7 @@ export default function CustomerPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />
@@ -475,7 +458,7 @@ const CustomToolbar =()=>{
     formData.append('excel_file', files);
   
     // Kirim file ke server menggunakan Axios atau library lainnya
-    axios.post('http://localhost:8000/api/import/customers', formData,{
+    axios.post(`${apiEndpoint}api/import/customers`, formData,{
       headers:{
         'Authorization':`Bearer ${cookie}`
       }

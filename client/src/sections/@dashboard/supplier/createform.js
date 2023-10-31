@@ -3,40 +3,29 @@ import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
-  FormHelperText,
-  styled,
-  makeStyles,
-  withStyles,
   Snackbar,
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
-import { forwardRef, useContext, useEffect, useMemo, useReducer, useState } from 'react';
+import { forwardRef, useContext, useReducer, useState } from 'react';
 import Cookies from 'universal-cookie';
 import dayjs from 'dayjs';
 import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
-import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
 import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 import { INITIAL_STATE, SupplierRecuder } from './SupplierReducer';
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
     
@@ -138,7 +127,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
       formData.append("urlImage",state.formData.urlImage)
       formData.append("information",state.formData.information)
       try {
-        await axios.post("http://localhost:8000/api/suppliers",formData,{
+        await axios.post(`${apiEndpoint}api/suppliers`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }

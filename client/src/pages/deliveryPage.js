@@ -1,44 +1,21 @@
 import { Helmet } from 'react-helmet-async';
 import { filter, get, size } from 'lodash';
-import { sentenceCase } from 'change-case';
-import { forwardRef, useContext, useEffect, useReducer, useState } from 'react';
+import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MuiFileInput } from 'mui-file-input';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // @mui
 import {
   Card,
-  Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
   Popover,
-  Checkbox,
-  TableRow,
   MenuItem,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  IconButton,
-  TableContainer,
-  TablePagination,
-  Modal,
   Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Select,
-  DialogTitle,
   Snackbar,
 } from '@mui/material';
 // components
@@ -47,16 +24,9 @@ import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport 
 import CheckIcon from '@mui/icons-material/Check';
 import EditForm from '../sections/@dashboard/delivery/editForm';
 import DoneForm from '../sections/@dashboard/delivery/doneForm';
-import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
-import Label from '../components/label';
+import { ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
-// sections
-// import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
-// mock
-import USERLIST from '../_mock/user';
-import { OutletContext } from '../layouts/dashboard/OutletProvider';
-import { INITIAL_STATE,StaffReducer } from '../sections/@dashboard/delivery/StaffReducer';
 // ----------------------------------------------------------------------
 
 
@@ -90,9 +60,10 @@ function applySortFilter(array, comparator, query) {
   }
   return stabilizedThis.map((el) => el[0]);
 }
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
+));
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 export default function DeliveryPage() {
   const {menu,item} = useParams()
 
@@ -114,8 +85,6 @@ export default function DeliveryPage() {
 
   const [filterName, setFilterName] = useState('');
 
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const cookies = new Cookies()
 
   const [productList,setProduct] = useState([])
@@ -127,8 +96,6 @@ export default function DeliveryPage() {
   const [loading,setLoading] = useState(true)
 
   const [id,setId] = useState()
-  
-  const {load} = useContext(OutletContext)
 
   const cookie = cookies.get("Authorization")
 
@@ -214,7 +181,7 @@ export default function DeliveryPage() {
   useEffect(()=>{
     setLoading(true)
     const getdata=async()=>{
-     await axios.get("http://localhost:8000/api/deliveries?relations=fleet,fleet.staff,transaction,transaction.customer",{
+     await axios.get(`${apiEndpoint}api/deliveries?relations=fleet,fleet.staff,transaction,transaction.customer`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -260,7 +227,7 @@ export default function DeliveryPage() {
   const handleDelete=async()=>{
     const updatedData = productList.filter(item => !id.includes(item.id));
     setProduct(updatedData);
-    axios.post(`http://localhost:8000/api/delete/deliveries`,{id},{
+    axios.post(`${apiEndpoint}api/delete/deliveries`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -287,7 +254,7 @@ export default function DeliveryPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />

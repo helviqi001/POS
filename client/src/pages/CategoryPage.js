@@ -72,6 +72,8 @@ const Alert = forwardRef((props, ref) =>{
   return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
 });
 
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function CategoryPage() {
   const {menu,item} = useParams()
 
@@ -106,8 +108,6 @@ export default function CategoryPage() {
   const [loading,setLoading] = useState(true)
 
   const [id,setId] = useState()
-  
-  const {load} = useContext(OutletContext)
 
   const [priv,setPriv] = useState({
     add:0,
@@ -173,7 +173,7 @@ export default function CategoryPage() {
     const cookie = cookies.get("Authorization")
     setLoading(true)
     const getdata=async()=>{
-     await axios.get("http://localhost:8000/api/categories",{
+     await axios.get(`${apiEndpoint}api/categories`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -218,7 +218,7 @@ export default function CategoryPage() {
     const updatedData = productList.filter(item => !id.includes(item.id));
     setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    axios.post(`http://localhost:8000/api/delete/categories`,{id},{
+    axios.post(`${apiEndpoint}api/delete/categories`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
@@ -262,7 +262,7 @@ export default function CategoryPage() {
               {"rel": "icon", 
                "type": "image/png", 
                "sizes": '32x32',
-               "href": `http://localhost:8000/storage/${setting[1].urlIcon}`
+               "href": `${apiEndpoint}storage/${setting[1].urlIcon}`
               }
              ]}
       />
@@ -442,7 +442,7 @@ const CustomToolbar =()=>{
     formData.append('excel_file', files);
   
     // Kirim file ke server menggunakan Axios atau library lainnya
-    axios.post('http://localhost:8000/api/import/categories', formData,{
+    axios.post(`${apiEndpoint}api/import/categories`, formData,{
       headers:{
         'Authorization':`Bearer ${cookie}`
       }

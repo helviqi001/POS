@@ -3,7 +3,6 @@ import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
   FormControl,
   InputLabel,
@@ -12,7 +11,6 @@ import {
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   FormHelperText,
   Box,
@@ -30,6 +28,8 @@ import { OutletContext } from '../../../layouts/dashboard/OutletProvider';
 const Alert = forwardRef((props, ref) =>{
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
     
     const [supplier,setSupplier] = useState("")
@@ -162,7 +162,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
       formData.append("information",state.formData.information)
       formData.append("id",id)
       try {
-        await axios.post("http://localhost:8000/api/update/products",formData,{
+        await axios.post(`${apiEndpoint}api/update/products`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -186,7 +186,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
       useEffect(()=>{
         setLoading(true)
         const getData= async()=>{
-          await axios.get("http://localhost:8000/api/suppliers",{
+          await axios.get(`${apiEndpoint}api/suppliers`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -195,7 +195,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
             setSupplier(response.data)
           })
 
-         await axios.get("http://localhost:8000/api/units",{
+         await axios.get(`${apiEndpoint}api/units`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -204,7 +204,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
             setUnit(response.data)
           })
 
-          await axios.get("http://localhost:8000/api/categories",{
+          await axios.get(`${apiEndpoint}api/categories`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -213,7 +213,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
             setCategory(response.data)
           })
 
-         await axios.get(`http://localhost:8000/api/products/${id}?relations=category,unit,supplier,restocks`,{
+         await axios.get(`${apiEndpoint}api/products/${id}?relations=category,unit,supplier,restocks`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`

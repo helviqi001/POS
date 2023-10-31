@@ -84,8 +84,13 @@ class DepositController extends Controller
         } while ($existingProduct);
         $validated = $validator->validated();
         $validated['idDeposit'] = $idDeposit;
-        $existingTotalDeposit = Deposit::where('customer_id', $validated['customer_id'])->sum('ammount');
-        $newTotalDeposit = $existingTotalDeposit + $validated['ammount'];
+        $existingTotalDeposit = Deposit::where('customer_id', $validated['customer_id'])->latest()->first();
+        if($existingTotalDeposit !== null){
+            $newTotalDeposit = $existingTotalDeposit->total + $validated['ammount'];
+        }
+        else{
+            $newTotalDeposit = 0 + $validated['ammount'];
+        }
         $validated['total'] = $newTotalDeposit;
         try{
             $newValue= Deposit::create($validated);
@@ -155,47 +160,63 @@ class DepositController extends Controller
      */
     public function update(Request $request)
     {
-        $validator = Validator::make($request->all(),[
-            "customer_id"=>"integer",
-            "depositDate"=>"date_format:Y-m-d",
-            "ammount"=>"decimal:0,4",
-            "total"=>"decimal:0,4",
-            "status"=>"string",
-            "information"=>"string",
-            "id"=>"integer"
+        $validator = Validator::make($request->all(), [
+            "customer_id" => "integer",
+            "depositDate" => "date_format:Y-m-d",
+            "ammount" => "decimal:0,4",
+            "total" => "decimal:0,4",
+            "status" => "string",
+            "information" => "string",
+            "id" => "integer"
         ]);
-        if($validator->fails()){
-            return response()->json([
-                "message"=>$validator->errors()
-            ],Response::HTTP_BAD_REQUEST);
-        }
-        $validated = $validator->validated();
-        $Deposit= Deposit::findOrfail($request->id);
-        try{
-            $ammountDifference = $validated['ammount'] - $Deposit->ammount;
-
-            // Mengambil semua deposit dengan customer_id yang sama dan ID lebih besar
-            $sameCustomerDeposits = Deposit::where('customer_id', $Deposit->customer_id)
-                ->where('id', '>=', $Deposit->id)
-                ->get();
     
-            // Update total hanya pada data setelah update
+        if ($validator->fails()) {
+            return response()->json([
+                "message" => $validator->errors()
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    
+        $validated = $validator->validated();
+        $Deposit = Deposit::findOrFail($request->id);
+    
+        // Lakukan pemeriksaan seperti yang Anda lakukan pada penghapusan
+        $ammountDifference = $validated['ammount'] - $Deposit->ammount;
+        
+        $sameCustomerDeposits = Deposit::where('customer_id', $Deposit->customer_id)
+            ->where('id', '>=', $Deposit->id)
+            ->get();
+    
+        foreach ($sameCustomerDeposits as $sameCustomerDeposit) {
+            $newTotal = $sameCustomerDeposit->total + $ammountDifference;
+            if ($newTotal < 0) {
+                // Saldo menjadi negatif, hentikan pembaruan dan atur pesan kesalahan
+                return response()->json([
+                    "error" => "cant update data. it'll return negative"
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
+    
+        try {
+            // Lakukan pembaruan setelah pemeriksaan berhasil
+            $Deposit->update($validated);
+            
+            // Update total hanya pada data setelah pembaruan
             foreach ($sameCustomerDeposits as $sameCustomerDeposit) {
                 $sameCustomerDeposit->total += $ammountDifference;
                 $sameCustomerDeposit->save();
             }
+        } catch (\Exception $e) {
+            return response()->json([
+                "error" => $e
+            ], Response::HTTP_BAD_REQUEST);
+        }
     
-            $Deposit->update($validated);
-        }
-        catch(\Exception $e){
-            return $e;
-        }
-
         return response()->json([
-            "message"=>"Data Berhasil diUpdate",
-            "data"=>$Deposit
-        ],Response::HTTP_OK);
+            "message" => "Data Berhasil diUpdate",
+            "data" => $Deposit
+        ], Response::HTTP_OK);
     }
+    
 
     /**
      * Remove the specified resource from storage.
@@ -224,24 +245,57 @@ class DepositController extends Controller
         return response()->json([
             "message"=>"data berhasil di delete"
         ],Response::HTTP_OK);
+
     }
+    
     public function MultipleDelete(Request $request)
     {
-        $id = $request->input('id');
-        $deposits = Deposit::whereIn('id', $id)->get();
-        foreach ($deposits as $deposit) {
-            $ammountToSubtract = $deposit->ammount;
-            $deposit->delete();
-            // Ambil data-data setelah hapus
-            $sameCustomerDeposits = Deposit::where('customer_id', $deposit->customer_id)->where('id', '>', $deposit->id)->get();
-            // Kurangi total data setelah hapus dengan nilai ammount yang dihapus
-            foreach ($sameCustomerDeposits as $sameCustomerDeposit) {
-                $sameCustomerDeposit->total -= $ammountToSubtract;
-                $sameCustomerDeposit->save();
+        $ids = $request->input('id');
+        $responseMessage = "Data berhasil dihapus";
+        $canDelete = true;
+    
+        foreach ($ids as $id) {
+            $deposit = Deposit::find($id);
+            
+            if ($deposit) {
+                $ammountToSubtract = $deposit->ammount;
+    
+                $sameCustomerDeposits = Deposit::where('customer_id', $deposit->customer_id)
+                    ->where('id', '>', $deposit->id)
+                    ->get();
+    
+                foreach ($sameCustomerDeposits as $sameCustomerDeposit) {
+                    $newTotal = $sameCustomerDeposit->total - $ammountToSubtract;
+                    if ($newTotal < 0) {
+                        // Saldo menjadi negatif, atur flag $canDelete menjadi false
+                        $canDelete = false;
+                        throw new \Exception("cant delete data. it'll return negative");
+                        $responseMessage = "Penghapusan gagal. Penghapusan ini akan membuat saldo negatif.";
+                        break;
+                    }
+                }
+                foreach ($sameCustomerDeposits as $sameCustomerDeposit) {
+                    if ($canDelete) {
+                        $sameCustomerDeposit->total -= $ammountToSubtract;
+                        $sameCustomerDeposit->save();
+                    }
+                }
             }
         }
+    
+        if ($canDelete) {
+            foreach ($ids as $id) {
+                $deposit = Deposit::find($id);
+    
+                if ($deposit) {
+                    $deposit->delete();
+                }
+            }
+        }
+    
         return response()->json([
-            "message"=>"data berhasil di delete"
-        ],Response::HTTP_OK);
+            "message" => $responseMessage,
+        ], Response::HTTP_OK);
     }
+    
 }

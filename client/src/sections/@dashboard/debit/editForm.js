@@ -1,4 +1,3 @@
-import { MuiFileInput } from 'mui-file-input';
 import axios from 'axios';
 // @mui
 import {
@@ -14,9 +13,6 @@ import {
   DialogActions,
   Select,
   DialogTitle,
-  FormHelperText,
-  Box,
-  Autocomplete,
   Snackbar,
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
@@ -31,15 +27,13 @@ import Loading2 from '../../../Loading/loading2';
 import { INITIAL_STATE, ProductRecuder } from './productReducer';
 
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
-const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
-    
-    const [supplier,setSupplier] = useState("")
-    const [category,setCategory] = useState("")
-    const [unit,setUnit] = useState("")
+const Alert = forwardRef((props, ref) =>(
+  <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
 
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
+const EditForm = ( {id, openModal , handleCloseModal} )=>{
     const [loading, setLoading] = useState(true);
     const {load} = useContext(OutletContext)
     const [state,dispatch] = useReducer(ProductRecuder,INITIAL_STATE)
@@ -135,7 +129,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
       formData.append("status",state.formData.status)
       formData.append("id",id)
       try {
-        await axios.post("http://localhost:8000/api/update/debits",formData,{
+        await axios.post(`${apiEndpoint}api/update/debits`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -160,7 +154,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
         setLoading(true)
         const getData= async()=>{
 
-         await axios.get(`http://localhost:8000/api/debits/${id}?relations=customer,transaction`,{
+         await axios.get(`${apiEndpoint}api/debits/${id}?relations=customer,transaction`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -173,7 +167,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
           }
 
           getData()
-      },[])
+      },[id,cookie])
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>

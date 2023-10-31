@@ -1,22 +1,14 @@
-import { MuiFileInput } from 'mui-file-input';
 import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
   TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
   Autocomplete,
   Box,
-  FormHelperText,
   Snackbar,
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
@@ -27,9 +19,12 @@ import { INITIAL_STATE, StaffReducer } from './StaffReducer';
 
 
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const Alert = forwardRef((props, ref) =>(
+   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+));
+
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+
 export default function CreateUser ({ style2 , openModal , handleCloseModal }){
   const [position , setPosition] = useState([])
   const {load} = useContext(OutletContext)
@@ -100,15 +95,6 @@ export default function CreateUser ({ style2 , openModal , handleCloseModal }){
 
       handleChangeValidation(formdata);
     }
-    const handleDate=(data)=>{
-      const date = new Date(data.$y, data.$M , data.$D)
-      
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      const formattedDate = `${year}-${month}-${day}`;
-      dispatch({type:"DATE_INPUT",payload: formattedDate})
-    }
     const handleCreate= async() =>{
       const formdata = { ...state.formData }; // Clone the formData to avoid modifying the original state
   
@@ -122,7 +108,7 @@ export default function CreateUser ({ style2 , openModal , handleCloseModal }){
       formData.append("staff_id",state.formData.staff_id)
       formData.append("password",state.formData.password)
       try {
-        await axios.post("http://localhost:8000/api/users",formData,{
+        await axios.post(`${apiEndpoint}api/users`,formData,{
           headers:{
             Authorization: `Bearer ${cookie}`
           }
@@ -149,7 +135,7 @@ export default function CreateUser ({ style2 , openModal , handleCloseModal }){
 
       useEffect(()=>{
         const getData= () =>{
-          axios.get("http://localhost:8000/api/staffs",{
+          axios.get(`${apiEndpoint}api/staffs`,{
         headers:{
               "Content-Type" : "aplication/json",
               "Authorization" : `Bearer ${cookie}`
@@ -159,7 +145,7 @@ export default function CreateUser ({ style2 , openModal , handleCloseModal }){
           })
         }
         getData()
-      },[])
+      },[cookie])
       const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
           // Tombol Enter ditekan, panggil handleClick

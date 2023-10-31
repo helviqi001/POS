@@ -1,35 +1,21 @@
-import { MuiFileInput } from 'mui-file-input';
 import axios from 'axios';
 // @mui
 import {
   Button,
-  MenuItem,
-  TextField,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
   Dialog,
   DialogContent,
   DialogActions,
-  Select,
   DialogTitle,
-  Table,
-  TableContainer,
-  TableHead,
-  TableCell,
-  TableRow,
-  Paper,
-  TableBody,
   Box,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { useContext, useEffect, useReducer, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Cookies from 'universal-cookie';
 import Loading2 from '../../../Loading/loading2';
 
+const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
-const DetailTransaction = ({ id , openModal , handleCloseModal})=>{
+const DetailTransaction = ({id , openModal , handleCloseModal})=>{
 
     const [loading, setLoading] = useState(true);
     const [productList, setProduct] = useState([]);
@@ -73,7 +59,7 @@ const DetailTransaction = ({ id , openModal , handleCloseModal})=>{
       useEffect(()=>{
         setLoading(true)
         const getData= async()=>{
-          await axios.get(`http://localhost:8000/api/customers/${id}?relations=transaction.staff,transaction.products`,{
+          await axios.get(`${apiEndpoint}api/customers/${id}?relations=transaction.staff,transaction.products`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -85,7 +71,7 @@ const DetailTransaction = ({ id , openModal , handleCloseModal})=>{
             }
 
             getData()
-          },[])
+          },[id,cookie])
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
