@@ -33,7 +33,6 @@ export const AuthContextProvider = ({children})=>{
         }
         return JSON.parse(userProfile)
     })
-    console.log(apiEndpoint);
     const login = async(paylod)=>{
             await axios.get(`${apiEndpoint}sanctum/csrf-cookie`)
             try{

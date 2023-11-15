@@ -42,10 +42,9 @@ class ImportReturs implements ToModel,WithHeadingRow
             $idRetur = 'Return'.'-'. $randomNumber;
             $existingProduct = Retur::where('idRetur', $idRetur)->first();
         } while ($existingProduct);
-        $returnDate = date('Y-m-d H:i', strtotime($row['registerdate'] ?? $row['register_date']));
         $restock =new Retur([
             "idRetur"=>$idRetur,
-            "returnDate"=>$returnDate,
+            "returnDate"=>$returndate,
             "totalSpend"=>$totalSpend,
             "supplier_id"=>$row['supplier_id'],
         ]);

@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -16,21 +15,14 @@ use App\Http\Controllers\MenuitemController;
 use App\Http\Controllers\notificationController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RestockController;
 use App\Http\Controllers\ReturnController;
-use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StaffContoller;
-use App\Http\Controllers\supllierController;
-use App\Http\Controllers\supplier2Controller;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
-use App\Models\historydelivery;
-use App\Models\Restock;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*

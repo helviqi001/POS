@@ -219,7 +219,7 @@ export default function StaffPage() {
     const cookie = cookies.get("Authorization")
     setLoading(true)
     const getdata=async()=>{
-     await axios.get(`${apiEndpoint}/api/staffs?relations=transaction,position`,{
+     await axios.get(`${apiEndpoint}api/staffs?relations=transaction,position`,{
         headers:{
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
@@ -490,7 +490,7 @@ const CustomToolbar =()=>{
     formData.append('excel_file', files);
   
     // Kirim file ke server menggunakan Axios atau library lainnya
-    axios.post(`${apiEndpoint}/api/import/staffs`, formData,{
+    axios.post(`${apiEndpoint}api/import/staffs`, formData,{
       headers:{
         'Authorization':`Bearer ${cookie}`
       }
