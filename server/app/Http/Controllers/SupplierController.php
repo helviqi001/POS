@@ -61,7 +61,7 @@ class SupplierController extends Controller
             "RegisterDate" => "required|date_format:Y-m-d",
             "phone" => "required|string",
             "address" => "required|string",
-            "urlImage" => ["required",File::image()],
+            "urlImage" => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,gif'],
             "information" => "required|string",
         ]);
         

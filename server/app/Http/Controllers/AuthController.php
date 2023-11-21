@@ -33,9 +33,9 @@ class AuthController extends Controller
 
         $token = $user->createToken("auth")->plainTextToken;
 
-        $menus = Menugroup::withWhereHas('menuitem', function ($query) use ($user) {
-            $query->withWhereHas('privilage',function ($subQuery) {
-                $subQuery->where('view',1);
+        $menus = Menugroup::whereHas('menuitem', function ($query) use ($user) {
+            $query->whereHas('privilage', function ($subQuery) {
+                $subQuery->where('view', 1);
             });
         })->get();
         

@@ -77,7 +77,7 @@ class ProductController extends Controller
             "unit_id"=> "required|integer",
             "supplier_id"=> "required|integer",
             "category_id"=> "required|integer",
-            "urlImage" => ["required",File::image()],
+            "urlImage" => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,gif'],
         ]);
         if($validator->fails()){
             return response()->json([

@@ -69,7 +69,7 @@ class StaffContoller extends Controller
             "registerDate"=>"required|date_format:Y-m-d",
             "name"=>"required|string",
             "address"=>"required|string",
-            "urlImage"=>["required",File::image()],
+            "urlImage"=>['required', 'file', 'image', 'mimes:jpeg,png,jpg,gif'],
             "phone"=>"required|string",
             "information"=>"required|string",
             "position_id"=>"required|integer"

@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\File;
 
 class settingController extends Controller
 {
@@ -44,8 +43,8 @@ class settingController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'urlImage'=>File::image(),
-            'urlIcon'=>File::image(),
+            'urlImage' => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,gif'],
+            'urlIcon' => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,gif'],
         ]);
         if($validator->fails()){
             return response()->json([

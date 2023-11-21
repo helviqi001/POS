@@ -34,7 +34,11 @@ export const AuthContextProvider = ({children})=>{
         return JSON.parse(userProfile)
     })
     const login = async(paylod)=>{
-            await axios.get(`${apiEndpoint}sanctum/csrf-cookie`)
+            await axios.get(`${apiEndpoint}sanctum/csrf-cookie`,{
+                headers:{
+                    Accept:'application/json'
+                }
+            })
             try{
                 await axios.post(`${apiEndpoint}api/auth`, paylod, {withCredentials:true}).then(response=>{
                     localStorage.setItem("privilage",JSON.stringify(response.data.privilage))
@@ -56,6 +60,7 @@ export const AuthContextProvider = ({children})=>{
                     })
                 })
             }catch(error){
+                console.log(error)
                 handleClick("The username or password entered is incorrect",'error')
             }
     }
