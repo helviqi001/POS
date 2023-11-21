@@ -19,9 +19,11 @@ import { INITIAL_STATE, StaffReducer } from './StaffReducer';
 
 
 
-const Alert = forwardRef((props, ref) =>(
-   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
-));
+const Alert = forwardRef((props, ref) =>{
+  return(
+    <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+  )
+});
 
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
@@ -129,7 +131,6 @@ export default function CreateUser ({ style2 , openModal , handleCloseModal }){
         if (error.response.status === 400 ) {
           handleClick(error.response.data.message,'error')
         }
-        console.log(error);
       }
       }
 

@@ -197,7 +197,7 @@ class PositionController extends Controller
                         if ($positionPrivilege['menuitem_id'] == $keyY) {
                             if (array_key_exists('view', $menu)) {
                                 $privilege['view'] = 1;
-                            }
+                                }
                             if (array_key_exists('add', $menu)) {
                                 $privilege['add'] = 1;
                             }

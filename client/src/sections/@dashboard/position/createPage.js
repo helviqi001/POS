@@ -144,9 +144,6 @@ export default function CreatePosition() {
     // Update state dengan objek menu yang baru
     dispatch({ type: "CHANGE_CHECKBOX", value: updatedCheckedMenus });
   };
-    console.log(state);
-
-//   console.log(state);
   useEffect(()=>{
     setLoading(true)
     const getData=async()=>{
@@ -210,30 +207,29 @@ export default function CreatePosition() {
           });
         });
       }
-    try {
-      await axios.post(`${apiEndpoint}api/positions`,formData,{
-        headers:{
-          Authorization: `Bearer ${cookie}`
-        }
-      }).then(response=>{
-        console.log(response);
-        handleClick(response.data.message,'success')
-        setTimeout(()=>{
-          load(true)
-          setTimeout(()=>{
-            load(false)
-            navigate(`/dashboard/position/${menu}/${item}`)
-          },1000)
-        },1500)
-      })
-    } catch (error) {
-      if (error.response.status === 500 ) {
-        handleClick(error.response.data.error,'error')
-      }
-      console.log(error);
+    // try {
+    //   await axios.post(`${apiEndpoint}api/positions`,formData,{
+    //     headers:{
+    //       Authorization: `Bearer ${cookie}`
+    //     }
+    //   }).then(response=>{
+    //     console.log(response);
+    //     handleClick(response.data.message,'success')
+    //     setTimeout(()=>{
+    //       load(true)
+    //       setTimeout(()=>{
+    //         load(false)
+    //         navigate(`/dashboard/position/${menu}/${item}`)
+    //       },1000)
+    //     },1500)
+    //   })
+    // } catch (error) {
+    //   if (error.response.status === 500 ) {
+    //     handleClick(error.response.data.error,'error')
+    //   }
+    //   console.log(error);
+    // }
     }
-    }
-  
   return (
     <>
       <Container>

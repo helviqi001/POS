@@ -48,7 +48,11 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $validated = $request->validated();
+        $existingUser = User::where('staff_id', $validated["staff_id"])->first();
 
+        if ($existingUser) {
+            return response()->json(['error' => 'This staff already has a user account'], 500);
+        }
         try{
             $user = User::create([
                 "username" => $validated["username"],
