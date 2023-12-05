@@ -101,7 +101,6 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
         if (error.response.status === 500 ) {
           handleClick(error.response.data.error,'error')
         }
-        console.log(error);
       }
       }
      

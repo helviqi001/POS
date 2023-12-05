@@ -11,22 +11,18 @@ import account from '../../../_mock/account';
 import { OutletContext } from '../OutletProvider';
 
 // ----------------------------------------------------------------------
-
+const baseUrl = process.env.PUBLIC_URL
 const MENU_OPTIONS = [
   {
     label: 'Home',
     icon: 'eva:home-fill',
-    path: '/dashboard/app',
+    path: `${baseUrl}/dashboard/app`,
   },
   {
     label: 'Profile',
     icon: 'eva:person-fill',
-    path: '/dashboard/profile',
+    path: `${baseUrl}/dashboard/profile`,
   },
-  // {
-  //   label: 'Settings',
-  //   icon: 'eva:settings-2-fill',
-  // },
 ];
 
 // ----------------------------------------------------------------------

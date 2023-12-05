@@ -67,6 +67,8 @@ const Alert = forwardRef((props, ref) =>(
 ));
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
+const baseUrl = process.env.PUBLIC_URL;
+
 export default function TransactionPage() {
   const {menu,item} = useParams()
 
@@ -96,8 +98,6 @@ export default function TransactionPage() {
 
   const [id,setId] = useState()
   
-  const {load} = useContext(OutletContext)
-
   const cookie = cookies.get("Authorization")
 
   const [priv,setPriv] = useState({
@@ -239,7 +239,7 @@ export default function TransactionPage() {
       }
     }).then(response=>{
       const data = response.data.data
-      navigate("/invoice", { state: { paramName: data } })
+      navigate( `${baseUrl}/invoice`, { state: { paramName: data } })
     })
   }
 

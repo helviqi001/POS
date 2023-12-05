@@ -20,7 +20,6 @@ NavSection.propTypes = {
 
 export default function NavSection({load, ...other }) {
   const [openedDropdown, setOpenedDropdown] = useState('');
-  // const [navConfig, setNavConfig] = useState([]);
   const navConfig = NavConfig()
   return (
     <Box {...other}>
@@ -46,6 +45,8 @@ function NavItem({ item,...props}) {
   const handleChange = () => {
     setChecked(!checked);
   };
+  
+  const baseUrl = process.env.PUBLIC_URL
   return (
     <div>
       <StyledNavItem
@@ -68,7 +69,7 @@ function NavItem({ item,...props}) {
            {menuitem.map((p)=>(
               <StyledNavItem
               component={RouterLink}
-              to={`${p.url}/${id}/${p.id}`}
+              to={`${baseUrl}${p.url}/${id}/${p.id}`}
               sx={{
                 '&.active': {
                   color: 'text.primary',
@@ -78,7 +79,7 @@ function NavItem({ item,...props}) {
               }}
               >
               <StyledNavItemIcon><i className={`fa-solid ${p.icon} fa-lg`}/></StyledNavItemIcon>
-
+              
                   <ListItemText disableTypography primary={p.name} />
 
               </StyledNavItem>
