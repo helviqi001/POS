@@ -43,23 +43,17 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 const Alert = forwardRef((props, ref) =>(
-   <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+    <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
 ));
 
 export default function LoginPage() {
   // const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+  const baseUrl = process.env.PUBLIC_URL
   const mdUp = useResponsive('up', 'md');
   // const setting = JSON.parse(localStorage.getItem('setting'))
   const { vertical, horizontal, open , message ,variant,handleClose,forget,setForget} = useContext(AuthContext) 
   useEffect(()=>{
     document.title = 'Login Page';
-
-    // Set the favicon
-    // const favicon = document.querySelector("link[rel*='icon']") || document.createElement('link');
-    // favicon.type = 'image/x-icon';
-    // favicon.rel = 'shortcut icon';
-    // favicon.href = `${apiEndpoint}storage/${setting[1].urlIcon}`; // Replace with your desired icon URL
-    // document.querySelector('head').appendChild(favicon);
   },[])
   return (
     <>
@@ -78,7 +72,7 @@ export default function LoginPage() {
             <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
               Please Login
             </Typography>
-            <img src="/assets/illustrations/illustration_login.png" alt="login" />
+            <img src={`${baseUrl}/assets/illustrations/illustration_login.png`} alt="login" />
           </StyledSection>
         )}
 
