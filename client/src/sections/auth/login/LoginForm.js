@@ -19,7 +19,6 @@ export default function LoginForm() {
         username: valueEmail,
         password: valuePassword,
       })
-      // alert("ler")
     }
 
   const handleKeyDown = (e) => {

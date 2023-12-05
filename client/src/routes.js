@@ -6,11 +6,8 @@ import SimpleLayout from './layouts/simple';
 import BlogPage from './pages/BlogPage';
 import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
-import SalesPage from './pages/salePage';
 import DashboardAppPage from './pages/DashboardAppPage';
-import Createuser from './sections/@dashboard/user/createform';
 import ProductPage from './pages/ProductsPage';
-import CreateProduct from './sections/@dashboard/product/createform';
 import SupplierPage from './pages/SupplierPage';
 import CategoryPage from './pages/CategoryPage';
 import UnitPage from './pages/UnitPage';
@@ -41,12 +38,13 @@ import ProfilePage from './pages/ProfilePage';
 // ----------------------------------------------------------------------
 
 export default function Router() {
+  const baseUrl = process.env.PUBLIC_URL
   const routes = useRoutes([
     {
-      path: '/dashboard',
+      path: `${baseUrl}/dashboard`,
       element: <DashboardLayout />,
       children: [
-        { element: <Navigate to="/dashboard/app" />},
+        { element: <Navigate to={`dashboard/app`} />},
         { path: 'app/:menu/:item', element: <DashboardAppPage /> },
         { path: 'app/', element: <DashboardAppPage /> },
         { path: 'customer/:menu/:item', element: <CustomerPage /> },
@@ -68,31 +66,31 @@ export default function Router() {
         { path: 'delivery/:menu/:item', element: <DeliveryPage />},
         { path: 'deposit/:menu/:item', element: <DepositPage/>},
         { path: 'historyDelivery/:menu/:item', element: <HistoryDeliveryPage />},
-        {path:'restock/create/:menu/:item', element:<CreateRestock/>},
-        {path:'restock/edit/:menu/:item', element:<EditRestock/>},
-        {path:'returns/create/:menu/:item', element:<CreateReturn/>},
-        {path:'returns/edit/:menu/:item', element:<EditReturn/>},
+        { path:'restock/create/:menu/:item', element:<CreateRestock/>},
+        { path:'restock/edit/:menu/:item', element:<EditRestock/>},
+        { path:'returns/create/:menu/:item', element:<CreateReturn/>},
+        { path:'returns/edit/:menu/:item', element:<EditReturn/>},
         { path: 'historyTransaction/:menu/:item', element: <TransactionPage />},
-        {path:'position/create/:menu/:item', element:<CreatePosition/>},
-        {path:'position/update/:menu/:item', element:<EditPosition/>},
+        { path:'position/create/:menu/:item', element:<CreatePosition/>},
+        { path:'position/update/:menu/:item', element:<EditPosition/>},
       ],
     },
-    { path: 'invoice', element: <InvoicePage />},
+    { path: `${baseUrl}/invoice`, element: <InvoicePage />},
     {
-      path: '/',
+      path: `${baseUrl}/`,
       element: <LoginPage />,
     },
     {
       element: <SimpleLayout />,
       children: [
         { element: <Navigate to="/dashboard/app" />},
-        { path: '404', element: <Page404 /> },
-        { path: '*', element: <Navigate to="/404" /> },
+        { path: `${baseUrl}/404`, element: <Page404 /> },
+        { path: '*', element: <Navigate to={`${baseUrl}/404`} /> },
       ],
     },
     {
       path: '*',
-      element: <Navigate to="/404" replace />,
+      element: <Navigate to={`${baseUrl}/404`} replace />,
     },
   ]);
 

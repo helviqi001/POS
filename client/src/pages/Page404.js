@@ -19,6 +19,7 @@ const StyledContent = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Page404() {
+  const baseUrl = process.env.PUBLIC_URL
   return (
     <>
       <Helmet>
@@ -38,11 +39,11 @@ export default function Page404() {
 
           <Box
             component="img"
-            src="/assets/illustrations/illustration_404.svg"
+            src={`${baseUrl}/assets/illustrations/illustration_404.svg`}            
             sx={{ height: 260, mx: 'auto', my: { xs: 5, sm: 10 } }}
           />
 
-          <Button to="/" size="large" variant="contained" component={RouterLink}>
+          <Button to={`${baseUrl}/`} size="large" variant="contained" component={RouterLink}>
             Go to Home
           </Button>
         </StyledContent>

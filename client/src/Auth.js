@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom"
 const AuthContext = createContext()
 export const AuthContextProvider = ({children})=>{
     const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+    const baseUrl = process.env.PUBLIC_URL;
     const [forget,setForget] = useState(false)
     const cookies = new Cookies()
     const navigate = useNavigate()
@@ -44,18 +45,17 @@ export const AuthContextProvider = ({children})=>{
                     localStorage.setItem("privilage",JSON.stringify(response.data.privilage))
                     localStorage.setItem("setting",JSON.stringify(response.data.setting))
                     cookies.set("Authorization",response.data.token)
-                    const cookie = cookies.get("Authorization")
                     axios.get(`${apiEndpoint}api/profile`,{
                         headers: {
                             "Content-Type" : "aplication/json",
-                            "Authorization" : `Bearer ${cookie}`
+                            "Authorization" : `Bearer ${response.data.token}`
                         }
                     }).then(response=>{
                         handleClick("Login Success",'success')
                         setTimeout(()=>{
                             localStorage.setItem("userProfile",JSON.stringify(response.data))
                             setUser(response.data)
-                             navigate("/dashboard/app")
+                             navigate(`${baseUrl}/dashboard/app`)
                           },1500)
                     })
                 })
@@ -91,7 +91,7 @@ export const AuthContextProvider = ({children})=>{
             localStorage.removeItem("userProfile")
             setUser(null);
         })
-        navigate("/");
+        navigate(`${baseUrl}/`);
     }
 
 
