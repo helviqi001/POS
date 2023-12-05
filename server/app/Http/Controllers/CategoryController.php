@@ -85,6 +85,7 @@ class CategoryController extends Controller
             "message"=>"Data Berhasil dibuat",
             "data"=>$newValue
         ],Response::HTTP_OK);
+       
     }
 
     /**
