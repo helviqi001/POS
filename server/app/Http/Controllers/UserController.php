@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -49,7 +50,7 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         $existingUser = User::where('staff_id', $validated["staff_id"])->first();
-
+        // $auth = Auth::
         if ($existingUser) {
             return response()->json(['error' => 'This staff already has a user account'], 500);
         }
