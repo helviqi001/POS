@@ -63,10 +63,10 @@ class ReturnController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            "idRetur"=>"integer",
+            "idRetur"=>"intetger",
             "product_id.*.quantity"=>"required|integer",
             "returnDate"=>"required|date_format:Y-m-d H:i",
-            "totalSpend"=>"required|integer",
+            "totalSpend"=>"required|numeric|regex:/^\d+(\.\d{1,4})?$/",
             "product_id.*.coli"=>"required|integer",
             "product_id"=>"required|array",
             "product_id.*.id"=>"integer",
@@ -77,10 +77,17 @@ class ReturnController extends Controller
                 "message"=>$validator->errors(),
             ],Response::HTTP_BAD_REQUEST);
         }
+        do {
+            $randomNumber = rand(01, 9999);
+            $idRetur = 'Return'.'-'. $randomNumber;
+            $existingProduct = Retur::where('idRetur', $idRetur)->first();
+        } while ($existingProduct);
         $validated = $validator->validated();
+        $validated['idRetur'] = $idRetur;
         $products = $this->convert_array($validated["product_id"]);
         try{
             $newValue= Retur::create([
+                "idRetur"=>$validated['idRetur'],
                 'returnDate'=>$validated['returnDate'],
                 'totalSpend'=>$validated['totalSpend'],
                 'supplier_id'=>$validated['supplier_id'],
@@ -145,10 +152,8 @@ class ReturnController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            "idRetur"=>"integer",
             "product_id.*.quantity"=>"integer",
-            "returnDate"=>"date_format:Y-m-d H:i",
-            "totalSpend"=>"integer",
+            "totalSpend"=>"numeric|regex:/^\d+(\.\d{1,4})?$/",
             "product_id.*.coli"=>"integer",
             "product_id"=>"array",
             "product_id.*.id"=>"integer",
@@ -182,8 +187,7 @@ class ReturnController extends Controller
                 $productModel->save(); 
             }
             $retur->update([
-            'idRetur'=>$validated['idRetur'],
-            'returnDate'=>$validated['returnDate'],
+            'returnDate'=>$request->returnDate,
             'totalSpend'=>$validated['totalSpend'],
             'supplier_id'=>$validated['supplier_id'],
             ]);

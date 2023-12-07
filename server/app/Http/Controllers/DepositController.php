@@ -67,8 +67,8 @@ class DepositController extends Controller
             "idDeposit"=>"integer",
             "customer_id"=>"required|integer",
             "depositDate"=>"required|date_format:Y-m-d",
-            "ammount"=>"required|decimal:0,4",
-            "total"=>"decimal:0,4",
+            "ammount"=>"required|numeric|regex:/^\d+(\.\d{1,4})?$/",
+            "total"=>"numeric|regex:/^\d+(\.\d{1,4})?$/",
             "status"=>"required|string",
             "information"=>"required|string",
         ]);
@@ -163,8 +163,8 @@ class DepositController extends Controller
         $validator = Validator::make($request->all(), [
             "customer_id" => "integer",
             "depositDate" => "date_format:Y-m-d",
-            "ammount" => "decimal:0,4",
-            "total" => "decimal:0,4",
+            "ammount" => "numeric|regex:/^\d+(\.\d{1,4})?$/",
+            "total" => "numeric|regex:/^\d+(\.\d{1,4})?$/",
             "status" => "string",
             "information" => "string",
             "id" => "integer"

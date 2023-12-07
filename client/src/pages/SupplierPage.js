@@ -268,7 +268,7 @@ export default function SupplierPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
     })
   }
   const style2 = {

@@ -242,9 +242,9 @@ export default function DepositPage() {
 
 
   const handleDelete=async()=>{
-    handleClose()
+    const updatedData = productList.filter(item => !id.includes(item.id));
+    setProduct(updatedData);
     const cookie = cookies.get("Authorization")
-    load(true)
     try{
       await axios.post(`${apiEndpoint}api/delete/deposits`,{id},{
         headers:{
@@ -252,7 +252,7 @@ export default function DepositPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        load(false)
+        handleClose()
       })
 
     }catch(error){

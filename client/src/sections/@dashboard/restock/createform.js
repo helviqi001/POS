@@ -32,7 +32,7 @@ import AddIcon from '@mui/icons-material/Add';
 // components
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { DatePicker, DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { ProductListHead } from '../product';
 import Scrollbar from '../../../components/scrollbar';
@@ -97,6 +97,8 @@ function applySortFilter(array, comparator, query) {
 }
 
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+const baseUrl = process.env.PUBLIC_URL
+
 
 export default function CreateRestock() {
   const {menu,item} = useParams()
@@ -147,7 +149,6 @@ export default function CreateRestock() {
     }
     return ''; // No error
   };
-
   useEffect(()=>{
     const getdata=async()=>{
       axios.get(`${apiEndpoint}api/suppliers`,{
@@ -162,13 +163,15 @@ export default function CreateRestock() {
     getdata()
   },[cookie])
   const handleDate=(data)=>{
-    const date = new Date(data.$y, data.$M , data.$D)
+    const date = new Date(data.$y, data.$M , data.$D,data.$H,data.$m,)
 
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-    const formattedDate = `${year}-${month}-${day}`;
-    dispatch({type:"DATE_INPUT",payload: formattedDate})
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
+    dispatch({type:"DATE_INPUT",payload:formattedDate})
   }
 
   const handleOpenMenu = (data) => {
@@ -342,7 +345,7 @@ export default function CreateRestock() {
         console.log(response);
       })
       await load(false)
-      navigate(`/dashboard/restock/${menu}/${item}`)
+      navigate(`${baseUrl}/dashboard/restock/${menu}/${item}`)
     }
   }
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - productList.length) : 0;
@@ -570,22 +573,23 @@ export default function CreateRestock() {
           }>
             <>
               <div style={{ display:'flex' , flexDirection:'column' , alignItems:'center' }}>
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
-                <DemoContainer
-                  components={[
-                    'DatePicker',
-                    'MobileDatePicker',
-                    'DesktopDatePicker',
-                    'StaticDatePicker',
-                  ]}
-                >
-                    <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:3,marginBottom:3}} slotProps={{ textField: { helperText:validationErrors.restockDate, error:!!validationErrors.restockDate}}}/>
-                </DemoContainer>
-              </LocalizationProvider>
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
+                      <DemoContainer
+                        components={[
+                          'DatePicker',
+                          'MobileDatePicker',
+                          'DesktopDatePicker',
+                          'StaticDatePicker',
+                        ]}
+                        sx={{ marginTop:2 }}
+                      >
+                          <DateTimePicker label="Restock Date" onChange={(data)=>handleDate(data)} value={state.restockDate} slotProps={{ textField: { helperText:validationErrors.restockDate , error:!!validationErrors.restockDate} }}/>
+                      </DemoContainer>
+                    </LocalizationProvider>
 
-              <Typography variant='subtitle2'>TOTAL SPEND IDR {formattedTotalSpend}</Typography>
+              <Typography variant='subtitle2' sx={{ marginBottom:2,marginTop:2 }}>TOTAL SPEND IDR {formattedTotalSpend}</Typography>
 
-              <Button  variant="contained" onClick={handleCreate}  sx={{marginTop:3,marginBottom:3}}>Create</Button>
+              <Button  variant="contained" onClick={handleCreate}  sx={{marginBottom:2}}>Create</Button>
               </div>
             </>
           </Box>

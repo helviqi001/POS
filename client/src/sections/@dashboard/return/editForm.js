@@ -24,7 +24,7 @@ import {
 import dayjs from 'dayjs';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { DatePicker, DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 // sections
 // import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
@@ -42,7 +42,7 @@ const TABLE_HEAD2 = [
 ];
 
 // ----------------------------------------------------------------------
-
+const baseUrl = process.env.PUBLIC_URL
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 export default function EditReturn() {
@@ -109,15 +109,18 @@ export default function EditReturn() {
     }
     getdata()
   },[])
-    const handleDate=(data)=>{
-    const date = new Date(data.$y, data.$M , data.$D)
+  const handleDate=(data)=>{
+    const date = new Date(data.$y, data.$M , data.$D,data.$H,data.$m,)
 
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-    const formattedDate = `${year}-${month}-${day}`;
-    dispatch({type:"DATE_INPUT",payload: formattedDate})
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
+    dispatch({type:"DATE_INPUT",payload:formattedDate})
   }
+
 
 
   const handleChange = (e) => {
@@ -154,7 +157,7 @@ export default function EditReturn() {
   // Calculate total cost based on id, quantity, and costOfGoodsSold
   const calculateTotalCost = () => {
     return newProduct.reduce((total, item) => {
-      return total+item.quantity * item.costOfGoodsSold
+      return total+item.quantity * item.netPrice
     }, 0);
   };
   
@@ -180,7 +183,7 @@ export default function EditReturn() {
     setValidationErrors(validationErrors);
     if (Object.keys(validationErrors).length === 0) {
     load(true)
-    await axios.post(`${apiEndpoint}api/update/returs`,{id,supplier_id:state.supplier_id , returnDate:state.returnDate , totalSpend , product_id:newProduct.map(p=>({id:p.id,quantity:p.quantity,coli:p.coli}))},{
+    await axios.post(`${apiEndpoint}api/update/returs`,{id:state.id,supplier_id:state.supplier_id , returnDate:state.returnDate , totalSpend , product_id:newProduct.map(p=>({id:p.id,quantity:p.quantity,coli:p.coli}))},{
       headers : {
         "Content-Type" : 'application/json',
         Authorization: `Bearer ${cookie}`
@@ -189,7 +192,7 @@ export default function EditReturn() {
       console.log(response);
     })
     await load(false)
-    navigate(`/dashboard/return/${menu}/${item}`)
+    navigate(`${baseUrl}/dashboard/return/${menu}/${item}`)
   }
   }
   console.log(newProduct);
@@ -285,7 +288,7 @@ export default function EditReturn() {
           }>
             <>
               <div style={{ display:'flex' , flexDirection:'column' , alignItems:'center' }}>
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb' >
                 <DemoContainer
                   components={[
                     'DatePicker',
@@ -293,12 +296,13 @@ export default function EditReturn() {
                     'DesktopDatePicker',
                     'StaticDatePicker',
                   ]}
+                  sx={{marginTop:2 }}
                   >
-                    <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:5}} defaultValue={dayjs(row.restockDate)}  slotProps={{ textField: { helperText:validationErrors.returnDate , error:!!validationErrors.returnDate}}}/>
+                    <DateTimePicker  label="Return Date" onChange={handleDate}  defaultValue={dayjs(row.returnDate)}  slotProps={{ textField: { helperText:validationErrors.returnDate , error:!!validationErrors.returnDate}}}/>
                 </DemoContainer>
               </LocalizationProvider>
-              <Typography variant='subtitile2'>TOTAL REFUND IDR {formattedTotalSpend}</Typography>
-              <Button  variant="contained" onClick={handleCreate}  sx={{marginBottom:5}}>Update</Button>
+              <Typography variant='subtitle2' sx={{ marginBottom:2,marginTop:2 }}>TOTAL REFUND IDR {formattedTotalSpend}</Typography>
+              <Button  variant="contained" onClick={handleCreate}  sx={{marginBottom:2}}>Update</Button>
               </div>
             </>
           </Box>

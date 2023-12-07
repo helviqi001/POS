@@ -207,7 +207,8 @@ export default function HistoryDeliveryPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
+      
     })
   }
 

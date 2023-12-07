@@ -239,7 +239,7 @@ export default function CustomerPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
     })
   }
   const style = {

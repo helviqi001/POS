@@ -252,7 +252,7 @@ export default function TransactionPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
     })
   }
 

@@ -229,7 +229,7 @@ export default function DebitPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
     })
   } 
   const style2 = {

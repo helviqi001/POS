@@ -236,7 +236,8 @@ export default function FleetPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
+      
     })
   }
 
