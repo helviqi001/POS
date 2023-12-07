@@ -17,7 +17,7 @@ class Position extends Model
     }
     public function privilage()
     {
-        return $this->hasMany(privilage::class);
+        return $this->hasMany(Privilage::class);
     }
 
     protected static function boot()

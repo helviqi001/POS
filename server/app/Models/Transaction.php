@@ -30,7 +30,7 @@ class Transaction extends Model
         return $this->belongsTo(Staff::class);
     }
     public function customer(){
-        return $this->belongsTo(customer::class);
+        return $this->belongsTo(Customer::class);
     }
 
     public function deposit(){
