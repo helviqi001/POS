@@ -29,7 +29,7 @@ import Iconify from '../../../components/iconify';
 import Scrollbar from '../../../components/scrollbar';
 
 // ----------------------------------------------------------------------
-
+const baseUrl = process.env.PUBLIC_URL
 const NOTIFICATIONS = [
   {
     id: faker.datatype.uuid(),
@@ -271,37 +271,37 @@ function renderContent(notification) {
 
   if (notification.type === 'order_placed') {
     return {
-      avatar: <img alt={notification.title} src="/assets/icons/ic_notification_package.svg" />,
+      avatar: <img alt={notification.title} src={`${baseUrl}/assets/icons/ic_notification_package.svg`} />,
       title,
     };
   }
   if (notification.type === 'order_shipped') {
     return {
-      avatar: <img alt={notification.title} src="/assets/icons/ic_notification_shipping.svg" />,
+      avatar: <img alt={notification.title} src={`${baseUrl}/assets/icons/ic_notification_shipping.svg`} />,
       title,
     };
   }
   if (notification.type === 'mail') {
     return {
-      avatar: <img alt={notification.title} src="/assets/icons/ic_notification_mail.svg" />,
+      avatar: <img alt={notification.title} src={`${baseUrl}/assets/icons/ic_notification_mail.svg`} />,
       title,
     };
   }
   if (notification.type === 'chat_message') {
     return {
-      avatar: <img alt={notification.title} src="/assets/icons/ic_notification_chat.svg" />,
+      avatar: <img alt={notification.title} src={`${baseUrl}/assets/icons/ic_notification_chat.svg`} />,
       title,
     };
   }
   if (notification.type === 'birthday') {
     return {
-      avatar: <img alt={notification.title} src="/assets/icons/birthday-cake-svgrepo-com.svg" />,
+      avatar: <img alt={notification.title} src={`${baseUrl}/assets/icons/birthday-cake-svgrepo-com.svg`} />,
       title,
     };
   }
   if (notification.type === 'credit') {
     return {
-      avatar: <img alt={notification.title} src="/assets/icons/credit-card-card-svgrepo-com.svg" />,
+      avatar: <img alt={notification.title} src={`${baseUrl}/assets/icons/credit-card-card-svgrepo-com.svg`} />,
       title,
     };
   }
