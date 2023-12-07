@@ -26,6 +26,7 @@ const Alert = forwardRef((props, ref) =>{
   });
 
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+const baseUrl = process.env.PUBLIC_URL;
 
 export default function CreatePosition() {
   const {menu,item} = useParams()
@@ -207,28 +208,27 @@ export default function CreatePosition() {
           });
         });
       }
-    // try {
-    //   await axios.post(`${apiEndpoint}api/positions`,formData,{
-    //     headers:{
-    //       Authorization: `Bearer ${cookie}`
-    //     }
-    //   }).then(response=>{
-    //     console.log(response);
-    //     handleClick(response.data.message,'success')
-    //     setTimeout(()=>{
-    //       load(true)
-    //       setTimeout(()=>{
-    //         load(false)
-    //         navigate(`/dashboard/position/${menu}/${item}`)
-    //       },1000)
-    //     },1500)
-    //   })
-    // } catch (error) {
-    //   if (error.response.status === 500 ) {
-    //     handleClick(error.response.data.error,'error')
-    //   }
-    //   console.log(error);
-    // }
+    try {
+      await axios.post(`${apiEndpoint}api/positions`,formData,{
+        headers:{
+          Authorization: `Bearer ${cookie}`
+        }
+      }).then(response=>{
+        handleClick(response.data.message,'success')
+        setTimeout(()=>{
+          load(true)
+          setTimeout(()=>{
+            load(false)
+            navigate(`${baseUrl}/dashboard/position/${menu}/${item}`)
+          },1000)
+        },1500)
+      })
+    } catch (error) {
+      if (error.response.status === 500 ) {
+        handleClick(error.response.data.error,'error')
+      }
+      console.log(error);
+    }
     }
   return (
     <>

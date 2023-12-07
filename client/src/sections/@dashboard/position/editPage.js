@@ -28,6 +28,7 @@ const Alert = forwardRef((props, ref) =>{
   });
 
   const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+  const baseUrl = process.env.PUBLIC_URL;
 
 export default function EditPosition() {
   const {menu,item} = useParams()
@@ -262,7 +263,7 @@ export default function EditPosition() {
           load(true)
           setTimeout(()=>{
             load(false)
-            navigate(`/dashboard/position/${menu}/${item}`)
+            navigate(`${baseUrl}/dashboard/position/${menu}/${item}`)
           },1000)
         },1500)
       })

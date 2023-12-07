@@ -64,6 +64,7 @@ const Alert = forwardRef((props, ref) =>(
     <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
 ));
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+const baseUrl = process.env.PUBLIC_URL;
 
 export default function PositionPage() {
   const {menu,item} = useParams()
@@ -183,10 +184,10 @@ export default function PositionPage() {
   };
 
   const handleOpenModal=()=>{
-    navigate(`/dashboard/position/create/${menu}/${item}`)
+    navigate(`${baseUrl}/dashboard/position/create/${menu}/${item}`)
   }
   const handleOpenModalEdit=()=>{
-    navigate(`/dashboard/position/update/${menu}/${item}`,{state:{paramName:id}})
+    navigate(`${baseUrl}/dashboard/position/update/${menu}/${item}`,{state:{paramName:id}})
   }
 
   const handleDelete=async()=>{
