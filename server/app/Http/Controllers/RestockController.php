@@ -67,7 +67,7 @@ class RestockController extends Controller
             "idRestock"=>"integer",
             "product_id.*.quantity"=>"required|integer",
             "restockDate"=>"required|date_format:Y-m-d H:i",
-            "totalSpend"=>"required|integer",
+            "totalSpend"=>"required|numeric|regex:/^\d+(\.\d{1,4})?$/",
             "product_id.*.coli"=>"required|integer",
             "product_id"=>"required|array",
             "product_id.*.id"=>"integer",
@@ -153,10 +153,8 @@ class RestockController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            "idRestock"=>"integer",
             "product_id.*.quantity"=>"integer",
-            "restockDate"=>"date_format:Y-m-d H:i",
-            "totalSpend"=>"integer",
+            "totalSpend"=>"numeric|regex:/^\d+(\.\d{1,4})?$/",
             "product_id.*.coli"=>"integer",
             "product_id"=>"array",
             "product_id.*.id"=>"integer",
@@ -165,7 +163,7 @@ class RestockController extends Controller
         ]);
         if($validator->fails()){
             return response()->json([
-                "message"=>"error nih"
+                "message"=>$validator->errors(),
             ],Response::HTTP_BAD_REQUEST);
         }
         $validated = $validator->validated();
@@ -184,8 +182,7 @@ class RestockController extends Controller
                 $productModel->save(); 
             }
             $restock->update([
-            'idRestock'=>$validated['idRestock'],
-            'restockDate'=>$validated['restockDate'],
+            'restockDate'=>$request->restockDate,
             'totalSpend'=>$validated['totalSpend'],
             'supplier_id'=>$validated['supplier_id'],
             ]);

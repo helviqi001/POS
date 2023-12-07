@@ -285,7 +285,7 @@ export default function ProductPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
     })
   } 
   const style2 = {

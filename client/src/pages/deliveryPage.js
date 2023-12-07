@@ -233,7 +233,7 @@ export default function DeliveryPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
     })
   }
 

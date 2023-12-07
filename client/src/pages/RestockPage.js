@@ -68,6 +68,7 @@ const Alert = forwardRef((props, ref) =>(
 ));
 
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+const baseUrl = process.env.PUBLIC_URL
 
 export default function RestockPage() {
   const {menu,item} = useParams()
@@ -133,7 +134,7 @@ export default function RestockPage() {
   const handleOpenMenu = (event,id) => {
     setOpen(event.currentTarget);
     const rowId = id.split('-')[0]
-    setId([rowId])
+    setId([Number(rowId)])
   };
   const DATAGRID_COLUMNS = [
     { field: 'id', headerName: 'ID', width: 150 , headerAlign: 'center',align:'center'},
@@ -173,6 +174,7 @@ export default function RestockPage() {
     },
   ];
 
+  console.log(id);
   
   const Privilage = ()=>{
     let menuItem = []
@@ -246,11 +248,11 @@ export default function RestockPage() {
   }
 
   const handleOpenModal=()=>{
-    navigate(`/dashboard/restock/create/${menu}/${item}`)
+    navigate(`${baseUrl}/dashboard/restock/create/${menu}/${item}`)
   }
   const handleOpenModalEdit=()=>{
     setOpen(null);
-    navigate(`/dashboard/restock/edit/${menu}/${item}`,{state:{id}})
+    navigate(`${baseUrl}/dashboard/restock/edit/${menu}/${item}`,{state:{id}})
   }
 
   const handleDelete=async()=>{
@@ -262,11 +264,10 @@ export default function RestockPage() {
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
-      console.log(response);
+    }).then(()=>{
+      handleClose()
     })
   }
-
   const style2 = {
     marginTop: 2
   }

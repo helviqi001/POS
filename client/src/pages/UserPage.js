@@ -227,7 +227,7 @@ export default function UserPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
     })
   }
 

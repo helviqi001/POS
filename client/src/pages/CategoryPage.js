@@ -224,7 +224,7 @@ export default function CategoryPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
     })
   }
   const style = {

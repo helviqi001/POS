@@ -198,8 +198,8 @@ export default function PositionPage() {
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
-      console.log(response);
+    }).then(response=>{      
+      handleClose()
     })
   }
 

@@ -220,7 +220,8 @@ export default function UnitPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(response=>{
-      console.log(response);
+      handleClose()
+    
     })
   }
 

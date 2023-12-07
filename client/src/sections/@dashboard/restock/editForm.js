@@ -24,7 +24,7 @@ import {
 import dayjs from 'dayjs';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { DatePicker, DateTimeField, DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 // sections
 // import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
@@ -36,14 +36,15 @@ import RestockListHead from './restockListHead';
 
 const TABLE_HEAD2 = [
   { id: 'name', label: 'Name', alignRight: false },
-  { id: 'quantity', label: 'quantity', alignRight: false },
-  { id: 'coli', label: 'coli', alignRight: false },
-  { id: 'cost_of_goods_sold', label: 'Cost of goods sold (IDR)', alignRight: false },
+  { id: 'quantity', label: 'Quantity', alignRight: false },
+  { id: 'coli', label: 'Coli', alignRight: false },
+  { id: 'netPrice', label: 'Net Price (IDR)', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
 
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+const baseUrl = process.env.PUBLIC_URL
 
 export default function EditRestock() {
   const {menu,item} = useParams()
@@ -69,8 +70,6 @@ export default function EditRestock() {
   const navigate = useNavigate()
 
   const [validationErrors, setValidationErrors] = useState({});
-
-
   const validateQuantity = (quantity) => {
     if (!/^[0-9]+$/.test(quantity)) {
       return "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
@@ -85,6 +84,7 @@ export default function EditRestock() {
     return ''; // No error
   };
 
+  console.log(state);
   useEffect(()=>{
     const getdata=async()=>{
       await axios.get(`${apiEndpoint}api/restocks/${id}?relations=products`,{
@@ -111,14 +111,16 @@ export default function EditRestock() {
     }
     getdata()
   },[])
-    const handleDate=(data)=>{
-    const date = new Date(data.$y, data.$M , data.$D)
+  const handleDate=(data)=>{
+    const date = new Date(data.$y, data.$M , data.$D,data.$H,data.$m,)
 
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-    const formattedDate = `${year}-${month}-${day}`;
-    dispatch({type:"DATE_INPUT",payload: formattedDate})
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
+    dispatch({type:"DATE_INPUT",payload:formattedDate})
   }
 
   const handleChange = (e) => {
@@ -181,7 +183,7 @@ export default function EditRestock() {
     setValidationErrors(validationErrors);
     if (Object.keys(validationErrors).length === 0) {
       load(true)
-      await axios.post(`${apiEndpoint}api/update/restocks`,{id,supplier_id:state.supplier_id , restockDate:state.restockDate , totalSpend , product_id:newProduct.map(p=>({id:p.id,quantity:p.quantity,coli:p.coli}))},{
+      await axios.post(`${apiEndpoint}api/update/restocks`,{id:state.id,supplier_id:state.supplier_id , restockDate:state.restockDate , totalSpend , product_id:newProduct.map(p=>({id:p.id,quantity:p.quantity,coli:p.coli}))},{
         headers : {
           "Content-Type" : 'application/json',
           Authorization: `Bearer ${cookie}`
@@ -190,7 +192,7 @@ export default function EditRestock() {
         console.log(response);
       })
       await load(false)
-      navigate(`/dashboard/restock/${menu}/${item}`)
+      navigate(`${baseUrl}/dashboard/restock/${menu}/${item}`)
     }
   }
   const formattedTotalSpend = totalSpend.toLocaleString(undefined, {
@@ -266,7 +268,9 @@ export default function EditRestock() {
                       </FormControl>
                      </TableCell>
 
-                      <TableCell align="center">{p.costOfGoodsSold}</TableCell>
+                      <TableCell align="center">
+                        Rp {p.netPrice}
+                        </TableCell>
                         </TableRow>
                         ))}
                 </TableBody>
@@ -284,7 +288,7 @@ export default function EditRestock() {
           }>
             <>
               <div style={{ display:'flex' , flexDirection:'column' , alignItems:'center' }}>
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb' >
                 <DemoContainer
                   components={[
                     'DatePicker',
@@ -292,13 +296,16 @@ export default function EditRestock() {
                     'DesktopDatePicker',
                     'StaticDatePicker',
                   ]}
+                  sx={{marginTop:2}}
                   >
-                    <DatePicker  label="Restock Date" onChange={handleDate} sx={{marginTop:5}} defaultValue={dayjs(row.restockDate)}  slotProps={{ textField: { helperText:validationErrors.restockDate , error:!!validationErrors.restockDate}}}/>
+                    <DateTimePicker  label="Restock Date" onChange={handleDate}  defaultValue={dayjs(row.restockDate)}  slotProps={{ textField: { helperText:validationErrors.restockDate , error:!!validationErrors.restockDate}}}/>
                 </DemoContainer>
               </LocalizationProvider>
-              <h4>TOTAL SPEND IDR {formattedTotalSpend}</h4>
+              <Typography variant="subtitle2" sx={{ marginBottom:2,marginTop:2 }}>
+              TOTAL SPEND IDR {formattedTotalSpend}
+              </Typography>
 
-              <Button  variant="contained" onClick={handleCreate}  sx={{marginBottom:5}}>Update</Button>
+              <Button  variant="contained" onClick={handleCreate} sx={{ marginBottom:2}}>Update</Button>
               </div>
             </>
           </Box>

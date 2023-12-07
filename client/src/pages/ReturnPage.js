@@ -65,10 +65,11 @@ function applySortFilter(array, comparator, query) {
 
 const Alert = forwardRef((props, ref) =>(
   <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />
-));
-
-const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
-
+  ));
+  
+  const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+  const baseUrl = process.env.PUBLIC_URL
+  
 export default function ReturnPage() {
   const {menu,item} = useParams()
 
@@ -133,7 +134,7 @@ export default function ReturnPage() {
   const handleOpenMenu = (event,id) => {
     setOpen(event.currentTarget);
     const rowId = id.split('-')[0]
-    setId([rowId])
+    setId([Number(rowId)])
   };
   const DATAGRID_COLUMNS = [
     { field: 'id', headerName: 'ID', width: 150 , headerAlign: 'center',align:'center'},
@@ -236,11 +237,11 @@ export default function ReturnPage() {
   }
 
   const handleOpenModal=()=>{
-    navigate('/dashboard/returns/create')
+    navigate(`${baseUrl}/dashboard/returns/create/${menu}/${item}`)
   }
   const handleOpenModalEdit=()=>{
     setOpen(null);
-    navigate('/dashboard/returns/edit',{state:{id}})
+    navigate(`${baseUrl}/dashboard/returns/edit/${menu}/${item}`,{state:{id}})
   }
 
   const handleDelete=async()=>{

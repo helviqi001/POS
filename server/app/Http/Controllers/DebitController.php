@@ -109,7 +109,7 @@ class DebitController extends Controller
         $validator = Validator::make($request->all(),[
             "customer_id"=>"integer",
             "transaction_id"=>"integer",
-            "nominal"=>"integer",
+            "nominal"=>"numeric|regex:/^\d+(\.\d{1,4})?$/",
             "dueDate"=>"date_format:Y-m-d",
             "information"=>"string",
             "status"=>"string",
