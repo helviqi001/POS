@@ -91,7 +91,7 @@ export default function RestockPage() {
   
   const [selected, setSelected] = useState([]);
   
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
   
   const [filterName, setFilterName] = useState('');
   
@@ -137,7 +137,8 @@ export default function RestockPage() {
     setId([Number(rowId)])
   };
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width: 150 , headerAlign: 'center',align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'Restock_id', width: 150 , headerAlign: 'center',align:'center'},
     { field: 'idRestock', headerName: 'Kode Restock', width: 150 , headerAlign: 'center',align:'center'},
     { field: 'productName', headerName: 'Product', width: 150,
        headerAlign: 'center', align:'center'},
@@ -203,6 +204,7 @@ export default function RestockPage() {
             productName: product.name,
             quantity: product.pivot.quantity,
             coli: product.pivot.coli,
+            No: processedData.length +1,
             ...rest,
           };
           processedData.push(productRow);
@@ -256,8 +258,7 @@ export default function RestockPage() {
   }
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/restocks`,{id},{
       headers:{
@@ -265,6 +266,7 @@ export default function RestockPage() {
         "Authorization" : `Bearer ${cookie}`
       }
     }).then(()=>{
+      load(false)
       handleClose()
     })
   }

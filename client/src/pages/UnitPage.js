@@ -87,7 +87,7 @@ export default function UnitPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
 
@@ -102,6 +102,8 @@ export default function UnitPage() {
   const [loading,setLoading] = useState(true)
 
   const [id,setId] = useState()
+
+  const {load} = useContext(OutletContext)
 
   const [priv,setPriv] = useState({
     add:0,
@@ -150,7 +152,10 @@ export default function UnitPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data)
+        setProduct(response.data.map((row,i)=>({
+          ...row,
+          No: i + 1
+        })))
       })
       Privilage()
       setLoading(false)
@@ -187,7 +192,8 @@ export default function UnitPage() {
   }
 
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width: 100 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'unit_id', width: 100 , headerAlign: 'center', align:'center'},
     { field: 'unitName', headerName: 'Unit Name', width: 320 , headerAlign: 'center', align:'center'},
     { field: 'shortname', headerName: 'Short name', width: 320 , headerAlign: 'center',align:'center'},
     {
@@ -211,15 +217,15 @@ export default function UnitPage() {
   ];
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/units`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
+    }).then(()=>{
+      load(false)
       handleClose()
     
     })

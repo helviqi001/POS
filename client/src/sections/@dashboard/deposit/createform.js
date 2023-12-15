@@ -63,6 +63,11 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             errors[formData.name] = 'field should be fill by 0-9';
           }
       }
+      if(formData.name === 'information') {
+        if (formData.value.length > 600) {
+          errors[formData.name] = 'Information cannot exceed 600 characters.';
+        }
+      }
           // Update validationErrors state
       Object.keys(errors).forEach((field) => {
        dispatch({
@@ -239,10 +244,11 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             id="outlined-disabled"
             label="Information"
             fullWidth
+            multiline
             name='information'
             onChange={handleChange}
             error={!!state.validationErrors.information}
-            helperText={state.validationErrors.information || ' '}
+            helperText={state.validationErrors.information || `Number of characters: ${state.formData.information.length}/600`}
             onKeyDown={handleKeyDown}
             />
 

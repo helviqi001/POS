@@ -64,6 +64,11 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
             errors[formData.name] = "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
           }
         }
+        if(formData.name === 'information') {
+          if (formData.value.length > 600) {
+            errors[formData.name] = 'Information cannot exceed 600 characters.';
+          }
+        }
           // Update validationErrors state
       Object.keys(errors).forEach((field) => {
        dispatch({
@@ -74,14 +79,12 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
       
       return errors;
     }
-    
-    console.log(state);
     const handleValidation = (formData) => {
       const errors = {};
     
       // Perform validation here
       Object.keys(formData).forEach((field) => {
-        if (field !== "stock" && field !== "coli" && field !== "discount") {
+        if (field !== "stock" && field !== "coli" && field !== "discount" && field !== "margin" && field !== "tax" ) {
           if (formData[field] === '' || formData[field] === 0) {
             errors[field] = `${field} is required`;
           }
@@ -233,6 +236,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
           handleCreate();
         }
       }
+      console.log(state);
     return(
       <> 
           <Dialog open={openModal} onClose={handleCloseModal} scroll='body'>
@@ -458,12 +462,13 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
               style2
             }
             fullWidth
+            multiline
             name='information'
             onChange={handleChange}
             defaultValue={state.formData.information}
             key={state.formData.id}
             error={state.validationErrors.information}
-            helperText={state.validationErrors.information || ' '}
+            helperText={state.validationErrors.information || `Number of characters: ${state.formData.information.length}/600`}
             onKeyDown={handleKeyDown}
             />
             </>

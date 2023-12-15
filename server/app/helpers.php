@@ -87,3 +87,21 @@ if (!function_exists('generateAbbreviation')) {
         return $abbreviation;
     }
 }
+if(!function_exists('convert_array')){
+    function convert_array(array $data)
+    {
+        $result = [];
+        foreach ($data as $piece) {
+            $result[$piece["id"]] = [];
+
+            if ($piece["quantity"] ?? false) {
+                $result[$piece["id"]]["quantity"] = $piece["quantity"];
+            }
+
+            if ($piece["coli"] ?? false) {
+                $result[$piece["id"]]["coli"] = $piece["coli"];
+            }
+        }
+        return $result;
+    }
+}

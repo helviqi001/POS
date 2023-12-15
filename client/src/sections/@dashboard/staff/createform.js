@@ -63,6 +63,11 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             errors[formData.name] = 'Invalid phone number format.it cant be more than 13 digits and should start with 0 or 8';
           }
       }
+      if(formData.name === 'information') {
+        if (formData.value.length > 600) {
+          errors[formData.name] = 'Information cannot exceed 600 characters.';
+        }
+      }
           // Update validationErrors state
       Object.keys(errors).forEach((field) => {
        dispatch({
@@ -244,13 +249,17 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
             id="outlined-disabled"
             label="Information"
             sx={
-              style2
+              {
+                marginBottom:3,
+                marginTop:3
+              }
             }
             fullWidth
+            multiline
             name='information'
             onChange={handleChange}
             error={!!state.validationErrors.information}
-            helperText={state.validationErrors.information || ' '}
+            helperText={state.validationErrors.information || `Number of characters: ${state.formData.information.length}/600`}
             onKeyDown={handleKeyDown}
             />
           <Autocomplete

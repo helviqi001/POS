@@ -32,6 +32,7 @@ import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
 import FullImage from './fullImage';
+import TruncatedInformation from './TruncatedInformation';
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
@@ -166,7 +167,8 @@ export default function ProductPage() {
   } 
 
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width: 80 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'Product_id', width: 140 , headerAlign: 'center', align:'center'},
     { field: 'idProduk', headerName: 'Kode Product', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'name', headerName: 'Name', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'unitName', headerName: 'Unit name', width: 130 , headerAlign: 'center',align:'center'},
@@ -210,7 +212,7 @@ export default function ProductPage() {
         maximumFractionDigits: 0
       })}`} ,headerAlign: 'center',align:'center'},
     { field: 'margin', headerName: 'Margin', width: 120, renderCell: (params) => `${params.value}%` ,headerAlign: 'center',align:'center'},
-    { field: 'information', headerName: 'Information',width:120,headerAlign: 'center',align:'center'},
+    { field: 'information', headerName: 'Information', width: 120, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     {
       field: 'actions',
       type: 'actions',
@@ -241,11 +243,12 @@ export default function ProductPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct( response.data.data.map((row) => ({
+        setProduct( response.data.data.map((row,i) => ({
           ...row,
           unitName: row.unit.shortname,
           supplierName: row.supplier.name,
           categoryType: row.category.itemType,
+          No: i + 1 
         })))
       })
       Privilage()
@@ -276,16 +279,16 @@ export default function ProductPage() {
     setEdit(null)
   }
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/products`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
+    }).then(()=>{
       handleClose()
+      load(false)
     })
   } 
   const style2 = {

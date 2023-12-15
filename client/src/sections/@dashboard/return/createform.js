@@ -128,9 +128,12 @@ export default function CreateReturn() {
   const [validationErrors, setValidationErrors] = useState({});
 
 
-  const validateQuantity = (quantity) => {
+  const validateQuantity = (quantity,stock) => {
     if (!/^[0-9]+$/.test(quantity)) {
       return "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
+    }
+    if (quantity > stock) {
+      return `Quantity cant more than ${stock}`;
     }
     return ''; // No error
   };
@@ -195,14 +198,14 @@ export default function CreateReturn() {
     setOrderBy(property);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e,stock) => {
     const productId = e.target.name.split('-')[1];
     const updatedId = id.map(item => {
       if (item.id === Number(productId)) {
         if (e.target.name.split('-')[0] === 'quantity') {
           const quantity = Number(e.target.value);
           // Perform quantity validation here
-          const quantityError = validateQuantity(quantity);
+          const quantityError = validateQuantity(quantity,stock);
           setValidationErrors((prevState) => ({
             ...prevState,
             [`quantity-${productId}`]: quantityError,
@@ -316,9 +319,12 @@ export default function CreateReturn() {
   const handleCreate=async()=>{
     const validationErrors = {};
     id.forEach((item) => {
-      const { id, quantity, colii } = item;
+      const { id, quantity, colii,stock } = item;
       if (quantity === 0) {
         validationErrors[`quantity-${id}`] = 'Quantity cannot be 0 ';
+      }
+      if (quantity > stock ) {
+        validationErrors[`quantity-${id}`] = `Quantity cant more than ${stock}`;
       }
       if (colii === 0  ) {
         validationErrors[`colii-${id}`] = 'Coli cannot be 0';
@@ -431,15 +437,21 @@ export default function CreateReturn() {
                         <TableCell align="center">{information}</TableCell>
 
                         <TableCell align="right">
-                         {added ? (
-                           <IconButton size="large" color="inherit" onClick={(e)=>handleRemove(row)}>
-                           <RemoveIcon/>
-                         </IconButton>
-                         ) : (
-                          <IconButton size="large" color="inherit" onClick={(e)=>handleOpenMenu(row)}>
-                            <AddIcon/>
-                          </IconButton>
-                         )}
+                        {
+                          stock <= 0 ? (
+                            <></> 
+                          ):(
+                            added ? (
+                              <IconButton size="large" color="inherit" onClick={(e)=>handleRemove(row)}>
+                              <RemoveIcon/>
+                            </IconButton>
+                            ) : (
+                             <IconButton size="large" color="inherit" onClick={(e)=>handleOpenMenu(row)}>
+                               <AddIcon/>
+                             </IconButton>
+                            )
+                          )
+                        }
                         </TableCell>
                       </TableRow>
                     );
@@ -506,7 +518,7 @@ export default function CreateReturn() {
                 />
                 <TableBody>
                   {id.map((row) => {
-                    const { id, name,netPrice} = row;
+                    const { id, name,netPrice,stock} = row;
 
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox">
@@ -522,7 +534,7 @@ export default function CreateReturn() {
                             id="outlined-adornment-amount"
                             startAdornment={<InputAdornment position="start">Pcs</InputAdornment>}
                             name={`quantity-${id}`}
-                            onChange={handleChange}
+                            onChange={(e)=>handleChange(e,stock)}
                             error={!!validationErrors[`quantity-${id}`]}
                             onKeyDown={handleKeyDown}
                           />

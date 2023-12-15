@@ -244,9 +244,9 @@ class ReturnController extends Controller
                 foreach($pivotreturn as $product){
                     $productModel = Product::findOrFail($product['id']);
                         $oldQuantity = $return->products()->where('product_id', $product['id'])->first()->pivot->quantity;
-                        $productModel->stock -= $oldQuantity;
+                        $productModel->stock += $oldQuantity;
                         $oldColi = $return->products()->where('product_id', $product['id'])->first()->pivot->coli;
-                        $productModel->coli -= $oldColi;
+                        $productModel->coli += $oldColi;
                         $productModel->save(); 
                 }
                 $return->delete();

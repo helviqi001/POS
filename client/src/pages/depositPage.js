@@ -27,6 +27,7 @@ import {ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
+import TruncatedInformation from './TruncatedInformation';
 
 // ----------------------------------------------------------------------
 
@@ -85,7 +86,7 @@ export default function DepositPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
 
@@ -138,7 +139,8 @@ export default function DepositPage() {
 
 
   const DATAGRID_COLUMNS = [
-    { field: 'idDeposit', headerName: 'ID Deposit', width:150 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width:150 , headerAlign: 'center', align:'center'},
+    { field: 'idDeposit', headerName: 'Kode Deposit', width:150 , headerAlign: 'center', align:'center'},
     {
       field: 'depositDate',
       headerName: 'Deposit Date',
@@ -160,7 +162,7 @@ export default function DepositPage() {
         maximumFractionDigits: 0
       })}`}},
     { field: 'status', headerName: 'Status', width: 100 , headerAlign: 'center',align:'center'},
-    { field: 'information', headerName: 'Information',width:150,headerAlign: 'center',align:'center'},
+    { field: 'information', headerName: 'Information', width: 150, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     {
       field: 'actions',
       type: 'actions',
@@ -205,9 +207,10 @@ export default function DepositPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data.map(p=>({
+        setProduct(response.data.data.map((p,i)=>({
           ...p,
-          customerName : p.customer.name
+          customerName : p.customer.name,
+          No: i +1
         })))
       })
       Privilage()
@@ -242,8 +245,7 @@ export default function DepositPage() {
 
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+   load(true)
     const cookie = cookies.get("Authorization")
     try{
       await axios.post(`${apiEndpoint}api/delete/deposits`,{id},{
@@ -251,8 +253,9 @@ export default function DepositPage() {
           "Content-Type" : "aplication/json",
           "Authorization" : `Bearer ${cookie}`
         }
-      }).then(response=>{
+      }).then(()=>{
         handleClose()
+        load(false)
       })
 
     }catch(error){

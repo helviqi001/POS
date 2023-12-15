@@ -28,6 +28,7 @@ import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/prod
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
+import TruncatedInformation from './TruncatedInformation';
 // ----------------------------------------------------------------------
 
 
@@ -86,7 +87,7 @@ export default function TransactionPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
 
@@ -147,13 +148,7 @@ export default function TransactionPage() {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       })}`}},
-    {
-      field: 'information',
-      headerName: 'Information',
-      width: 150,
-      headerAlign: 'center',
-      align:'center'
-    },
+     { field: 'information', headerName: 'Information', width: 150, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     {
       field: 'actions',
       type: 'actions',

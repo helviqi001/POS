@@ -70,9 +70,12 @@ export default function EditReturn() {
   const [validationErrors, setValidationErrors] = useState({});
 
 
-  const validateQuantity = (quantity) => {
+  const validateQuantity = (quantity,quantityOld,stock) => {
     if (!/^[0-9]+$/.test(quantity)) {
       return "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
+    }
+    if (quantity > stock+quantityOld ) {
+      return `Quantity cant more than ${stock+quantityOld}`
     }
     return ''; // No error
   };
@@ -97,7 +100,7 @@ export default function EditReturn() {
         const newProducts = response.data.products.map(product => ({
           ...product,
           coli: product.pivot.coli,
-          quantity: product.pivot.quantity
+          quantityOld: product.pivot.quantity
         }));
         const Productadded = [...newProduct, ...newProducts]; 
         setNew(Productadded)
@@ -123,14 +126,14 @@ export default function EditReturn() {
 
 
 
-  const handleChange = (e) => {
+  const handleChange = (e,stock) => {
     const productId = e.target.name.split('-')[1];
     const updatedId = newProduct.map(item => {
       if (item.id === Number(productId)) {
         if (e.target.name.split('-')[0] === 'quantity') {
           const quantity = Number(e.target.value);
           // Perform quantity validation here
-          const quantityError = validateQuantity(quantity);
+          const quantityError = validateQuantity(quantity,item.quantityOld,item.stock);
           setValidationErrors((prevState) => ({
             ...prevState,
             [`quantity-${productId}`]: quantityError,
@@ -169,9 +172,12 @@ export default function EditReturn() {
   const handleCreate=async()=>{
     const validationErrors = {};
     newProduct.forEach((item) => {
-      const { id, quantity, coli } = item;
+      const { id, quantity, coli,stock,quantityOld } = item;
       if (quantity === 0) {
         validationErrors[`quantity-${id}`] = 'Quantity cannot be 0 ';
+      }
+      if (quantity > stock+quantityOld ) {
+        validationErrors[`quantity-${id}`] = `Quantity cant more than ${stock+quantityOld}`;
       }
       if (coli === 0  ) {
         validationErrors[`coli-${id}`] = 'Coli cannot be 0';
@@ -195,8 +201,6 @@ export default function EditReturn() {
     navigate(`${baseUrl}/dashboard/return/${menu}/${item}`)
   }
   }
-  console.log(newProduct);
-  console.log(state);
   const formattedTotalSpend = totalSpend.toLocaleString(undefined, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
@@ -207,6 +211,7 @@ export default function EditReturn() {
       handleCreate();
     }
   }
+  console.log(newProduct);
   return (
     <>
       <Container>
@@ -244,7 +249,7 @@ export default function EditReturn() {
                           id="outlined-adornment-amount"
                           startAdornment={<InputAdornment position="start">Pcs</InputAdornment>}
                           name={`quantity-${p.id}`}
-                          onChange={handleChange}
+                          onChange={(e)=>handleChange(e,p.stock)}
                           defaultValue={p.pivot.quantity}
                           key={p.id}
                           error={validationErrors[`quantity-${p.id}`]}

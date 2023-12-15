@@ -45,7 +45,6 @@ Route::middleware("auth:sanctum")->group(function () {
 
     // settings
     Route::get("profile", [AuthController::class, "profile"]);
-
     // settings
     Route::apiResource("settings",SettingController::class);
 

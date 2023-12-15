@@ -31,6 +31,7 @@ import {ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
+import TruncatedInformation from './TruncatedInformation';
 
 // ----------------------------------------------------------------------
 
@@ -90,7 +91,7 @@ export default function FleetPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
   
@@ -103,6 +104,8 @@ export default function FleetPage() {
   const [edit,setEdit] = useState(false)
 
   const [loading,setLoading] = useState(true)
+
+  const {load} = useContext(OutletContext)
 
   const [id,setId] = useState()
   
@@ -137,17 +140,12 @@ export default function FleetPage() {
   };
 
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width:55 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'Fleet_id', width:55 , headerAlign: 'center', align:'center'},
     { field: 'idFleet', headerName: 'Kode Fleet', width:205 , headerAlign: 'center', align:'center'},
     { field: 'name', headerName: 'Staff Name', width:205 , headerAlign: 'center', align:'center'},
     { field: 'plateNumber', headerName: 'Plate Number', width: 205 , headerAlign: 'center',align:'center'},
-    {
-      field: 'informations',
-      headerName: 'Information',
-      width: 205,
-      headerAlign: 'center',
-      align:'center'
-    },
+    { field: 'information', headerName: 'Information', width: 205, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     {
       field: 'actions',
       type: 'actions',
@@ -190,9 +188,10 @@ export default function FleetPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data.map(p=>({
+        setProduct(response.data.data.map((p,i)=>({
           ...p,
-          name : p.staff.name
+          name : p.staff.name,
+          No: i + 1
         })))
       })
       Privilage()
@@ -227,8 +226,7 @@ export default function FleetPage() {
 
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+   load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/fleets`,{id},{
       headers:{
@@ -237,7 +235,7 @@ export default function FleetPage() {
       }
     }).then(response=>{
       handleClose()
-      
+     load(false) 
     })
   }
 

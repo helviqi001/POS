@@ -57,6 +57,9 @@ class ImportReturs implements ToModel,WithHeadingRow
                 'quantity' => $productQuantity[$index],
                 'coli' => $productColi[$index],
             ]);
+            if( $productModel->stock -= $productQuantity[$index] < 0 || $productModel->coli -= $productColi[$index] < 0){
+                throw new \Exception('one of the quantities of the product exceeds the amount of stock available ');
+            }
             $productModel->stock -= $productQuantity[$index];
                 $productModel->coli -= $productColi[$index];
                 $productModel->save(); 
