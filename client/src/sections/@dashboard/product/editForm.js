@@ -84,7 +84,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal , loader })=>{
     
       // Perform validation here
       Object.keys(formData).forEach((field) => {
-        if (field !== "stock" && field !== "coli" && field !== "discount" && field !== "margin" && field !== "tax" ) {
+        if (field !== "stock" && field !== "coli" && field !== "discount" && field !== "tax" ) {
           if (formData[field] === '' || formData[field] === 0) {
             errors[field] = `${field} is required`;
           }

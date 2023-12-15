@@ -84,8 +84,8 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
       
       // Perform validation here
       Object.keys(formData).forEach((field) => {
-      if (field !== "stock" && field !== "coli" && field !== "discount") {
-        if (formData[field] === '' || formData[field] === 0) {
+      if (field !== "stock" && field !== "coli" && field !== "discount" && field !== "tax") {
+        if (formData[field] === '' || formData[field] === '0' || formData[field] === 0) {
           errors[field] = `${field} is required`;
         }
       }
