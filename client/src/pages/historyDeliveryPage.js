@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { filter} from 'lodash';
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useContext, useEffect, useState } from 'react';
 import Cookies from 'universal-cookie/cjs/Cookies';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
@@ -22,8 +22,10 @@ import {
 import MuiAlert from '@mui/material/Alert';
 import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import { ProductListToolbar } from '../sections/@dashboard/product';
+import { OutletContext } from '../layouts/dashboard/OutletProvider';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
+import TruncatedInformation from './TruncatedInformation';
 // ----------------------------------------------------------------------
 
 
@@ -78,7 +80,7 @@ export default function HistoryDeliveryPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
 
@@ -87,6 +89,8 @@ export default function HistoryDeliveryPage() {
   const [productList,setProduct] = useState([])
 
   const [loading,setLoading] = useState(true)
+
+  const {load} = useContext(OutletContext)
 
   const [id,setId] = useState()
 
@@ -123,6 +127,7 @@ export default function HistoryDeliveryPage() {
   };
 
   const DATAGRID_COLUMNS = [
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
     { field: 'idDelivery', headerName: 'ID Fleet', width:150 , headerAlign: 'center', align:'center'},
     { field: 'driverName', headerName: 'Driver Name', width: 150 , headerAlign: 'center',align:'center'},
     { field: 'plateNumber', headerName: 'Plate Number', width: 150 , headerAlign: 'center',align:'center'},
@@ -132,13 +137,7 @@ export default function HistoryDeliveryPage() {
     { field: 'deliveryDate', headerName: 'Delivery Date', width: 200 , headerAlign: 'center',align:'center'},
     { field: 'deliveredDate', headerName: 'Delivered Date', width: 200 , headerAlign: 'center',align:'center'},
     { field: 'status', headerName: 'Status', width:200 , headerAlign: 'center', align:'center'},
-    {
-      field: 'information',
-      headerName: 'Information',
-      width: 150,
-      headerAlign: 'center',
-      align:'center'
-    },
+    { field: 'information', headerName: 'Information', width: 150, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     {
       field: 'actions',
       type: 'actions',
@@ -180,13 +179,14 @@ export default function HistoryDeliveryPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data.map(p=>({
+        setProduct(response.data.data.map((p,i)=>({
           ...p,
           plateNumber:p.fleet.plateNumber,
           driverName:p.fleet.staff.name,
           customerName:p.transaction.customer.name,
           address:p.transaction.customer.address,
           noTelp:p.transaction.customer.phone,
+          No: i + 1
         })))
       })
       Privilage()
@@ -199,8 +199,7 @@ export default function HistoryDeliveryPage() {
   };
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     axios.post(`${apiEndpoint}api/delete/historydeliveries`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
@@ -208,7 +207,7 @@ export default function HistoryDeliveryPage() {
       }
     }).then(response=>{
       handleClose()
-      
+      load(false)
     })
   }
 

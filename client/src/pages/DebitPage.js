@@ -23,8 +23,10 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 // components
 import EditForm from '../sections/@dashboard/debit/editForm';
 import { ProductListToolbar } from '../sections/@dashboard/product';
+import { OutletContext } from '../layouts/dashboard/OutletProvider';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
+import TruncatedInformation from './TruncatedInformation';
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
@@ -100,6 +102,8 @@ export default function DebitPage() {
 
   const [loading,setLoading] = useState(true)
 
+  const {load} = useContext(OutletContext)
+
   const [id,setId] = useState()
 
   const [priv,setPriv] = useState({
@@ -133,7 +137,8 @@ export default function DebitPage() {
   };
 
   const DATAGRID_COLUMNS = [
-    { field: 'iDTransaction', headerName: 'Id Transaction', width: 150 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'iDTransaction', headerName: 'Kode Transaction', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'nameCustomer', headerName: 'Customer Name', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'dueDate', headerName: 'Due Date', width: 150 , headerAlign: 'center',align:'center'},
     { field: 'nominal', headerName: 'Nominal', width: 150, valueGetter:(params)=>{
@@ -142,7 +147,7 @@ export default function DebitPage() {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       })}`} ,headerAlign: 'center',align:'center'},
-    { field: 'information', headerName: 'Information',width:150,headerAlign: 'center',align:'center'},
+      { field: 'information', headerName: 'Information', width: 150, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     { field: 'status', headerName: 'Status ',width:150,headerAlign: 'center',align:'center'},
     {
       field: 'actions',
@@ -186,10 +191,11 @@ export default function DebitPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data.map(p=>({
+        setProduct(response.data.data.map((p,i)=>({
           ...p,
           nameCustomer:p.customer.name,
-          iDTransaction:p.transaction.idTransaction
+          iDTransaction:p.transaction.idTransaction,
+          No: i +1
         })));
       })
       Privilage()
@@ -220,16 +226,16 @@ export default function DebitPage() {
     setEdit(null)
   }
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/debits`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
+    }).then(()=>{
       handleClose()
+      load(false)
     })
   } 
   const style2 = {

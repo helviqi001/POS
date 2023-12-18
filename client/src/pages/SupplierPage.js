@@ -34,6 +34,7 @@ import Scrollbar from '../components/scrollbar';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
 import FullImage from './fullImage';
 import DetailTransaction from '../sections/@dashboard/supplier/detail';
+import TruncatedInformation from './TruncatedInformation';
 
 // ----------------------------------------------------------------------
 
@@ -94,7 +95,7 @@ export default function SupplierPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
 
@@ -154,7 +155,8 @@ export default function SupplierPage() {
   };
 
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width:150 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'Supplier_id', width:150 , headerAlign: 'center', align:'center'},
     { field: 'id_supplier', headerName: 'Kode Supplier', width:150 , headerAlign: 'center', align:'center'},
     { field: 'name', headerName: 'Name', width:150 , headerAlign: 'center', align:'center'},
     { field: 'phone', headerName: 'Phone', width: 150 , headerAlign: 'center',align:'center'},
@@ -181,7 +183,7 @@ export default function SupplierPage() {
     </span>
     <span className="image-text">View Image</span>
   </button>},
-    { field: 'information', headerName: 'Information',width:150,headerAlign: 'center',align:'center'},
+     { field: 'information', headerName: 'Information', width: 120, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     {
       field: 'actions',
       type: 'actions',
@@ -223,7 +225,10 @@ export default function SupplierPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data)
+        setProduct(response.data.map((row,i)=>({
+          ...row,
+          No: i +1
+        })))
       })
       Privilage()
       setLoading(false)
@@ -254,20 +259,20 @@ export default function SupplierPage() {
   const handleCloseModal=()=>{
     setOpenModal(false)
     setCreate(false)
-    setImmediate(false)
     setEdit(null)
+    setDetail(false)
   }
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/suppliers/`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
+    }).then(()=>{
+      load(false)
       handleClose()
     })
   }

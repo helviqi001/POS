@@ -124,15 +124,32 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
           delete formData.fleet_id;
           delete formData.informationDelivery;
         }
-
     // Perform validation here
     Object.keys(formData).forEach((field) => {
-       
           if (formData[field] === '' || formData[field] === 0 ) {
             errors[field] = `${field} is required`;
           }
     });
 
+        // Update validationErrors state
+    Object.keys(errors).forEach((field) => {
+     dispatch({
+        type: 'SET_VALIDATION_ERROR',
+        payload: { field, error: errors[field] },
+      });
+    });
+    
+    return errors;
+  }
+
+  const handleValidationQuantity=(formData)=>{ 
+    const errors = {};
+        formData.forEach((p) => {
+          if (p.stock < p.quantity) {
+            errors[`quantity-${p.id}`] = `Quantity can't be more than ${p.stock}`;
+          }
+          dispatch({ type: 'SET_VALIDATION_ERROR', payload: { field: [`quantity-${p.id}`], error: null } });
+        });
         // Update validationErrors state
     Object.keys(errors).forEach((field) => {
      dispatch({
@@ -158,7 +175,11 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
 
   const handleNext = () => {
     if (activeStep === 0) {
+      const errors = handleValidationQuantity(state.product);
+      console.log(errors);
+      if (Object.keys(errors).length === 0) {
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
+      }
       }
   else if (activeStep === 1) {
       const errors = handleValidation(state.formData);
@@ -179,7 +200,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
   };
 
 
-  const handleChange=(e,id)=>{
+  const handleChange=(e,id,stock)=>{
     const newquantity = parseInt(e.target.value,10);
 
     const updateProduct = state.product.map((p)=>{
@@ -189,18 +210,45 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
       return p
     })
     dispatch({type:"UPDATE" , payload:updateProduct})
+    const formdata = { name:`quantity-${id}`, value:newquantity,stock,id};
+    handleChangeValidation(formdata);
   }
 
   const handleChangeForm = e =>{
     dispatch(
       {type:"CHANGE_INPUT" , payload:{name:e.target.name , value:e.target.value}},
     )
+    const formdata = { name:e.target.name , value:e.target.value };
+    handleChangeValidation(formdata);
 }
   const handleRadioButton = (name,value) =>{
     dispatch(
       {type:"CHANGE_INPUT" , payload:{name , value}},
     )
 }
+const handleChangeValidation=(formData)=>{
+    const errors = {};
+    if(formData.name === `quantity-${formData.id}`) {
+      if (formData.value > formData.stock) {
+        errors[formData.name] =  `Quantity can't be more than ${formData.stock}`
+      }
+      dispatch({ type: 'SET_VALIDATION_ERROR', payload: { field: [`quantity-${formData.id}`], error: null } });
+    }
+    if(formData.name === 'information' || formData.name === "informationDelivery") {
+      if (formData.value.length > 600) {
+        errors[formData.name] = 'Information cannot exceed 600 characters.';
+      }
+    }
+      // Update validationErrors state
+      Object.keys(errors).forEach((field) => {
+        dispatch({
+           type: 'SET_VALIDATION_ERROR',
+           payload: { field, error: errors[field] },
+         });
+       });
+       
+       return errors;
+  }
   const calculateTotalCost = () => {
     return state.product.reduce((total, item) => {
       return total + item.quantity * Number(item.sellingPrice)
@@ -283,7 +331,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
             {activeStep === 0 && (
               state.product.length > 0 ? (
               state.product.map((p)=>{
-              const {name,urlImage,sellingPrice,idProduk,id,quantity} = p
+              const {name,urlImage,sellingPrice,idProduk,id,quantity,stock} = p
               const formattedAfterDisc = sellingPrice.toLocaleString('id-ID',{
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
@@ -314,7 +362,9 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                         startAdornment: <InputAdornment position="start">Qty</InputAdornment>,
                       }}
                       defaultValue={quantity}
-                      onChange={(e)=>handleChange(e,id)}
+                      onChange={(e)=>handleChange(e,id,stock)}
+                      error={!!state.validationErrors[`quantity-${id}`]}
+                      helperText={state.validationErrors[`quantity-${id}`] || ' '}
                     />
                   </Box>
                 </CardContent>
@@ -481,10 +531,17 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                               id="outlined-disabled"
                               label="information Delivery"
                               fullWidth
+                              multiline
                               name='informationDelivery'
+                              sx={
+                                {
+                                  marginBottom:2,
+                                  marginTop:2
+                                }
+                              }
                               onChange={handleChangeForm}
                               error={!!state.validationErrors.informationDelivery}
-                              helperText={state.validationErrors.informationDelivery}
+                              helperText={state.validationErrors.informationDelivery || `Number of characters: ${state.formData.informationDelivery.length}/600`}
                             />
                         </>
                       )}
@@ -495,13 +552,17 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
                   id="outlined-disabled"
                   label="Information"
                   sx={
-                    {marginTop:2}
+                    {
+                      marginBottom:2,
+                      marginTop:2
+                    }
                   }
                   fullWidth
+                  multiline
                   name='information'
                   onChange={handleChangeForm}
                   error={!!state.validationErrors.information}
-                  helperText={state.validationErrors.information}
+                  helperText={state.validationErrors.information || `Number of characters: ${state.formData.information.length}/600`}
                 />
                     </Box>
                 <Typography variant='subtitle1' fontSize={17} sx={{ marginTop:3 }}>Total Purchase :</Typography>

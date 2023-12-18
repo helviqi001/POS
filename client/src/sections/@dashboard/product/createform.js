@@ -63,6 +63,11 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             errors[formData.name] = "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
           }
         }
+        if(formData.name === 'information') {
+          if (formData.value.length > 600) {
+            errors[formData.name] = 'Information cannot exceed 600 characters.';
+          }
+        }
           // Update validationErrors state
       Object.keys(errors).forEach((field) => {
        dispatch({
@@ -79,8 +84,8 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
       
       // Perform validation here
       Object.keys(formData).forEach((field) => {
-      if (field !== "stock" && field !== "coli" && field !== "discount") {
-        if (formData[field] === '' || formData[field] === 0) {
+      if (field !== "stock" && field !== "coli" && field !== "discount" && field !== "tax") {
+        if (formData[field] === '' || formData[field] === '0' || formData[field] === 0) {
           errors[field] = `${field} is required`;
         }
       }
@@ -442,10 +447,12 @@ export default function CreateProduct({ style2 , openModal , handleCloseModal })
             style2
           }
           fullWidth
+          multiline
           name='information'
           onChange={handleChange}
           error={!!state.validationErrors.information}
-          helperText={state.validationErrors.information || ' '}
+          helperText={state.validationErrors.information || `Number of characters: ${state.formData.information.length}/600`}
+
           onKeyDown={handleKeyDown}
           />
         </DialogContent>

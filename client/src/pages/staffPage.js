@@ -34,6 +34,7 @@ import Scrollbar from '../components/scrollbar';
 import DetailTransaction from '../sections/@dashboard/staff/detail';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
 import FullImage from './fullImage';
+import TruncatedInformation from './TruncatedInformation';
 
 // ----------------------------------------------------------------------
 
@@ -94,7 +95,7 @@ export default function StaffPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
 
@@ -154,7 +155,8 @@ export default function StaffPage() {
   };
 
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width:80 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'staff_id', width:80 , headerAlign: 'center', align:'center'},
     { field: 'id_staff', headerName: 'Kode Staff', width:150 , headerAlign: 'center', align:'center'},
     { field: 'name', headerName: 'Name', width:150 , headerAlign: 'center', align:'center'},
     { field: 'phone', headerName: 'Phone', width: 150 , headerAlign: 'center',align:'center'},
@@ -181,7 +183,7 @@ export default function StaffPage() {
     </span>
     <span className="image-text">View Image</span>
   </button>},
-    { field: 'information', headerName: 'Information',width:150,headerAlign: 'center',align:'center'},
+     { field: 'information', headerName: 'Information', width: 120, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     { field: 'positionName', headerName: 'Position',width:150,headerAlign: 'center',align:'center'},
     {
       field: 'actions',
@@ -225,9 +227,10 @@ export default function StaffPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data.map(p=>({
+        setProduct(response.data.data.map((p,i)=>({
           ...p,
-          positionName : p.position.name
+          positionName : p.position.name,
+          No: i +1
         })))
       })
       Privilage()
@@ -261,19 +264,20 @@ export default function StaffPage() {
     setOpenModal(false)
     setCreate(false)
     setEdit(null)
+    setDetail(false)
   }
 
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}/api/delete/staffs`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
+    }).then(()=>{
+      load(false)
       handleClose()
     })
   }

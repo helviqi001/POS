@@ -57,11 +57,11 @@ const EditForm = ( {id, openModal , handleCloseModal} )=>{
 
     const handleChangeValidation=(formData)=>{
       const errors = {};
-        if(formData.name === "netPrice" || formData.name === "discount" || formData.name === "tax"){
-          if (!/^[0-9]*$/.test(formData.value)) {
-            errors[formData.name] = "Only numbers from 0 to 9 are allowed,negative number or alphabet isnt allowed";
-          }
+      if(formData.name === 'information') {
+        if (formData.value.length > 600) {
+          errors[formData.name] = 'Information cannot exceed 600 characters.';
         }
+      }
           // Update validationErrors state
       Object.keys(errors).forEach((field) => {
        dispatch({
@@ -227,9 +227,11 @@ const EditForm = ( {id, openModal , handleCloseModal} )=>{
               {marginTop:3}
             }
             fullWidth
+            multiline
             onChange={handleChange}
             defaultValue={state.formData.information}
             key={state.formData.information}
+            helperText={state.validationErrors.information || `Number of characters: ${state.formData.information.length}/600`}
             />
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DemoContainer

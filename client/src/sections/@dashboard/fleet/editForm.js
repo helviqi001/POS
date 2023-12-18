@@ -25,7 +25,8 @@ const Alert = forwardRef((props, ref) =>{
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
-
+  
+    const cookie = cookies.get("Authorization")
     const [loading, setLoading] = useState(true);
     const {load} = useContext(OutletContext)
     const [state,dispatch] = useReducer(StaffReducer,INITIAL_STATE)
@@ -74,9 +75,29 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
         dispatch(
           {type:"CHANGE_INPUT" , payload:{name:e.target.name , value:e.target.value}},
         )
+        const formdata = { name:e.target.name , value:e.target.value }; // Clone the formData to avoid modifying the original state
+
+        handleChangeValidation(formdata);
     }
 
-    const cookie = cookies.get("Authorization")
+    const handleChangeValidation=(formData)=>{
+      const errors = {};
+      if(formData.name === 'informations') {
+        if (formData.value.length > 600) {
+          errors[formData.name] = 'Information cannot exceed 600 characters.';
+        }
+      }
+          // Update validationErrors state
+      Object.keys(errors).forEach((field) => {
+       dispatch({
+          type: 'SET_VALIDATION_ERROR',
+          payload: { field, error: errors[field] },
+        });
+      });
+      
+      return errors;
+    }
+
 
     const handleCreate= async() =>{
       const formdata = { ...state.formData }; // Clone the formData to avoid modifying the original state
@@ -257,11 +278,12 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
               style2
             }
             fullWidth
+            multiline
             name='informations'
             defaultValue={state.formData.informations}
             onChange={handleChange}
             error={!!state.validationErrors.informations}
-            helperText={state.validationErrors.informations || ' '}
+            helperText={state.validationErrors.informations || `Number of characters: ${state.formData.informations.length}/600`}
             onKeyDown={handleKeyDown}
             />
             </>

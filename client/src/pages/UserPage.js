@@ -139,7 +139,8 @@ export default function UserPage() {
   };
 
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width:150 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'User_id', width:150 , headerAlign: 'center', align:'center'},
     { field: 'staffName', headerName: 'Name Staff', width:325 , headerAlign: 'center', align:'center'},
     { field: 'username', headerName: 'Username', width:325, headerAlign: 'center', align:'center'},
     {
@@ -184,9 +185,10 @@ export default function UserPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.map(p=>({
+        setProduct(response.data.map((p,i)=>({
           ...p,
-          staffName : p.staff.name
+          staffName : p.staff.name,
+          No: i + 1
         })))
       })
       Privilage()
@@ -218,15 +220,15 @@ export default function UserPage() {
   }
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/users`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
+    }).then(()=>{
+      load(false)
       handleClose()
     })
   }

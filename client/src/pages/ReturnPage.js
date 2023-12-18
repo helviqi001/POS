@@ -91,7 +91,7 @@ export default function ReturnPage() {
   
   const [selected, setSelected] = useState([]);
   
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
   
   const [filterName, setFilterName] = useState('');
   
@@ -137,7 +137,8 @@ export default function ReturnPage() {
     setId([Number(rowId)])
   };
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width: 150 , headerAlign: 'center',align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'Return_id', width: 150 , headerAlign: 'center',align:'center'},
     { field: 'idRetur', headerName: 'Kode Return', width: 150 , headerAlign: 'center',align:'center'},
     { field: 'productName', headerName: 'Product', width: 150,
        headerAlign: 'center', align:'center'},
@@ -186,13 +187,14 @@ export default function ReturnPage() {
       
       if (products && products.length > 0) {
         // Loop through each product in the current restock
-        products.forEach((product) => {
+        products.forEach((product,i) => {
           const productRow = {
             productId: product.id,
             supplierName: supplier.name,
             productName: product.name,
             quantity: product.pivot.quantity,
             coli: product.pivot.coli,
+            No: processedData.length + 1,
             ...rest,
           };
           processedData.push(productRow);
@@ -245,16 +247,16 @@ export default function ReturnPage() {
   }
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/returs`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
-      console.log(response);
+    }).then(()=>{
+      handleClose()
+      load(false)
     })
   }
   const style = {

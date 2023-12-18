@@ -75,6 +75,26 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
         dispatch(
           {type:"CHANGE_INPUT" , payload:{name:e.target.name , value:e.target.value}},
         )
+        const formdata = { name:e.target.name , value:e.target.value }; // Clone the formData to avoid modifying the original state
+
+        handleChangeValidation(formdata);
+    }
+    const handleChangeValidation=(formData)=>{
+      const errors = {};
+      if(formData.name === 'informations') {
+        if (formData.value.length > 600) {
+          errors[formData.name] = 'Information cannot exceed 600 characters.';
+        }
+      }
+          // Update validationErrors state
+      Object.keys(errors).forEach((field) => {
+       dispatch({
+          type: 'SET_VALIDATION_ERROR',
+          payload: { field, error: errors[field] },
+        });
+      });
+      
+      return errors;
     }
     const handleCreate= async() =>{
       const formdata = { ...state.formData }; // Clone the formData to avoid modifying the original state
@@ -229,11 +249,12 @@ const CreateStaff = ({ style2 , openModal , handleCloseModal })=>{
               style2
             }
             fullWidth
+            multiline
             name='informations'
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             error={!!state.validationErrors.informations}
-            helperText={state.validationErrors.informations || ' '}
+            helperText={state.validationErrors.informations || `Number of characters: ${state.formData.informations.length}/600`}
             />
 
         </DialogContent>

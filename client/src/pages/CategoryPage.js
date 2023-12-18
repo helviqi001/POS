@@ -91,7 +91,7 @@ export default function CategoryPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
 
@@ -106,6 +106,8 @@ export default function CategoryPage() {
   const [edit,setEdit] = useState(false)
 
   const [loading,setLoading] = useState(true)
+
+  const {load} = useContext(OutletContext)
 
   const [id,setId] = useState()
 
@@ -135,7 +137,8 @@ export default function CategoryPage() {
   };
 
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width: 100 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'Category_id', width: 100 , headerAlign: 'center', align:'center'},
     { field: 'itemType', headerName: 'Category Name', width: 670 , headerAlign: 'center', align:'center'},
     {
       field: 'actions',
@@ -179,7 +182,10 @@ export default function CategoryPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data)
+        setProduct(response.data.map((p,i)=>({
+          ...p,
+          No: i +1
+        })))
       })
       Privilage()
       setLoading(false)
@@ -215,16 +221,16 @@ export default function CategoryPage() {
     setEdit(null)
   }
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/categories`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
+    }).then(()=>{
       handleClose()
+      load(false)
     })
   }
   const style = {

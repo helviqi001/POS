@@ -36,6 +36,7 @@ import Scrollbar from '../components/scrollbar';
 import DetailTransaction from '../sections/@dashboard/customer/detail';
 import USERLIST from '../_mock/user';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
+import TruncatedInformation from './TruncatedInformation';
 
 
 // ----------------------------------------------------------------------
@@ -94,7 +95,7 @@ export default function CustomerPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
 
@@ -140,13 +141,14 @@ export default function CustomerPage() {
   };
 
   const DATAGRID_COLUMNS = [
-    { field: 'id', headerName: 'ID', width: 80 , headerAlign: 'center', align:'center'},
+    { field: 'No', headerName: 'No', width: 80, headerAlign: 'center', align: 'center'},
+    { field: 'id', headerName: 'Customer_id', width: 80 , headerAlign: 'center', align:'center'},
     { field: 'name', headerName: 'Name', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'registerDate', headerName: 'Register Date', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'address', headerName: 'Address', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'phone', headerName: 'Phone', width: 150 , headerAlign: 'center', align:'center'},
     { field: 'birthDate', headerName: 'Birth Date', width: 150 , headerAlign: 'center', align:'center'},
-    { field: 'information', headerName: 'Information',width:120,headerAlign: 'center',align:'center'},
+    { field: 'information', headerName: 'Information', width: 120, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     {
       field: 'actions',
       type: 'actions',
@@ -189,7 +191,10 @@ export default function CustomerPage() {
           "Authorization" : `Bearer ${cookie}`
         }
       }).then(response=>{
-        setProduct(response.data.data)
+        setProduct(response.data.data.map((p,i)=>({
+          ...p,
+          No: i +1
+        })))
       })
       Privilage()
       setLoading(false)
@@ -201,14 +206,15 @@ export default function CustomerPage() {
     setOpen(event.currentTarget);
     setId([id])
   };
-  const handleOpenModalDetail=()=>{
-    setOpenModal(true)
-    setDetail(true)
-  }
 
   const handleCloseMenu = () => {
     setOpen(null);
   };
+
+  const handleOpenModalDetail=()=>{
+    setOpenModal(true)
+    setDetail(true)
+  }
 
   const handleOpenModal=()=>{
     setCreate(true)
@@ -225,21 +231,21 @@ export default function CustomerPage() {
   const handleCloseModal=()=>{
     setOpenModal(false)
     setCreate(false)
-    setImmediate(false)
     setEdit(null)
+    setDetail(false)
   }
 
   const handleDelete=async()=>{
-    const updatedData = productList.filter(item => !id.includes(item.id));
-    setProduct(updatedData);
+    load(true)
     const cookie = cookies.get("Authorization")
     axios.post(`${apiEndpoint}api/delete/customers`,{id},{
       headers:{
         "Content-Type" : "aplication/json",
         "Authorization" : `Bearer ${cookie}`
       }
-    }).then(response=>{
+    }).then(()=>{
       handleClose()
+      load(false)
     })
   }
   const style = {
