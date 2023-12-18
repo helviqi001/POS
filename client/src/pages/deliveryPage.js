@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 // components
 import MuiAlert from '@mui/material/Alert';
-import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridCsvExportMenuItem, GridToolbarContainer, GridToolbarExport, GridToolbarExportContainer } from '@mui/x-data-grid';
 import CheckIcon from '@mui/icons-material/Check';
 import EditForm from '../sections/@dashboard/delivery/editForm';
 import DoneForm from '../sections/@dashboard/delivery/doneForm';
@@ -410,7 +410,11 @@ function CustomToolbar() {
   return (
     <GridToolbarContainer>
        {priv.export === 1 && (
-        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+          <GridToolbarExportContainer>
+          <GridCsvExportMenuItem options={{ 
+          delimiter: ';',
+           }} />
+        </GridToolbarExportContainer>
       )}
     </GridToolbarContainer>
   );

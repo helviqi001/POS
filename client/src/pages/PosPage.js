@@ -37,6 +37,38 @@ export default function PosPage() {
     add:0,
   })
 
+  const autLoad=()=>{
+    setLoading(true)
+    const getData=async()=>{
+      await axios.get(`${apiEndpoint}api/products?relations=category,unit,supplier`,{
+         headers:{
+           "Content-Type" : "aplication/json",
+           "Authorization" : `Bearer ${cookie}`
+         }
+       }).then(response=>{
+         const serverProductList = response.data.data.map((row) => ({
+           ...row,
+           unitName: row.unit.shortname,
+           supplierName: row.supplier.name,
+           categoryType: row.category.itemType,
+         }))
+         const localStorageProductList = JSON.parse(localStorage.getItem("itemsAdded")) || [];
+ 
+         // Memeriksa dan menghapus produk yang tidak ada dalam productList
+         const updatedLocalStorageProductList = localStorageProductList.filter((localStorageProduct) => {
+           return serverProductList.some((serverProduct) => {
+             return serverProduct.id === localStorageProduct.id;
+           });
+         });
+         dispatch({type:"UPDATE" , payload:updatedLocalStorageProductList})
+         // Set productList dengan data produk yang sudah diperbarui
+         setProduct(serverProductList)
+       })
+       Privilage()
+       setLoading(false)
+     }
+     getData()
+  }
   const handleOpenFilter = () => {
     setOpenFilter(true);
   };
@@ -51,9 +83,8 @@ export default function PosPage() {
 
   const handleCloseModal = () => {
     setOpenModal(false);
-    
   };
-
+  
   const Privilage = ()=>{
     let menuItem = []
     const menuGroup = Privilages.filter((m)=>m.id === Number(menu))
@@ -65,38 +96,10 @@ export default function PosPage() {
        setPriv({ ...priv, export:privilege.export, add:privilege.add, edit:privilege.edit, delete:privilege.delete, import:privilege.import })
      })
    } 
+   
 
   useEffect(()=>{
-    setLoading(true)
-    const getData=async()=>{
-     await axios.get(`${apiEndpoint}api/products?relations=category,unit,supplier`,{
-        headers:{
-          "Content-Type" : "aplication/json",
-          "Authorization" : `Bearer ${cookie}`
-        }
-      }).then(response=>{
-        const serverProductList = response.data.data.map((row) => ({
-          ...row,
-          unitName: row.unit.shortname,
-          supplierName: row.supplier.name,
-          categoryType: row.category.itemType,
-        }))
-        const localStorageProductList = JSON.parse(localStorage.getItem("itemsAdded")) || [];
-
-        // Memeriksa dan menghapus produk yang tidak ada dalam productList
-        const updatedLocalStorageProductList = localStorageProductList.filter((localStorageProduct) => {
-          return serverProductList.some((serverProduct) => {
-            return serverProduct.id === localStorageProduct.id;
-          });
-        });
-        dispatch({type:"UPDATE" , payload:updatedLocalStorageProductList})
-        // Set productList dengan data produk yang sudah diperbarui
-        setProduct(serverProductList)
-      })
-      Privilage()
-      setLoading(false)
-    }
-    getData()
+    autLoad()
   },[])
   return (
     <>
@@ -132,7 +135,7 @@ export default function PosPage() {
           <ProductList products={productList} add={priv.add}/>
         )}
         {priv.add === 1 && (
-          <ProductCartWidget openModal={openModal} handleCloseModal={handleCloseModal} handleOpenModal={handleOpenModal}/>
+          <ProductCartWidget openModal={openModal} handleCloseModal={handleCloseModal} handleOpenModal={handleOpenModal} setLoading={autLoad}/>
         )}
       </Container>
     </>

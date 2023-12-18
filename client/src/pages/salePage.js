@@ -42,8 +42,6 @@ export default function SalesPage() {
     }
     getData()
   },[])
-
-  console.log(productList);
   return (
     <>
       <Helmet>
