@@ -22,7 +22,7 @@ import {
 } from '@mui/material';
 // components
 import MuiAlert from '@mui/material/Alert';
-import { DataGrid, GridActionsCellItem, GridFilterPanel, GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridCsvExportMenuItem, GridFilterPanel, GridToolbarContainer, GridToolbarExport, GridToolbarExportContainer, GridToolbarFilterButton } from '@mui/x-data-grid';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import { ProductListHead, ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
@@ -401,7 +401,11 @@ function CustomToolbar() {
   return (
     <GridToolbarContainer>
        {priv.export === 1 && (
-        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+         <GridToolbarExportContainer>
+         <GridCsvExportMenuItem options={{ 
+         delimiter: ';',
+          }} />
+       </GridToolbarExportContainer>
       )}
     </GridToolbarContainer>
   );

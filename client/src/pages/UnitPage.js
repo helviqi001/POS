@@ -24,7 +24,7 @@ import {
 } from '@mui/material';
 // components
 import MuiAlert from '@mui/material/Alert';
-import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridCsvExportMenuItem, GridToolbarContainer, GridToolbarExport, GridToolbarExportContainer } from '@mui/x-data-grid';
 import CreateSupplier from '../sections/@dashboard/unit/createform';
 import EditForm from '../sections/@dashboard/unit/editForm';
 import {ProductListToolbar } from '../sections/@dashboard/product';
@@ -468,7 +468,11 @@ const CustomToolbar =()=>{
     <>
     <GridToolbarContainer>
       {priv.export === 1 && (
-        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+          <GridToolbarExportContainer>
+          <GridCsvExportMenuItem options={{ 
+          delimiter: ';',
+           }} />
+        </GridToolbarExportContainer>
       )}
       {priv.import === 1 && (
         <Button onClick={handleOpenModal}>Import</Button>

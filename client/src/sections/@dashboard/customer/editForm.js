@@ -83,6 +83,11 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
       
       // Perform validation here
       Object.keys(formData).forEach((field) => {
+        if(field === 'phone') {
+          if (!/^(0|8)\d{9,13}$/.test(formData[field])) {
+            errors[field] = 'Invalid phone number format.it cant be more than 13 digits and should start with 0 or 8';
+          }
+      }
         if (formData[field] === '') {
           errors[field] = `${field} is required`;
         }
@@ -251,7 +256,7 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
                 'StaticDatePicker',
               ]}
             >
-                <DatePicker  label="Birth Date" onChange={(data)=>handleDate(data,"birthDate")} defaultValue={dayjs(state.formData.birthDate)} key={state.formData.id}/>
+                <DatePicker  label="Birth Date" onChange={(data)=>handleDate(data,"birthDate")} disabled defaultValue={dayjs(state.formData.birthDate)} key={state.formData.id}/>
             </DemoContainer>
           </LocalizationProvider>
           <FormHelperText>{state.validationErrors.birthDate}</FormHelperText>

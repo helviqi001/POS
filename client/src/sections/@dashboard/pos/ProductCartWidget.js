@@ -51,7 +51,7 @@ const StyledProductImg = styled('img')({
 
 const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
-export default function CartWidget({openModal,handleCloseModal,handleOpenModal}) {
+export default function CartWidget({openModal,handleCloseModal,handleOpenModal,setLoading}) {
   const {state,dispatch} = usePos()
   const [activeStep, setActiveStep] = useState(0);
   const [staff,setStaff] = useState([])
@@ -60,6 +60,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
   const cookies = new Cookies
   const cookie = cookies.get("Authorization")
   const [customer,setCustomer] = useState([])
+
   
   const formatedTotal = state.formData.total.toLocaleString('id-ID',{
     minimumFractionDigits: 0,
@@ -145,6 +146,9 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
   const handleValidationQuantity=(formData)=>{ 
     const errors = {};
         formData.forEach((p) => {
+            if (!/^[0-9]{1,13}$/.test(p.quantity)) {
+              errors[`quantity-${p.id}`] = 'field should be fill by 0-9';
+            }
           if (p.stock < p.quantity) {
             errors[`quantity-${p.id}`] = `Quantity can't be more than ${p.stock}`;
           }
@@ -193,6 +197,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
     handleCloseModal()
     setActiveStep(0);
     dispatch({type:"RESET_STATE"})
+    setLoading()
   }
   };
   const handleBack = () => {
@@ -229,6 +234,9 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal})
 const handleChangeValidation=(formData)=>{
     const errors = {};
     if(formData.name === `quantity-${formData.id}`) {
+      if (!/^[0-9]{1,13}$/.test(formData.value)) {
+        errors[formData.name] = 'field should be fill by 0-9';
+      }
       if (formData.value > formData.stock) {
         errors[formData.name] =  `Quantity can't be more than ${formData.stock}`
       }

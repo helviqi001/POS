@@ -86,6 +86,11 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
       
       // Perform validation here
       Object.keys(formData).forEach((field) => {
+        if(field === 'phone') {
+          if (!/^(0|8)\d{9,13}$/.test(formData[field])) {
+            errors[field] = 'Invalid phone number format.it cant be more than 13 digits and should start with 0 or 8';
+          }
+      }
         if (formData[field] === '') {
           errors[field] = `${field} is required`;
         }

@@ -17,7 +17,7 @@ import {
   Snackbar,
 } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
-import { DataGrid, GridActionsCellItem,GridCsvExportOptions, GridToolbar, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem,GridCsvExportMenuItem,GridCsvExportOptions, GridToolbar, GridToolbarContainer, GridToolbarExport, GridToolbarExportContainer } from '@mui/x-data-grid';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // components
@@ -398,7 +398,11 @@ function CustomToolbar() {
   return (
     <GridToolbarContainer>
        {priv.export === 1 && (
-        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+          <GridToolbarExportContainer>
+          <GridCsvExportMenuItem options={{ 
+          delimiter: ';',
+           }} />
+        </GridToolbarExportContainer>
       )}
     </GridToolbarContainer>
   );

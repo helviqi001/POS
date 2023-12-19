@@ -83,6 +83,11 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
       
       // Perform validation here
       Object.keys(formData).forEach((field) => {
+        if(field === 'phone') {
+          if (!/^(0|8)\d{9,13}$/.test(formData[field])) {
+            errors[field] = 'Invalid phone number format.it cant be more than 13 digits and should start with 0 or 8';
+          }
+      }
         if (formData[field] === '') {
           errors[field] = `${field} is required`;
         }
@@ -226,7 +231,7 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
                 <DatePicker  label="Register Date" onChange={handleDate} 
                 defaultValue={dayjs(state.formData.RegisterDate)} 
                 key={state.formData.id}
-                disableFuture 
+                disabled 
                 slotProps={{ textField: { helperText:state.validationErrors.RegisterDate , error:!!state.validationErrors.RegisterDate} }} />
             </DemoContainer>
           </LocalizationProvider>
@@ -255,9 +260,8 @@ const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
             name='phone'
             onChange={handleChange}
             defaultValue={state.formData.phone}
-            key={state.formData.phone}
-            error={!!state.validationErrors.id}
-            helperText={state.validationErrors.phone || ' '}
+            error={!!state.validationErrors.phone}
+            helperText={state.validationErrors.phone}
             onKeyDown={handleKeyDown}
           />
   

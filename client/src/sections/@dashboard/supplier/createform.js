@@ -74,11 +74,15 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
     }
     
     const handleValidation=(formData)=>{
-      console.log(formData);
       const errors = {};
       
       // Perform validation here
       Object.keys(formData).forEach((field) => {
+        if(field === 'phone') {
+          if (!/^(0|8)\d{9,13}$/.test(formData[field])) {
+            errors[field] = 'Invalid phone number format.it cant be more than 13 digits and should start with 0 or 8';
+          }
+      }
         if (formData[field] === '') {
           errors[field] = `${field} is required`;
         }
@@ -94,6 +98,7 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
       
       return errors;
     }
+    console.log(state);
 
     const handleChange = e =>{
         dispatch(
@@ -115,12 +120,14 @@ const CreateSupplier = ({ style2 , openModal , handleCloseModal })=>{
       const formattedDate = `${year}-${month}-${day}`;
       dispatch({type:"DATE_INPUT",payload: formattedDate})
     }
+
     const cookie = cookies.get("Authorization")
+
     const handleCreate= async() =>{
       const formdata = { ...state.formData }; // Clone the formData to avoid modifying the original state
 
       const errors = handleValidation(formdata);
-
+      console.log(errors);
       if (Object.keys(errors).length > 0) {
         return;
       }

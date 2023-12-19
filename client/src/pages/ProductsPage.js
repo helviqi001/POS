@@ -20,7 +20,7 @@ import {
   Dialog,
   DialogContent,
 } from '@mui/material';
-import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridCsvExportMenuItem, GridToolbarContainer, GridToolbarExport, GridToolbarExportContainer } from '@mui/x-data-grid';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 // components
@@ -534,7 +534,11 @@ const CustomToolbar =()=>{
     <>
     <GridToolbarContainer>
       {priv.export === 1 && (
-        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+        <GridToolbarExportContainer>
+         <GridCsvExportMenuItem options={{ 
+         delimiter: ';',
+          }} />
+       </GridToolbarExportContainer>
       )}
       {priv.import === 1 && (
         <Button onClick={handleOpenModal}>Import</Button>

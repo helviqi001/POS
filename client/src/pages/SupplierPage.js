@@ -23,7 +23,7 @@ import {
   Snackbar,
 } from '@mui/material'; 
 import DetailsIcon from '@mui/icons-material/Details';
-import { DataGrid, GridActionsCellItem, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridCsvExportMenuItem, GridToolbarContainer, GridToolbarExport, GridToolbarExportContainer } from '@mui/x-data-grid';
 // components
 import MuiAlert from '@mui/material/Alert';
 import CreateSupplier from '../sections/@dashboard/supplier/createform';
@@ -529,7 +529,11 @@ const CustomToolbar =()=>{
     <>
     <GridToolbarContainer>
       {priv.export === 1 && (
-        <GridToolbarExport printOptions={{ disableToolbarButton: true }} />
+          <GridToolbarExportContainer>
+          <GridCsvExportMenuItem options={{ 
+          delimiter: ';',
+           }} />
+        </GridToolbarExportContainer>
       )}
       {priv.import === 1 && (
         <Button onClick={handleOpenModal}>Import</Button>
