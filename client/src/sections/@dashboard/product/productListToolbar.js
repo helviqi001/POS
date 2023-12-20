@@ -43,9 +43,6 @@ ProductListToolbar.propTypes = {
   onFilterName: PropTypes.func,
 };
 
-const Alert = forwardRef((props, ref) =>{
-  return <MuiAlert elevation={6} ref={ref} variant="standard" {...props} />;
-});
 export default function ProductListToolbar({selected,setId, filterName, onFilterName,handleClick }) {
   const handle=()=>{
     handleClick()
@@ -53,7 +50,6 @@ export default function ProductListToolbar({selected,setId, filterName, onFilter
   }
   return (
     <>
-    
     <StyledRoot
       sx={{
         ...(selected.length > 0 && {

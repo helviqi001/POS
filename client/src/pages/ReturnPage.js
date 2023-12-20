@@ -58,7 +58,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.productName.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -99,7 +99,7 @@ export default function ReturnPage() {
   
   const [productList,setProduct] = useState([])
   
-  const [id,setId] = useState()
+  const [id,setId] = useState([])
 
   const [loading,setLoading] = useState(true)
   
@@ -264,7 +264,7 @@ export default function ReturnPage() {
       load(false)
     })
   }
-  
+
   const style2 = {
     marginTop: 2
   }
@@ -316,10 +316,14 @@ export default function ReturnPage() {
                       paginationModel: { page: 0, pageSize: 5 },
                     },
                   }}
+                  
                   slots={{
                     toolbar: CustomToolbar,
                   }}
                   pageSizeOptions={[5, 10]}
+                  onRowSelectionModelChange={(s)=>{
+                    setSelected(s)
+                  }}
                   checkboxSelection 
                   disableRowSelectionOnClick
                   getRowHeight={() => 'auto'}
@@ -339,6 +343,9 @@ export default function ReturnPage() {
                     toolbar: CustomToolbar,
                   }}
                   pageSizeOptions={[5, 10]}
+                  onRowSelectionModelChange={(s)=>{
+                    setSelected(s)
+                  }}
                   checkboxSelection 
                   disableRowSelectionOnClick
                   getRowHeight={() => 'auto'}
