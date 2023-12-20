@@ -224,7 +224,7 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
             >
                 <DatePicker  label="Register Date" 
                 onChange={(data)=>handleDate(data,"registerDate")} 
-                disableFuture
+                disabled
                 defaultValue={dayjs(state.formData.registerDate)} key={state.formData.id}/>
             </DemoContainer>
           </LocalizationProvider>
@@ -256,7 +256,7 @@ const EditCustomer = ({ id,style2 , openModal , handleCloseModal})=>{
                 'StaticDatePicker',
               ]}
             >
-                <DatePicker  label="Birth Date" onChange={(data)=>handleDate(data,"birthDate")} disabled defaultValue={dayjs(state.formData.birthDate)} key={state.formData.id}/>
+                <DatePicker  label="Birth Date" onChange={(data)=>handleDate(data,"birthDate")} defaultValue={dayjs(state.formData.birthDate)} key={state.formData.id}/>
             </DemoContainer>
           </LocalizationProvider>
           <FormHelperText>{state.validationErrors.birthDate}</FormHelperText>

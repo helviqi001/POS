@@ -109,7 +109,7 @@ class UnitController extends Controller
             $unit = handle_fields($fields, $this->possible_fields, $unit);
         }
 
-        return $unit->first();
+        return $unit->findOrFail($id);
     }
 
     /**

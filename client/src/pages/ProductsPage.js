@@ -130,6 +130,8 @@ export default function ProductPage() {
 
   const { vertical, horizontal, openSnack , message } = state2;
 
+  console.log(productList); 
+  
   const handleClick = () => {
     setState({ ...state2, openSnack: true });
     setOpen(null);

@@ -63,7 +63,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.itemType.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -94,8 +94,6 @@ export default function CategoryPage() {
   const [orderBy, setOrderBy] = useState('');
 
   const [filterName, setFilterName] = useState('');
-
-  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [create,setCreate] = useState(false)
 
@@ -233,32 +231,16 @@ export default function CategoryPage() {
       load(false)
     })
   }
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflowY:"scroll"
-  };
   
   const style2 = {
     marginTop: 2
-  }
-  const style3 = {
-    overflowX:"scroll",
-    marginTop:2,
   }
 
   const handleFilterByName = (event) => {
     setPage(0);
     setFilterName(event.target.value);
   };
-  
+  console.log(productList);
   const filteredUsers = applySortFilter(productList, getComparator(order, orderBy), filterName);
   return (
     <>
