@@ -206,7 +206,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal,s
 
 
   const handleChange=(e,id,stock)=>{
-    const newquantity = parseInt(e.target.value,10);
+    const newquantity = e.target.value;
 
     const updateProduct = state.product.map((p)=>{
       if(p.id === id){
@@ -219,7 +219,7 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal,s
     handleChangeValidation(formdata);
   }
 
-  const handleChangeForm = e =>{
+  const handleChangeForm = (e) =>{
     dispatch(
       {type:"CHANGE_INPUT" , payload:{name:e.target.name , value:e.target.value}},
     )
@@ -233,8 +233,9 @@ export default function CartWidget({openModal,handleCloseModal,handleOpenModal,s
 }
 const handleChangeValidation=(formData)=>{
     const errors = {};
+    console.log(formData.value);
     if(formData.name === `quantity-${formData.id}`) {
-      if (!/^[0-9]{1,13}$/.test(formData.value)) {
+      if (!/^[0-9]+$/.test(formData.value)) {
         errors[formData.name] = 'field should be fill by 0-9';
       }
       if (formData.value > formData.stock) {

@@ -30,7 +30,7 @@ import { ProductListToolbar } from '../sections/@dashboard/product';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 import { OutletContext } from '../layouts/dashboard/OutletProvider';
-import DetailRestock from '../sections/@dashboard/restock/detail';
+import DetailReturn from '../sections/@dashboard/return/detail';
 
 // ----------------------------------------------------------------------
 
@@ -146,7 +146,12 @@ export default function ReturnPage() {
     { field: 'quantity', headerName: 'Quantity', width: 150,headerAlign: 'center',align:'center' },
     { field: 'coli', headerName: 'Coli', width: 150, headerAlign: 'center',align:'center'},
     { field: 'returnDate', headerName: 'Return Date',width:150,headerAlign: 'center',align:'center'},
-    { field: 'totalSpend', headerName: 'Total Refund',width:150,headerAlign: 'center',align:'center'},
+    { field: 'totalSpend', headerName: 'Total Refund',width:150,headerAlign: 'center',align:'center',valueGetter: (params) => {
+      const totalSpend = params.row.totalSpend;
+      return `IDR ${totalSpend.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      })}`}},
     {
       field: 'actions',
       type: 'actions',
@@ -259,25 +264,9 @@ export default function ReturnPage() {
       load(false)
     })
   }
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-    overflowY:"scroll"
-  };
   
   const style2 = {
     marginTop: 2
-  }
-  const style3 = {
-    overflowX:"scroll",
-    marginTop:2,
   }
   
   const handleFilterByName = (event) => {
@@ -400,7 +389,7 @@ export default function ReturnPage() {
       {openModal && (
                   <>
                       {Detail && (
-                          <DetailRestock style2={style2} openModal={openModal} handleCloseModal={handleCloseModal} id={id} />
+                          <DetailReturn style2={style2} openModal={openModal} handleCloseModal={handleCloseModal} id={id} />
                       )}
                   </>
               )}
