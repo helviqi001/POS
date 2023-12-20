@@ -32,7 +32,7 @@ const DetailReturn= ({ id , openModal , handleCloseModal})=>{
       useEffect(()=>{
         setLoading(true)
         const getData= async()=>{
-          await axios.get(`${apiEndpoint}api/returns/${id}?relations=products`,{
+          await axios.get(`${apiEndpoint}api/returs/${id}?relations=products`,{
             headers:{
               "Content-Type":"aplication/json",
               Authorization: `Bearer ${cookie}`
@@ -79,8 +79,8 @@ const DetailReturn= ({ id , openModal , handleCloseModal})=>{
                           <TableCell component="th" scope="row" align="center">
                             {p.name}
                           </TableCell >
-                          <TableCell align="center">{p.pivot.quantity}pcs</TableCell>
-                          <TableCell align="center">{p.pivot.coli}coli</TableCell>
+                          <TableCell align="center">{p.pivot.quantity} pcs</TableCell>
+                          <TableCell align="center">{p.pivot.coli} coli</TableCell>
                         </TableRow>
                     </TableBody>
                 
