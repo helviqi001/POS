@@ -145,7 +145,7 @@ export default function FleetPage() {
     { field: 'idFleet', headerName: 'Kode Fleet', width:205 , headerAlign: 'center', align:'center'},
     { field: 'name', headerName: 'Staff Name', width:205 , headerAlign: 'center', align:'center'},
     { field: 'plateNumber', headerName: 'Plate Number', width: 205 , headerAlign: 'center',align:'center'},
-    { field: 'information', headerName: 'Information', width: 205, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
+    { field: 'informations', headerName: 'Information', width: 205, headerAlign: 'center', align: 'center', renderCell: (params) => <TruncatedInformation text={params.value} /> },
     {
       field: 'actions',
       type: 'actions',

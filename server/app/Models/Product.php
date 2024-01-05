@@ -42,7 +42,7 @@ class Product extends Model
     }
     public function returns()
     {
-        return $this->belongsToMany(Returns::class);
+        return $this->belongsToMany(Retur::class);
     }
     public function restocks()
     {
