@@ -26,13 +26,13 @@ const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
 
 const EditForm = ({ id,style2 , openModal , handleCloseModal})=>{
   
-    const cookie = cookies.get("Authorization")
-    const [loading, setLoading] = useState(true);
-    const {load} = useContext(OutletContext)
-    const [state,dispatch] = useReducer(StaffReducer,INITIAL_STATE)
-    const [position , setPosition] = useState([])
-    const [staff , setStaff] = useState([])
-    const cookies = new Cookies
+  const [loading, setLoading] = useState(true);
+  const {load} = useContext(OutletContext)
+  const [state,dispatch] = useReducer(StaffReducer,INITIAL_STATE)
+  const [position , setPosition] = useState([])
+  const [staff , setStaff] = useState([])
+  const cookies = new Cookies
+  const cookie = cookies.get("Authorization")
     const [state2, setState] = useState({
       open: false,
       vertical: 'top',
